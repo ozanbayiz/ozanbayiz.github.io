@@ -8,10 +8,10 @@ function Projects() {
         <div style={{ fontSize }}>
             <nav>
                 <Link to="/">home</Link>
-                <Link to="/#/about">about</Link>
-                <Link to="/#/projects">projects</Link>
-                <Link to="/#/publications">publications</Link>
-                <Link to="/#/cv">CV</Link>
+                <Link to="/about">about</Link>
+                <Link to="/projects">projects</Link>
+                <Link to="/publications">publications</Link>
+                <Link to="/cv">CV</Link>
             </nav>
             <div className="header-line"></div>
             <div className="container">
