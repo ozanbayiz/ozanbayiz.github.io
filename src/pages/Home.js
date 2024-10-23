@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 
 function Home() {
     const fontSize = isMobile ? '12px' : '16px';
+    const alignItems = isMobile ? 'center' : 'flex-start';
 
     return (
-        <div className="container" style={{ fontSize }}>
+        <div className="container" style={{ fontSize, alignItems }}>
             <div className="top-content">
                 <div class="ascii-container">
                     <pre className="ascii-item">{"                     "}XXXXXXX{"\n"}{"                     "}XXXXXXX{"\n"}{"                    "}XXXXXXXX{"\n"}{"                    "}XXXXXXXX{"\n"}{"                    "}XX{"      "}{"\n"}{"           "}XXX{"       "}X{"      "}{"\n"}{"          "}XX X{"       "}X{"      "}{"\n"}{"         "}XX{"  "}XX{"      "}XX{"     "}{"\n"}{"         "}X{"    "}XXXXXXX X{"     "}{"\n"}{"        "}XX{"          "}XXX{"     "}{"\n"}{"        "}x{"                   "}{"\n"}{"        "}x{"                   "}{"\n"}xxx{"     "}X{"                   "}{"\n"}XXX{"    "}XX{"                   "}{"\n"}XXX{"  "}XXX{"                    "}{"\n"}{"  "}XX X{"                      "}{"\n"}{"   "}XXX{"                      "}</pre>
