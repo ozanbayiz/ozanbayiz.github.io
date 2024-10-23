@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 
 function About() {
     const fontSize = isMobile ? '12px' : '16px';
+    const asciiSize = isMobile ? '7.8px' : '16px';
+    const OzanSize = isMobile ? '9rem' : '19rem';
+    const OzanPadding = isMobile ? '0px' : 'var(--padding-desktop)';
     return (
         <div style={{ fontSize }}>
             <nav>
@@ -15,11 +18,11 @@ function About() {
             </nav>
 
             <div className="header-line"></div>
-
             <div className="content">
+                <br></br>
                 <div className="top-content">
-                    <pre className="ascii-item"> XXX XXX{"    "}XXX XXX{"        "}XXX{"      "}XXX XXX{"              "}{"\n"}XXX{"   "}XXX{"        "}XXX{"     "}XXX XXX{"    "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"       "}XXX{"     "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"    "}XXX XXX{"     "}XXX XXX{"    "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"     "}XXX{"       "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"    "}XXX{"        "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"} XXX XXX{"      "}XXX XXX{"   "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}{"\n"} XXX XXX{"       "}XXX{"      "}XXX{"   "}XXX{"    "}XXX XXX{"    "}XXX XXX{"  "}{"\n"}XXX{"   "}XXX{"    "}XXX XXX{"    "}XXX{"   "}XXX{"      "}XXX{"           "}XXX {"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"    "}XXX XXX{"       "}XXX{"          "}XXX{"  "}{"\n"} XXX XXX{"     "}XXX XXX{"       "}XXX{"         "}XXX{"       "}XXX XXX {"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"      "}XXX{"         "}XXX{"        "}XXX{"    "}{"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"      "}XXX{"         "}XXX{"       "}XXX{"     "}{"\n"} XXX XXX{"    "}XXX{"   "}XXX{"      "}XXX{"       "}XXX XXX{"      "}XXX XXX{"\n"}</pre>
-                    <img style={{padding: "var(--padding-desktop)", height: "19rem", width: "auto"}} src="/ozan_ascended.png"></img>
+                    <pre style={{fontSize: asciiSize}} className="ascii-item"> XXX XXX{"    "}XXX XXX{"        "}XXX{"      "}XXX XXX{"              "}{"\n"}XXX{"   "}XXX{"        "}XXX{"     "}XXX XXX{"    "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"       "}XXX{"     "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"    "}XXX XXX{"     "}XXX XXX{"    "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"     "}XXX{"       "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}XXX{"   "}XXX{"    "}XXX{"        "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"} XXX XXX{"      "}XXX XXX{"   "}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"            "}{"\n"}{"\n"} XXX XXX{"       "}XXX{"      "}XXX{"   "}XXX{"    "}XXX XXX{"    "}XXX XXX{"  "}{"\n"}XXX{"   "}XXX{"    "}XXX XXX{"    "}XXX{"   "}XXX{"      "}XXX{"           "}XXX {"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"    "}XXX XXX{"       "}XXX{"          "}XXX{"  "}{"\n"} XXX XXX{"     "}XXX XXX{"       "}XXX{"         "}XXX{"       "}XXX XXX {"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"      "}XXX{"         "}XXX{"        "}XXX{"    "}{"\n"}XXX{"   "}XXX{"   "}XXX{"   "}XXX{"      "}XXX{"         "}XXX{"       "}XXX{"     "}{"\n"} XXX XXX{"    "}XXX{"   "}XXX{"      "}XXX{"       "}XXX XXX{"      "}XXX XXX{"\n"}</pre>
+                    <img style={{padding: OzanPadding, height: OzanSize, width: "auto"}} src="/ozan_ascended.png"></img>
                 </div>
                 <div className="multi-container">
                     <div className="text-container">
@@ -43,10 +46,10 @@ function About() {
             <div className="content">
                 <div className="text-container">
                     <p>
-                        Ozan Bayiz is a junior Regents' Scholar at UC Berkeley studying Computer Science.
+                        Junior Regents' Scholar at UC Berkeley studying Computer Science.
                     </p>
                     <p>
-                        He is interested exploring the applications of deep learning in the intersection of technology and human-centered design.
+                        Interested in deep learning and human-centered design. Likes pretty pictures.
                     </p>
                 </div>
             </div>
