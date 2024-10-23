@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 
-function Publications() {
+function Resume() {
     const fontSize = isMobile ? '12px' : '16px';
     return (
         <div style={{ fontSize }}>
@@ -21,4 +21,4 @@ function Publications() {
     );
 }
 
-export default Publications;
+export default Resume;

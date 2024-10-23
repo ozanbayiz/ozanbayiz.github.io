@@ -5,7 +5,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Publications from './pages/Publications';
 import Projects from './pages/Projects';
-
+import Resume from './pages/Resume';
 function useIsMobile() {
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -33,6 +33,7 @@ function App() {
         <Route path="/about" element={<About isMobile={isMobile} />} />
         <Route path="/projects" element={<Projects isMobile={isMobile} />} />
         <Route path="/publications" element={<Publications isMobile={isMobile} />} />
+        <Route path="/resume" element={<Resume isMobile={isMobile} />} />
       </Routes>
     </Router>
   );
