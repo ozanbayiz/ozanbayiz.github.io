@@ -14,7 +14,7 @@ function About() {
                 <Link to="/about">about</Link>
                 <Link to="/projects">projects</Link>
                 <Link to="/publications">publications</Link>
-                <Link to="/resume">resume</Link>
+                <Link to="/cv">CV</Link>
             </nav>
 
             <div className="header-line"></div>

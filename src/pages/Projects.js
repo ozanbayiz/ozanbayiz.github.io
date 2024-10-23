@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { isMobile } from 'react-device-detect';
 
-function Publications() {
+function Projects() {
     const fontSize = isMobile ? '12px' : '16px';
     return (
         <div style={{ fontSize }}>
@@ -11,7 +11,7 @@ function Publications() {
                 <Link to="/about">about</Link>
                 <Link to="/projects">projects</Link>
                 <Link to="/publications">publications</Link>
-                <Link to="/resume">resume</Link>
+                <Link to="/cv">CV</Link>
             </nav>
             <div className="header-line"></div>
             <div className="container">
@@ -21,4 +21,4 @@ function Publications() {
     );
 }
 
-export default Publications;
+export default Projects;
