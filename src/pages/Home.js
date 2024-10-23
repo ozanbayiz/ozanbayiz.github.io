@@ -19,10 +19,10 @@ function Home() {
             <div className="bottom-content">
 
                 <nav>
-                    <Link to="/about">about</Link>
-                    <Link to="/projects">projects</Link>
-                    <Link to="/publications">publications</Link>
-                    <Link to="/cv">CV</Link>
+                    <Link to="/#about">about</Link>
+                    <Link to="/#projects">projects</Link>
+                    <Link to="/#publications">publications</Link>
+                    <Link to="/#cv">CV</Link>
                 </nav>
                 
                 <div className="social-links">
