@@ -1,3 +1,5 @@
 ### ozanbayiz
 --- 
-my personal website; web-dev practice
+undergraduate at UC Berkeley
+
+Interested in deep learning applications and human-centered design.
