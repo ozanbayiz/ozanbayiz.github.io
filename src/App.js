@@ -30,10 +30,10 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home isMobile={isMobile} />} />
-        <Route path="/#about" element={<About isMobile={isMobile} />} />
-        <Route path="/#projects" element={<Projects isMobile={isMobile} />} />
-        <Route path="/#publications" element={<Publications isMobile={isMobile} />} />
-        <Route path="/#cv" element={<CV isMobile={isMobile} />} />
+        <Route path="/about" element={<About isMobile={isMobile} />} />
+        <Route path="/projects" element={<Projects isMobile={isMobile} />} />
+        <Route path="/publications" element={<Publications isMobile={isMobile} />} />
+        <Route path="/cv" element={<CV isMobile={isMobile} />} />
       </Routes>
     </Router>
   );
