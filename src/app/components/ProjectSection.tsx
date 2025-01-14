@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function ProjectSection() {
     return (
         <section>
-            <div className="w-full m-4 grid gap-16 grid-cols-1 md:grid-cols-2 justify-stretch">
+            <div className="max-w-full m-4 grid gap-16 grid-cols-1 md:grid-cols-2 justify-stretch">
                 <div className="text-center sm:text-left">
                     <h1 className="mb-4 text-xl sm:text-2xl font-bold">
                         Projects
