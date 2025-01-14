@@ -18,13 +18,14 @@ const OzanSection = () => {
                         />
                     </h1>
                     <p>
-                        I'm a third-year R&C Scholar @ UC Berkeley studying CS.
-                        I'm interested in following human-centered design principles to develop use-inspired tools, and applying deep learning and classical
+                        I&apos;m a third-year R&amp;C Scholar @ UC Berkeley studying CS.
+                        I&apos;m interested in following human-centered design principles to develop use-inspired tools, and applying deep learning and classical
                         computer vision techniques to model and analyze visual data.
                         <br></br>
                         <br></br>
                         
-                        My other interests include yoga, reading, fashion, and music.
+                        AFK, I like to take long walks and look at pretty pictures.
+
                     </p>
                 </div>
                 <div className="col-span-5 place-self-center mt-4 md:mt-0">
