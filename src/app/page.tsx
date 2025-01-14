@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image";
 import OzanSection from "./components/OzanSection";
 import SocialLinks from "./components/SocialLinks";
 import TopAscii from "./components/TopAscii";
