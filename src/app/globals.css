@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: white;
+  --foreground: black;
+}
+ /* force dark mode */
+:root {
+  --background: black;
+  --foreground: white;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: black;
+    --foreground: white;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-jetbrains-mono), Arial, Helvetica, sans-serif;
+}
