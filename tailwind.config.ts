@@ -15,7 +15,7 @@ export default {
         primary: colors.indigo,
       },
       fontSize: {
-        '2xs': '0.65rem',
+        '2xs': '0.6rem',
       },
     },
   },

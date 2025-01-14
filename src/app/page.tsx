@@ -6,7 +6,7 @@ import TopAscii from "./components/TopAscii";
 import ProjectSection from "./components/ProjectSection";
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center mx-auto container p-4">
+    <div className="flex flex-col items-center justify-center mx-auto container p-4 pl-2">
 
       {/* ascii art*/}
       <TopAscii />
