@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export default function ProjectCard({title, description, imageUrl, gitUrl}: {title: string, description: string, imageUrl: string, gitUrl: string, demoUrl: string}) {
+export default function ProjectCard({title, description, imageUrl, gitUrl}: {title: string, description: string, imageUrl: string, gitUrl: string}) {
     return (
         <div 
             className="border-2 border-dashed border-foreground"
