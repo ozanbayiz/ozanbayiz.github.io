@@ -32,13 +32,12 @@ export default function ProjectSection() {
                     <br></br>
                     <ul className="grid grid-cols-1 gap-4">
                         {projectsData.map((project, index) => (
-                            <li>
+                            <li key={index}>
                                 <ProjectCard
-                                key={index}
-                                title={project.title}
-                                description={project.description}
-                                imageUrl={project.imageUrl}
-                                gitUrl={project.gitUrl}
+                                    title={project.title}
+                                    description={project.description}
+                                    imageUrl={project.imageUrl}
+                                    gitUrl={project.gitUrl}
                                 />
                             </li>
                         ))}
