@@ -1,1 +1,1 @@
-personal website; [check me out](ozanbayiz.github.io)
+personal website; [check me out](https://ozanbayiz.github.io/)
