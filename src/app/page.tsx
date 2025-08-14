@@ -1,34 +1,40 @@
-"use client"
+import SectionDivider from '@/components/SectionDivider'
 
-import OzanSection from "../components/OzanSection";
-import SocialLinks from "../components/SocialLinks";
-import TopAscii from "../components/TopAscii";
-import ProjectSection from "../components/ProjectSection";
+import OzanSection from '../components/OzanSection'
+import ProjectSection from '../components/ProjectSection'
+import ResearchSection from '../components/ResearchSection'
+import SocialLinks from '../components/SocialLinks'
+import TopAscii from '../components/TopAscii'
 
 export default function Home() {
-  return (
-    <div className="flex flex-col items-center justify-center mx-auto container p-4 pl-2">
+    return (
+        <div className='container mx-auto flex flex-col items-center justify-center px-4 py-4' style={{ ['--inset-x' as unknown as string]: '1rem' }}>
+            {/* ascii art*/}
+            <TopAscii />
 
-      {/* ascii art*/}
-      <TopAscii />
+            <SectionDivider />
+            {/* <Separator /> */}
 
+            <SocialLinks />
 
-      <div className="w-screen border-t-2 border-foreground border-dashed"></div>
+            <SectionDivider />
+            {/* <Separator /> */}
 
-      <SocialLinks />
+            <OzanSection />
 
-      <div className="w-screen border-t-2 border-foreground border-dashed"></div>
+            <SectionDivider />
+            {/* <Separator /> */}
 
-      <OzanSection />
+            <ProjectSection />
 
-      <div className="w-screen border-t-2 border-foreground border-dashed"></div>
+            <SectionDivider />
+            {/* <Separator /> */}
 
-      <ProjectSection />
+            <ResearchSection />
 
-      {/* <div className="w-screen border-t-2 border-foreground border-dashed"></div> */}
+            Ozan Bayiz, 2025
 
-      {/* <BottomAscii /> */}
-
-    </div>
-  );
+            {/* <BottomAscii /> */}
+        </div>
+    )
 }

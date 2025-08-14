@@ -1,0 +1,173 @@
+<a id="part-0" />
+## Part 0: Setup
+
+The seed I chose is 80808. Here are the images I generated for this part with 20 inference steps:
+
+![original generated imgs](/projects/cs180/proj5/5a/original_generated_imgs.png)
+
+The quality of the images seems pretty consistent across different text prompts.
+
+Here is the result of picking different numbers of inference steps:
+
+![comparing steps](/projects/cs180/proj5/5a/comparing_different_num_inference_steps.png)
+
+---
+
+<a id="part-1" />
+## Part 1: Sampling Loops
+
+<a id="part-1-1" />
+### 1.1 Implementing the Forward Process
+
+I implemented the forward process according to the spec.
+
+![forward noising camp](/projects/cs180/proj5/5a/forward_noising_camp.png)
+
+<a id="part-1-2" />
+### 1.2 Classical Denoising
+
+I tried to denoise the noised image with gaussian filtering. This worked about as well as expected.
+
+![filtered noise levels](/projects/cs180/proj5/5a/filtered_noise_levels.png)
+
+<a id="part-1-3" />
+### 1.3 One-Step Denoising
+
+I implemented the one-step denoising process. I noticed that single-step denoising on an image with a lot of noise changed the content of the image.
+
+![single step denoising](/projects/cs180/proj5/5a/single_step_denoising.png)
+
+<a id="part-1-4" />
+### 1.4 Iterative Denoising
+
+I implemented the iterative denoising process according to the spec. Here's a gif created from every frame of the denoising process.
+
+![iterative denoise gif](/projects/cs180/proj5/5a/iterative_denoise.gif)
+
+And here's a comparison of the iterative denoising and other denoising methods:
+
+![iter denoise comparisons](/projects/cs180/proj5/5a/iter_denoise_comparisons.png)
+
+<a id="part-1-5" />
+### 1.5 Diffusion Model Sampling
+
+By applying the iterative denoising steps that I defined in part 1.4 to pure noise, I was able to generate new images.
+
+ 
+<ImageGrid>
+![gen 1](/projects/cs180/proj5/5a/generated_imgs/1.png)
+![gen 2](/projects/cs180/proj5/5a/generated_imgs/2.png)
+![gen 3](/projects/cs180/proj5/5a/generated_imgs/3.png)
+![gen 4](/projects/cs180/proj5/5a/generated_imgs/4.png)
+![gen 5](/projects/cs180/proj5/5a/generated_imgs/5.png)
+</ImageGrid>
+ 
+
+<a id="part-1-6" />
+### 1.6 Classifier-Free Guidance (CFG)
+
+I implemented classifier-free guidance according to the spec.
+
+ 
+<ImageGrid>
+![cfg 0](/projects/cs180/proj5/5a/generated_cfg/0.png)
+![cfg 1](/projects/cs180/proj5/5a/generated_cfg/1.png)
+![cfg 2](/projects/cs180/proj5/5a/generated_cfg/2.png)
+![cfg 3](/projects/cs180/proj5/5a/generated_cfg/3.png)
+![cfg 4](/projects/cs180/proj5/5a/generated_cfg/4.png)
+</ImageGrid>
+ 
+
+<a id="part-1-7" />
+### 1.7 Image-to-image Translation
+
+I applied various amounts of noise to the test image to get the following results.
+
+![i2i altogether](/projects/cs180/proj5/5a/1.7.0/test_img_altogether.png)
+
+Here is the result of applying different amounts of noise to cheems.
+
+![cheems altogether](/projects/cs180/proj5/5a/1.7.0/cheems_altogether.png)
+
+And here are the results for a picture I found on a [cool wikipedia page about ecdysis](https://en.wikipedia.org/wiki/Ecdysis).
+
+![spider altogether](/projects/cs180/proj5/5a/1.7.0/spider_altogether.png)
+
+<a id="part-1-7-1" />
+#### 1.7.1 Editing Hand-Drawn and Web Images
+
+The image I chose from the web is nyan cat.
+
+![nyan cat](/projects/cs180/proj5/5a/1.7.1/nyan_cat.png)
+
+Here are the results of editing two images I drew.
+
+![moon sketch](/projects/cs180/proj5/5a/1.7.1/moon_sketch.png)
+
+![drawn cat](/projects/cs180/proj5/5a/1.7.1/drawn_cat.png)
+
+<a id="part-1-7-2" />
+#### 1.7.2 Inpainting
+
+Here is the inpainted image of the Campanile.
+
+![camp inpainted](/projects/cs180/proj5/5a/1.7.2/camp_inpainted.png)
+
+I wondered how the diffusion model would fill in nyan cat's rainbow trail. I was sort of disappointed.
+
+![nyan cat inpainted](/projects/cs180/proj5/5a/1.7.2/nyan_cat_inpainted.png)
+
+I also wondered how the diffusion model would fill in Aphex Twin's face; I was similarly disappointed.
+
+![aphex inpainted](/projects/cs180/proj5/5a/1.7.2/aphex_inpainted.png)
+
+<a id="part-1-7-3" />
+#### 1.7.3 Text-Conditional Image-to-image Translation
+
+I just turned everything into a rocket.
+
+![rocket camp](/projects/cs180/proj5/5a/1.7.3/rocket_camp.png)
+![rocket nyan](/projects/cs180/proj5/5a/1.7.3/rocket_nyan_cat.png)
+![rocket cheems](/projects/cs180/proj5/5a/1.7.3/rocket_cheems.png)
+
+<a id="part-1-8" />
+### 1.8 Visual Anagrams
+
+I was pleasantly surprised by how well this part worked. Here is my result for 
+<i>A visual anagram where on one orientation "an oil painting of people around a campfire" is displayed and, when flipped, "an oil painting of an old man" is displayed.</i>
+
+![old man campfire](/projects/cs180/proj5/5a/1.8/old_man_campfire.png)
+
+Here are my other results:
+
+![skull coast](/projects/cs180/proj5/5a/1.8/skull_coast.png)
+![dog man hhat](/projects/cs180/proj5/5a/1.8/dog_man_hhat.png)
+
+<a id="part-1-9" />
+### 1.9 Hybrid Images
+
+Although I got odd results, I'm pretty sure I implemented this part correctly. To justify my odd results, I'll explain my steps.
+
+1. Given my two prompts, $p_1$ and $ p_2 $ I found noise estimates $\epsilon_1(x_t, t, p_1) $ and  $ \epsilon_2(x_t, t, p_2)$.
+2. I convolved $\epsilon_1$ and $\epsilon_2 $ with a Gaussian kernel $(k=33, \sigma = 2$, as recommended) to get the low-frequency components, $\epsilon_1^{(LF)}$ and $\epsilon_2^{(LF)}$.
+3. I got the high-frequency component $\epsilon_2^{(HF)} = \epsilon_2 - \epsilon_2^{(LF)}$.
+4. I added $\epsilon_1^{(HF)}$ and $\epsilon_2^{(HF)}$ together to get the hybrid noise estimate $\epsilon_{\text{hybrid}}$.
+5. I used $ \epsilon_{\text{hybrid}} $ to denoise the image at time $t$.
+
+here is the result I got for the skull and waterfall:
+
+![skull waterfall](/projects/cs180/proj5/5a/1.9/skull_waterfall.png)
+
+here are the other results I got:
+
+ 
+
+![rocket man hat](/projects/cs180/proj5/5a/1.9/rocket_man_hat.png)
+![hipster barista dog](/projects/cs180/proj5/5a/1.9/hipster_barista_dog.png)
+![old man snow](/projects/cs180/proj5/5a/1.9/old_man_snow.png)
+
+ 
+
+---
+
+

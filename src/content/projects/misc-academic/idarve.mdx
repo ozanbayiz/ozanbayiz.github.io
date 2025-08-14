@@ -1,0 +1,95 @@
+## Introduction
+
+Understanding how vision encoders represent **sensitive demographic attributes** (race, gender, age) is essential for fairness, safety, and transparency. 
+This project studied Microsoft Florence‑2‑base’s vision encoder (DaViT) using linear probes and Sparse Autoencoders (SAEs) trained at the patch level to surface interpretable latent features correlated with demographic labels.
+
+This was my group's final project for CS182: Designing, Visualizing and Understanding Deep Neural Networks.
+We had to choose between interpretability and in-context learning. By the time I understood what ICL was, it was too late....
+
+<SectionDivider />
+
+## At a glance
+
+- **Model:** Florence‑2‑base Vision Encoder (DaViT)
+- **Data:** FairFace (balanced across **7 race** categories, plus gender & age)
+- **Probing result (race):** Linear probe on pooled VE activations achieves **62.15%** accuracy on **7‑way race** classification (**14.3%** random baseline)
+- **SAE strategy:** Overcomplete **patch‑level** SAE on final‑layer patch activations; sparsity via L1; image‑level aggregation (mean) for analysis
+- **Feature selection:** Multi‑stage filter — (1) **intra‑group activation frequency**, (2) **intra‑group mean activation**, (3) **inter‑group specificity via label entropy**
+- **Qualitative insight:** Some latents align strongly with race labels; others fire on **contextual proxies** (e.g., attire like headscarves, facial hair), highlighting potential bias mechanisms
+
+<SectionDivider />
+
+## Motivation
+
+Linear decodability of sensitive attributes in VE activations signals that demographic information exists in representations. SAEs help move beyond decodability to **mechanistic structure**, revealing **Sparse Dictionary Features (SDFs)** that can be spatially localized and qualitatively interpreted.
+
+<SectionDivider />
+
+## Methods
+
+### 1) Linear probing (baseline)
+- Extract final‑layer **patch features** from the VE; average‑pool to **image vectors**.
+- Train **separate linear probes** for race, age, gender on frozen features.
+- Race probe reaches **62.15%**, confirming substantial demographic signal beyond chance.
+
+### 2) Patch‑level Sparse Autoencoders
+- Train an **overcomplete SAE** directly on **per‑patch** activation vectors (avoids premature pooling, retains spatial attribution).
+- Enforce **sparsity** with L1 on hidden activations; reconstruct patch features with MSE loss.
+- Aggregate SDF activations to image level for label‑correlation analysis.
+
+### 3) Candidate SDF discovery
+- **Activation frequency** within each race group → top *k₁* SDFs per group.
+- **Mean activation strength** (conditioned on being active) → top *k₂* per group.
+- **Label entropy** across groups for each SDF → keep lowest‑entropy (*k₃*) per group as **race‑specific candidates**.
+
+### 4) Qualitative interpretation
+- Visualize top‑activating **image patches** for candidate SDFs to infer visual semantics (skin tone cues, facial structure, hair/attire, backgrounds).
+
+<SectionDivider />
+
+## Major findings
+
+- **Linearly decodable race signal:** The VE retains enough information for a simple linear model to substantially beat chance on 7‑way race classification.
+- **Race‑aligned latents exist:** Example SDFs (e.g., **latent 3142**) show >80% alignment with a target race across top activations, indicating strong specificity.
+- **Entangled/weak latents also appear:** Other SDFs (e.g., **latent 781**) show &lt;25% alignment, suggesting noisy or mixed concepts.
+- **Proxies, not essence:** Some SDFs associated with groups activate on **cultural/contextual markers**—e.g., headscarves (**latent 392**) or beards (**latent 396**). This illustrates how models may rely on **proxy features** correlated with demographic labels rather than intrinsic facial characteristics.
+
+<SectionDivider />
+
+## Limitations
+
+- **Unsupervised discovery risk:** Purely unsupervised SAEs can surface **entangled features**; not all discovered SDFs cleanly isolate demographics.
+- **Proxy sensitivity:** Reliance on contextual cues risks encoding **stereotypes**; signals may reflect **dataset correlations** rather than identity attributes per se.
+- **Scope:** Primary analysis focuses on **race** with FairFace; generalization to other datasets, demographics (age/gender), and VLMs requires broader evaluation.
+- **Causality not established:** Correlation between SDFs and labels does **not** show causal influence on downstream behaviors.
+
+<SectionDivider />
+
+## Next steps
+
+1. **Semi‑supervised / targeted SAEs:** Add light supervision or constraints to steer features toward **concept‑aligned** latents (e.g., SSSAE variants).
+2. **Causal testing:** Deploy **feature editing/pruning/ablation** to measure impact of candidate SDFs on **downstream tasks** (captioning, retrieval) and **fairness metrics**.
+3. **Robustness & confounding checks:** Control for lighting, pose, background; evaluate cross‑dataset transfer and **pretraining bias** effects.
+4. **Broader coverage:** Extend to **age/gender**, other VLMs, and multitask settings; compare pooling schemes (mean vs. max) and multi‑layer SAE training.
+5. **Mitigation strategies:** Use insights to guide **regularization**, **adversarial training**, or **data augmentation** that reduces reliance on sensitive proxies.
+
+<SectionDivider />
+
+## Reproducibility notes
+
+- Dataset: FairFace (balanced across race, gender, age)
+- Model: Microsoft Florence‑2‑base vision encoder (DaViT)
+
+<SectionDivider />
+
+## Team
+
+Ozan Bayiz · Charlie Cooper · Raiyan Hammad Ausaf · Kapil Malladi
+
+
+export const meta = {
+  layout: 'project',
+  readingTimeMinutes: 6,
+}
+
+

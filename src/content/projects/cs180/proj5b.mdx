@@ -1,0 +1,95 @@
+<a id="part-2" />
+## Part 1: Training a Single-Step Denoising UNet
+
+<a id="part-2-1" />
+### 1.1 Implementing the UNet
+
+I'm not sure what to show for this part. But I did it!
+
+<a id="part-2-2" />
+### 1.2 Using the UNet to Train a Denoiser
+
+Given a clean image, $x$, I noised it to get $z = x + \sigma \epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)$, and $\sigma \in \{0.0, 0.2, 0.4, 0.6, 0.8, 1.0\}$.
+
+![noising process](/projects/cs180/proj5/5b/uncond/noising_process.png)
+
+using this, I created a dataloader for training, which outputted batches of the form $(x, z)$ with $ \sigma = 0.5 $.
+
+![noising dataloader](/projects/cs180/proj5/5b/uncond/noising_dataloader.png)
+
+<a id="part-2-2-1" />
+#### 1.2.1 Training
+
+I trained the UNet for 5 epochs as desired and plotted training loss.
+
+![uncond unet 6 epochs](/projects/cs180/proj5/5b/uncond/uncond_unet_6_epochs.png)
+
+I sampled after 1 epoch.
+
+![1 epoch samples](/projects/cs180/proj5/5b/uncond/1_epoch_samples.png)
+
+And 6 epochs.
+
+![5 epoch samples](/projects/cs180/proj5/5b/uncond/5_epoch_samples.png)
+
+Pretty good!
+
+<a id="part-2-2-2" />
+#### 1.2.2 Out-of-Distribution Testing
+
+Then I tried denoising images with $\sigma \neq 0.5$
+
+![out of dist samples](/projects/cs180/proj5/5b/uncond/out_of_dist_samples.png)
+
+still, not bad!
+
+---
+
+<a id="part-3" />
+## Part 2: Training a Diffusion Model
+
+<a id="part-3-1" />
+### 2.1 Adding Time Conditioning to UNet
+
+I followed the spec and implemented time conditioning. As the spec recommended, I used a a hidden dimension of 64 and a batch size of 128. For optimization, I used Adam with a learning rate of 0.001 and an exponential learning rate scheduler with $\gamma = 0.9$.
+
+<a id="part-3-2" />
+### 2.2 Training the UNet
+
+Here is the training loss for the time-conditioned UNet during 20 epochs.
+
+![training loss](/projects/cs180/proj5/5b/time_cond/training_loss.png)
+
+<a id="part-3-3" />
+### 2.3 Sampling from the UNet
+
+here are my results for 5 and 20 epochs of training.
+
+ 
+<ImageGrid>
+![5 epoch samples (tc)](/projects/cs180/proj5/5b/time_cond/5_epoch_samples.png)
+![20 epoch samples (tc)](/projects/cs180/proj5/5b/time_cond/20_epoch_samples.png)
+</ImageGrid>
+ 
+
+<a id="part-3-4" />
+### 2.4 Adding Class-Conditioning to UNet
+
+I implemented class conditioning as specified in the spec. I used the same hyperparameters as in part 2.2, and got the following training loss for 20 epochs.
+
+![training loss (cc)](/projects/cs180/proj5/5b/class_cond/training_loss.png)
+
+<a id="part-3-5" />
+### 2.5 Sampling from the Class-Conditioned UNet
+
+here are my results for 5 and 20 epochs of training.
+
+<ImageGrid>
+![5 epoch samples (cc)](/projects/cs180/proj5/5b/class_cond/5_epoch_samples.png)
+![20 epoch samples (cc)](/projects/cs180/proj5/5b/class_cond/20_epoch_samples.png)
+</ImageGrid>
+
+Frankly the denoised results do not look as good as I would have wanted them to. My handwriting is also pretty bad, so maybe it's not my place to be so critical.
+
+
+

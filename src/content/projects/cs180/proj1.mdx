@@ -1,0 +1,206 @@
+## Introduction
+
+The first thing I did was search for metrics for image alignment that are invariant to difference in brightness levels between channels. 
+CS 170 gave me some insights into the wide applications of working in the frequency domain. 
+This got me thinking about a sentence on the website mentioning how 
+"""
+you might have to use a cleverer metric, or different features than the raw pixels.
+"""
+
+Ok..
+
+---
+
+## Phase Correlation
+
+I stumbled on [phase correlation](https://sthoduka.github.io/imreg_fmt/docs/phase-correlation/). Turns out that the maximum index (i,j) of the phase correlation matrix corresponds to the best shift. Implemented it and tried it out:
+
+![Lady Raw Channels](/projects/cs180/proj1/lady_channels_raw.png)
+
+↓ ↓ ↓ ↓
+
+![Phase Correlation Code](/projects/cs180/proj1/phase_correlation_code.png)
+
+↓ ↓ ↓ ↓
+
+![Lady Shifted Channels](/projects/cs180/proj1/lady_channels_shifted.png)
+
+sweet. done? But I still had to implement the image pyramid.
+
+---
+
+## Image Pyramid
+
+![Onion Church Pyramid](/projects/cs180/proj1/onion_church_pyramid.png)
+
+At each level, I divided the height/width of the query image by a power of 2. Each iteration would displace the query image 1 px up, down, left, and right, then pick the shift which yielded the highest metric.
+
+Getting the metric involved:
+
+- applying the shift with np.roll
+- cropping the image to the inner 0.8*W x 0.8*H px, since the border was interfering with the metric function's results
+- applying the metric function
+
+At first I tried MSE & NCC as metric functions. These didn't work so I went back online and found NGD, which also didn't really work (but maybe I was just being impatient). Eventually I found the [Structural Similarity Index Measure](https://en.wikipedia.org/wiki/Structural_similarity_index_measure) [(and its scikit-image documentation)](https://scikit-image.org/docs/stable/auto_examples/transform/plot_ssim.html), which gave me pretty good results.
+
+![Pyramid Code](/projects/cs180/proj1/pyramid_code.png)
+
+This worked fine (~15sec/TIF). Still lot slower than the phase correlation approach. I'm not super patient so the result images are those I got using phase correlation.
+
+
+
+---
+
+## Results
+
+here are all the images:
+
+ 
+
+<ImageGrid>
+
+<ImageTile src="/projects/cs180/proj1/results/cathedral.jpeg" alt="cathedral">
+#### Cathedral
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/church.jpeg" alt="church">
+#### Church
+
+---
+
+Red shift: (58, 3630)
+
+Green shift: (25, 3)
+
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/emir.jpeg" alt="emir">
+#### Emir
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/harvesters.jpeg" alt="harvesters">
+#### Harvesters
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/icon.jpeg" alt="icon">
+#### Icon
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/lady.jpeg" alt="lady">
+#### Lady
+
+---
+
+Red shift: (120, 13)
+
+Green shift: (57, 9)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/melons.jpeg" alt="melons">
+#### Melons
+
+---
+
+Red shift: (176, 14)
+
+Green shift: (79, 8)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/monastery.jpeg" alt="monastery">
+#### Monastery
+
+---
+
+Red shift: (3, 2)
+
+Green shift: (338, 2)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/onion_church.jpeg" alt="onion church">
+#### Onion Church
+
+---
+
+Red shift: (107, 34)
+
+Green shift: (51, 19)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/sculpture.jpeg" alt="sculpture">
+#### Sculpture
+
+---
+
+Red shift: (140, 3773)
+
+Green shift: (33, 3789)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/self_portrait.jpeg" alt="self portrait">
+#### Self Portrait
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/three_generations.jpeg" alt="three generations">
+#### Three Generations
+
+---
+
+Red shift: (111, 7)
+
+Green shift: (56, 12)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/tobolsk.jpeg" alt="tobolsk">
+#### Tobolsk
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+</ImageTile>
+
+<ImageTile src="/projects/cs180/proj1/results/train.jpeg" alt="train">
+#### Train
+
+---
+
+Red shift: (106, 41)
+
+Green shift: (49, 24)
+</ImageTile>
+
+</ImageGrid>
+
