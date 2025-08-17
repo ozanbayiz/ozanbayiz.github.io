@@ -1,95 +1,72 @@
-## Introduction
+## Abstract
 
-Understanding how vision encoders represent **sensitive demographic attributes** (race, gender, age) is essential for fairness, safety, and transparency. 
-This project studied Microsoft Florence‑2‑base’s vision encoder (DaViT) using linear probes and Sparse Autoencoders (SAEs) trained at the patch level to surface interpretable latent features correlated with demographic labels.
-
-This was my group's final project for CS182: Designing, Visualizing and Understanding Deep Neural Networks.
-We had to choose between interpretability and in-context learning. By the time I understood what ICL was, it was too late....
+Machine learning systems, especially modern Vision-Language Models (VLMs), can inherit and amplify societal biases related to race, gender, and age (Florence‑2 VLM; FairFace dataset). To build fairer and more trustworthy AI, we move beyond merely measuring bias to analyzing how it is represented internally in the vision encoder. In this project, we investigate Microsoft's Florence‑2 vision encoder using a combination of linear probing and Sparse Autoencoders (SAEs) to identify and visualize which internal features encode sensitive demographic attributes. Our findings show that some features align with demographic labels, while others often rely on contextual or cultural markers (e.g., headscarves, beards), illuminating one mechanism by which bias can emerge in downstream tasks.
 
 <SectionDivider />
 
-## At a glance
+## The Challenge: Seeing Inside the "Black Box"
 
-- **Model:** Florence‑2‑base Vision Encoder (DaViT)
-- **Data:** FairFace (balanced across **7 race** categories, plus gender & age)
-- **Probing result (race):** Linear probe on pooled VE activations achieves **62.15%** accuracy on **7‑way race** classification (**14.3%** random baseline)
-- **SAE strategy:** Overcomplete **patch‑level** SAE on final‑layer patch activations; sparsity via L1; image‑level aggregation (mean) for analysis
-- **Feature selection:** Multi‑stage filter — (1) **intra‑group activation frequency**, (2) **intra‑group mean activation**, (3) **inter‑group specificity via label entropy**
-- **Qualitative insight:** Some latents align strongly with race labels; others fire on **contextual proxies** (e.g., attire like headscarves, facial hair), highlighting potential bias mechanisms
+Large-scale vision models are often treated as "black boxes," making it difficult to understand why they produce particular outputs. When these models leverage sensitive attributes—explicitly or via proxies—it can perpetuate stereotypes and harm user trust. Our goal is to dissect internal representations to clarify how, and where, demographic information is encoded within the visual pathway of the model.
 
 <SectionDivider />
 
-## Motivation
+## Our Approach: A Three-Step Methodological Pipeline
 
-Linear decodability of sensitive attributes in VE activations signals that demographic information exists in representations. SAEs help move beyond decodability to **mechanistic structure**, revealing **Sparse Dictionary Features (SDFs)** that can be spatially localized and qualitatively interpreted.
+### Step 1: Confirming the Signal with Linear Probing
 
-<SectionDivider />
+We first test whether demographic information is linearly decodable from the vision encoder's activations. We extract patch-level features, average-pool to image vectors, and train simple linear probes for race, gender, and age. The race probe achieves 62.15% accuracy on a 7-class task (vs. 14.3% random baseline), confirming that demographic information is strongly present and justifying a deeper analysis (Florence‑2; FairFace).
 
-## Methods
+![Linear probing pipeline](/projects/idarve/LP_training.png)
+> Figure 1: Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction.
 
-### 1) Linear probing (baseline)
-- Extract final‑layer **patch features** from the VE; average‑pool to **image vectors**.
-- Train **separate linear probes** for race, age, gender on frozen features.
-- Race probe reaches **62.15%**, confirming substantial demographic signal beyond chance.
+### Step 2: Decomposing Activations with Sparse Autoencoders (SAEs)
 
-### 2) Patch‑level Sparse Autoencoders
-- Train an **overcomplete SAE** directly on **per‑patch** activation vectors (avoids premature pooling, retains spatial attribution).
-- Enforce **sparsity** with L1 on hidden activations; reconstruct patch features with MSE loss.
-- Aggregate SDF activations to image level for label‑correlation analysis.
+To understand the structure of this information, we train an overcomplete SAE on patch-level activations, preserving spatial detail for more fine-grained interpretability. The SAE learns a dictionary of sparse, interpretable features (Sparse Dictionary Features, SDFs) that can be visualized and analyzed at the image and patch levels.
 
-### 3) Candidate SDF discovery
-- **Activation frequency** within each race group → top *k₁* SDFs per group.
-- **Mean activation strength** (conditioned on being active) → top *k₂* per group.
-- **Label entropy** across groups for each SDF → keep lowest‑entropy (*k₃*) per group as **race‑specific candidates**.
+![Patch-level SAE pipeline](/projects/idarve/SAE_training.png)
+> Figure 2: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original features.
 
-### 4) Qualitative interpretation
-- Visualize top‑activating **image patches** for candidate SDFs to infer visual semantics (skin tone cues, facial structure, hair/attire, backgrounds).
+### Step 3: Identifying and Filtering Race‑Correlated Features
+
+From the learned dictionary, we apply a filtering pipeline to surface SDFs most relevant to race:
+
+- Activation frequency: features that frequently activate for a specific group
+- Mean activation strength: features that activate strongly (not just often)
+- Label entropy: features with high specificity to a single group
 
 <SectionDivider />
 
-## Major findings
+## Key Findings: Models Learn Proxies and Shortcuts
 
-- **Linearly decodable race signal:** The VE retains enough information for a simple linear model to substantially beat chance on 7‑way race classification.
-- **Race‑aligned latents exist:** Example SDFs (e.g., **latent 3142**) show >80% alignment with a target race across top activations, indicating strong specificity.
-- **Entangled/weak latents also appear:** Other SDFs (e.g., **latent 781**) show &lt;25% alignment, suggesting noisy or mixed concepts.
-- **Proxies, not essence:** Some SDFs associated with groups activate on **cultural/contextual markers**—e.g., headscarves (**latent 392**) or beards (**latent 396**). This illustrates how models may rely on **proxy features** correlated with demographic labels rather than intrinsic facial characteristics.
+The analysis reveals a mixture of signals. Some features align strongly with demographic labels, while others are entangled with unrelated concepts. Most notably, several features act as proxies for demographic categories by firing on contextual or cultural markers (e.g., headscarves or beards), suggesting shortcut learning that can manifest as bias in downstream tasks.
 
-<SectionDivider />
-
-## Limitations
-
-- **Unsupervised discovery risk:** Purely unsupervised SAEs can surface **entangled features**; not all discovered SDFs cleanly isolate demographics.
-- **Proxy sensitivity:** Reliance on contextual cues risks encoding **stereotypes**; signals may reflect **dataset correlations** rather than identity attributes per se.
-- **Scope:** Primary analysis focuses on **race** with FairFace; generalization to other datasets, demographics (age/gender), and VLMs requires broader evaluation.
-- **Causality not established:** Correlation between SDFs and labels does **not** show causal influence on downstream behaviors.
+<ImageGrid>
+![Headscarves activate a race‑associated feature](/projects/idarve/stereotype_feature1.png)
+![Beards activate a race‑associated feature](/projects/idarve/stereotype_feature2.png)
+</ImageGrid>
+> Figure 3: Examples of proxy features. Left: a feature strongly activates on headscarves; Right: another activates on beards. These contextual cues act as demographic proxies rather than intrinsic facial characteristics.
 
 <SectionDivider />
 
-## Next steps
+## Limitations & Future Directions
 
-1. **Semi‑supervised / targeted SAEs:** Add light supervision or constraints to steer features toward **concept‑aligned** latents (e.g., SSSAE variants).
-2. **Causal testing:** Deploy **feature editing/pruning/ablation** to measure impact of candidate SDFs on **downstream tasks** (captioning, retrieval) and **fairness metrics**.
-3. **Robustness & confounding checks:** Control for lighting, pose, background; evaluate cross‑dataset transfer and **pretraining bias** effects.
-4. **Broader coverage:** Extend to **age/gender**, other VLMs, and multitask settings; compare pooling schemes (mean vs. max) and multi‑layer SAE training.
-5. **Mitigation strategies:** Use insights to guide **regularization**, **adversarial training**, or **data augmentation** that reduces reliance on sensitive proxies.
+- Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific
+- Proxy sensitivity: contextual cues may reflect dataset correlations rather than intrinsic attributes
+- Scope: analysis focused on race in FairFace; broader datasets and attributes are needed
+- Causality not established: correlations do not prove that features cause biased behavior
 
-<SectionDivider />
-
-## Reproducibility notes
-
-- Dataset: FairFace (balanced across race, gender, age)
-- Model: Microsoft Florence‑2‑base vision encoder (DaViT)
+Future work includes: (1) causal interventions (feature editing/pruning/ablation) to test whether identified features drive biased outcomes, (2) semi‑supervised SAEs guided by concept targets, and (3) evaluation of robustness and generalization across datasets and VLMs.
 
 <SectionDivider />
 
-## Team
+## Resources
 
-Ozan Bayiz · Charlie Cooper · Raiyan Hammad Ausaf · Kapil Malladi
+- Read the full paper (PDF): [writeup.pdf](/idarve/writeup.pdf)
+- Code: https://github.com/ozanbayiz/idarve
 
 
 export const meta = {
-  layout: 'project',
-  readingTimeMinutes: 6,
+  layout: 'project'
 }
 
 

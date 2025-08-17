@@ -64,6 +64,7 @@ export default function ProjectSidebarShell({
     type TocItem = { id: string; title: string; children: TocItem[] }
     const [toc, setToc] = React.useState<TocItem[]>([])
     const [expandedMap, setExpandedMap] = React.useState<Record<string, boolean>>({})
+    const [activeOverrideId, setActiveOverrideId] = React.useState<string | null>(null)
     const idToParent = React.useMemo(() => {
         const map: Record<string, string | null> = {}
         const walk = (nodes: TocItem[], parent: string | null) => {
@@ -201,6 +202,7 @@ export default function ProjectSidebarShell({
 
     // Account for sticky header height (~64px)
     const activeId = useScrollSpy(allIds, '-64px 0px -55% 0px')
+    const effectiveActiveId = activeOverrideId ?? activeId
 
     // Initialize expansion state: default closed; will expand active path after detecting activeId
     React.useEffect(() => {
@@ -225,10 +227,10 @@ export default function ProjectSidebarShell({
 
     // Auto-expand only the active path (collapse siblings)
     React.useEffect(() => {
-        if (!activeId) return
-        // Build chain of ancestors from activeId
+        if (!effectiveActiveId) return
+        // Build chain of ancestors from current active id
         const chain: string[] = []
-        let cur: string | undefined = activeId
+        let cur: string | undefined = effectiveActiveId
         while (cur) {
             const parent: string | null | undefined = idToParent[cur]
             if (parent) chain.unshift(parent)
@@ -238,7 +240,35 @@ export default function ProjectSidebarShell({
         const nextMap: Record<string, boolean> = {}
         chain.forEach(id => (nextMap[id] = true))
         setExpandedMap(nextMap)
-    }, [activeId, idToParent])
+    }, [effectiveActiveId, idToParent])
+
+    // Clear override once scroll spy catches up to the override target
+    React.useEffect(() => {
+        if (activeOverrideId && activeId === activeOverrideId) {
+            setActiveOverrideId(null)
+        }
+    }, [activeId, activeOverrideId])
+
+    // Apply hash from URL on mount and when hash/back-forward changes
+    React.useEffect(() => {
+        const applyHash = () => {
+            if (typeof window === 'undefined') return
+            const id = window.location.hash?.slice(1) || ''
+            if (id) setActiveOverrideId(id)
+        }
+        applyHash()
+        const onHashChange = () => applyHash()
+        if (typeof window !== 'undefined') {
+            window.addEventListener('hashchange', onHashChange)
+            window.addEventListener('popstate', onHashChange)
+        }
+        return () => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('hashchange', onHashChange)
+                window.removeEventListener('popstate', onHashChange)
+            }
+        }
+    }, [])
 
     const toggleSection = (id: string) => {
         setExpandedMap(prev => {
@@ -273,22 +303,23 @@ export default function ProjectSidebarShell({
                                 <SidebarMenu>
                                     {toc.map(section => {
                                         const sectionActive =
-                                            activeId === section.id ||
-                                            section.children.some(c => c.id === activeId || c.children?.some(g => g.id === activeId))
+                                            effectiveActiveId === section.id ||
+                                            section.children.some(c => c.id === effectiveActiveId || c.children?.some(g => g.id === effectiveActiveId))
                                         const hasChildren = section.children.length > 0
                                         const isOpen = hasChildren ? expandedMap[section.id] !== false : false
                                         return (
                                             <SidebarMenuItem key={section.id || section.title}>
                                                 <div className='flex items-center'>
-                                                    <SidebarMenuButton
+                                                <SidebarMenuButton
                                                         asChild
                                                         isActive={sectionActive}
-                                                        className='text-foreground flex-1'
+                                                    className='text-foreground flex-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent'
                                                     >
                                                         <a
                                                             href={section.id ? `#${section.id}` : '#'}
                                                     className='cursor-pointer'
-                                                            onClick={() => {
+                                                        onClick={() => {
+                                                            setActiveOverrideId(section.id)
                                                                 if (hasChildren) {
                                                                     setExpandedMap(prev => ({ ...prev, [section.id]: true }))
                                                                 }
@@ -314,7 +345,7 @@ export default function ProjectSidebarShell({
                                                         <SidebarMenuAction
                                                             aria-label={isOpen ? 'Collapse section' : 'Expand section'}
                                                             aria-expanded={isOpen}
-                                                            className='text-foreground ml-1'
+                                                            className='text-foreground ml-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent'
                                                             onClick={(e: React.MouseEvent) => {
                                                                 e.preventDefault()
                                                                 e.stopPropagation()
@@ -331,7 +362,7 @@ export default function ProjectSidebarShell({
                                                             const childHasChildren = child.children?.length > 0
                                                             const childOpen = childHasChildren ? expandedMap[child.id] !== false : false
                                                             const childActive =
-                                                                activeId === child.id || child.children?.some(g => g.id === activeId)
+                                                                effectiveActiveId === child.id || child.children?.some(g => g.id === effectiveActiveId)
                                                             return (
                                                                 <SidebarMenuSubItem key={child.id || child.title}>
                                                                     <div className='flex items-center'>
@@ -342,6 +373,7 @@ export default function ProjectSidebarShell({
                                                                             <a
                                                                                 href={child.id ? `#${child.id}` : '#'}
                                                                                 onClick={() => {
+                                                                                    setActiveOverrideId(child.id)
                                                                                     if (childHasChildren) {
                                                                                         setExpandedMap(prev => ({ ...prev, [child.id]: true }))
                                                                                     }
@@ -363,7 +395,7 @@ export default function ProjectSidebarShell({
                                                                             <SidebarMenuAction
                                                                                 aria-label={childOpen ? 'Collapse section' : 'Expand section'}
                                                                                 aria-expanded={childOpen}
-                                                                                className='text-foreground ml-1'
+                                                                                className='text-foreground ml-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent'
                                                                                 onClick={(e: React.MouseEvent) => {
                                                                                     e.preventDefault()
                                                                                     e.stopPropagation()
@@ -377,12 +409,13 @@ export default function ProjectSidebarShell({
                                                                     {childHasChildren && childOpen ? (
                                                                         <ul className='ml-4 border-l pl-2'>
                                                                             {child.children.map(grand => {
-                                                                                const grandActive = activeId === grand.id
+                                                                                const grandActive = effectiveActiveId === grand.id
                                                                                 return (
                                                                                     <li key={grand.id || grand.title} className='my-0.5'>
                                                                                         <a
                                                                                             href={grand.id ? `#${grand.id}` : '#'}
                                                                                             className={cn('text-sm', grandActive && 'text-accent')}
+                                                                                            onClick={() => setActiveOverrideId(grand.id)}
                                                                                         >
                                                                                             <Tooltip>
                                                                                                 <TooltipTrigger asChild>

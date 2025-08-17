@@ -37,7 +37,7 @@ export default function ProjectsListPage() {
     const research = all.filter(p => p.collection === 'misc-academic')
     const personal = all.filter(p => p.collection === 'personal')
     return (
-        <div className='mx-auto w-full max-w-screen-lg px-4'>
+        <div className='mx-auto w-full max-w-screen-lg px-4 pb-8'>
             <div className='my-4'>
                 <Breadcrumb>
                     <BreadcrumbList>
@@ -53,7 +53,7 @@ export default function ProjectsListPage() {
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
-            <section className='space-y-12'>
+            <section className='space-y-4'>
                 <h1 className='text-2xl font-bold'>Projects</h1>
                 <div className='flex flex-col gap-12'>
                     <div className='space-y-3'>

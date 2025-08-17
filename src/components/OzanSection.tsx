@@ -19,7 +19,7 @@ const OzanSection = () => {
                         understanding and generation of visual data.
                         <br></br>
                         <br></br>
-                        I&apos;m very appreciative of Vongani Maluleke’s mentorship as I find my path in CV research.
+                        I&apos;m very appreciative of Vongani Maluleke’s mentorship as I find my way through CV research.
                         <br></br>
                     </p>
                 </div>
