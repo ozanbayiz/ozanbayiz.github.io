@@ -115,7 +115,7 @@ export default function Figure({
       {figureContent}
       {captionContent ? (
         <figcaption className={[
-          'mt-2 text-sm text-foreground/70',
+          'mt-2 text-sm text-foreground',
           captionAlignClass
         ].join(' ')}>
           {captionContent}
