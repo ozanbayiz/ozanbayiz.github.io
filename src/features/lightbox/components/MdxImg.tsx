@@ -30,10 +30,10 @@ export default function MdxImg(props: MdxImgProps) {
       lightbox.unregisterItem(id)
       idRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [String(rest.src ?? ''), rest.alt, !!lightbox])
-  // eslint-disable-next-line @next/next/no-img-element
+  }, [lightbox, rest.alt, rest.src])
+  
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       {...rest}
       alt={props.alt ?? ''}
