@@ -3,7 +3,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
 import rehypeSlug from 'rehype-slug'
 import remarkGfm from 'remark-gfm'
-import remarkCollectHeadings from './src/mdx-plugins/remark-collect-headings'
+import remarkCollectHeadings from './src/shared/mdx/plugins/remark-collect-headings'
 import remarkMath from 'remark-math'
 
 import type { NextConfig } from 'next'

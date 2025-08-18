@@ -13,13 +13,13 @@ For my initial implementation, I used what was recommended in the project descri
 
 Using the above parameters, I was able to fit a neural field to the image.
 
-![NeF fox 10 256](/projects/cs180/proj6/NeF_fox_10_256.png)
-![NeF fox 10 256 psnr](/projects/cs180/proj6/NeF_fox_10_256_psnr.png)
+<Figure src="/projects/cs180/proj6/NeF_fox_10_256.png" alt="NeF fox 10 256" caption="Neural field reconstruction (Fox, 10 bands, 256 dims)." />
+<Figure src="/projects/cs180/proj6/NeF_fox_10_256_psnr.png" alt="NeF fox 10 256 psnr" caption="PSNR over training (Fox, 10 bands, 256 dims)." />
 
 I fit the neural field to an image of my cat.
 
-![NeF cat](/projects/cs180/proj6/NeF_cat.png)
-![NeF cat psnr](/projects/cs180/proj6/NeF_cat_psnr.png)
+<Figure src="/projects/cs180/proj6/NeF_cat.png" alt="NeF cat" caption="Neural field reconstruction (Cat)." />
+<Figure src="/projects/cs180/proj6/NeF_cat_psnr.png" alt="NeF cat psnr" caption="PSNR over training (Cat)." />
 
 ### Hyperparameter Tuning
 
@@ -120,7 +120,7 @@ I weight each color $c_i$ by $w_i = T_i a_i$ and compute $\hat{C} = \sum_i w_i c
 
 128 samples per ray, 10000 rays per step, 10000 gradient steps (~3H on A1000 GPU).
 
-![NeRF training](/projects/cs180/proj6/NeRF_training.png)
+<Figure src="/projects/cs180/proj6/NeRF_training.png" alt="NeRF training" caption="NeRF training curve and sample renders." />
 
 (in a way, I made it to 30+ PSNR!)
 
@@ -138,6 +138,6 @@ I weight each color $c_i$ by $w_i = T_i a_i$ and compute $\hat{C} = \sum_i w_i c
 
 When rendering the pixel, I compute weights for the background with $ w_i = T_i(1 - a_i) $ and compute the final color as $ \hat{C}(r) = \sum_i T_i a_i c_i + T_i( 1- a_i) c_{\text{bg}} $.
 
-![spherical render blue](/projects/cs180/proj6/spherical_render_blue.gif)
+<Figure src="/projects/cs180/proj6/spherical_render_blue.gif" alt="spherical render blue" caption="Spherical render with blue background." />
 
 

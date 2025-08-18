@@ -1,8 +1,8 @@
 import Link from 'next/link'
 
-import ProjectSidebarShell from '@/components/cs/ProjectSidebarShell'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { projectsData } from '@/data/projects'
+import { projectsData } from '@/features/projects'
+import ProjectSidebarShell from '@/features/projects/components/ProjectSidebarShell'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/ui/breadcrumb'
 
 type Params = { slug: string }
 

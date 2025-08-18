@@ -3,13 +3,13 @@
 
 The seed I chose is 80808. Here are the images I generated for this part with 20 inference steps:
 
-![original generated imgs](/projects/cs180/proj5/5a/original_generated_imgs.png)
+<Figure src="/projects/cs180/proj5a/original_generated_imgs.png" alt="original generated imgs" caption="Samples with 20 inference steps (seed 80808)." />
 
 The quality of the images seems pretty consistent across different text prompts.
 
 Here is the result of picking different numbers of inference steps:
 
-![comparing steps](/projects/cs180/proj5/5a/comparing_different_num_inference_steps.png)
+<Figure src="/projects/cs180/proj5a/comparing_different_num_inference_steps.png" alt="comparing steps" caption="Comparison across different numbers of inference steps." />
 
 ---
 
@@ -21,32 +21,32 @@ Here is the result of picking different numbers of inference steps:
 
 I implemented the forward process according to the spec.
 
-![forward noising camp](/projects/cs180/proj5/5a/forward_noising_camp.png)
+<Figure src="/projects/cs180/proj5a/forward_noising_camp.png" alt="forward noising camp" caption="Forward noising at increasing time steps." />
 
 <a id="part-1-2" />
 ### 1.2 Classical Denoising
 
 I tried to denoise the noised image with gaussian filtering. This worked about as well as expected.
 
-![filtered noise levels](/projects/cs180/proj5/5a/filtered_noise_levels.png)
+<Figure src="/projects/cs180/proj5a/filtered_noise_levels.png" alt="filtered noise levels" caption="Gaussian denoising across noise levels." />
 
 <a id="part-1-3" />
 ### 1.3 One-Step Denoising
 
 I implemented the one-step denoising process. I noticed that single-step denoising on an image with a lot of noise changed the content of the image.
 
-![single step denoising](/projects/cs180/proj5/5a/single_step_denoising.png)
+<Figure src="/projects/cs180/proj5a/single_step_denoising.png" alt="single step denoising" caption="One-step denoising results." />
 
 <a id="part-1-4" />
 ### 1.4 Iterative Denoising
 
 I implemented the iterative denoising process according to the spec. Here's a gif created from every frame of the denoising process.
 
-![iterative denoise gif](/projects/cs180/proj5/5a/iterative_denoise.gif)
+<Figure src="/projects/cs180/proj5a/iterative_denoise.gif" alt="iterative denoise gif" caption="Iterative denoising process (animation)." />
 
 And here's a comparison of the iterative denoising and other denoising methods:
 
-![iter denoise comparisons](/projects/cs180/proj5/5a/iter_denoise_comparisons.png)
+<Figure src="/projects/cs180/proj5a/iter_denoise_comparisons.png" alt="iter denoise comparisons" caption="Iterative vs single-step vs Gaussian denoising comparison." />
 
 <a id="part-1-5" />
 ### 1.5 Diffusion Model Sampling
@@ -55,11 +55,11 @@ By applying the iterative denoising steps that I defined in part 1.4 to pure noi
 
  
 <ImageGrid>
-![gen 1](/projects/cs180/proj5/5a/generated_imgs/1.png)
-![gen 2](/projects/cs180/proj5/5a/generated_imgs/2.png)
-![gen 3](/projects/cs180/proj5/5a/generated_imgs/3.png)
-![gen 4](/projects/cs180/proj5/5a/generated_imgs/4.png)
-![gen 5](/projects/cs180/proj5/5a/generated_imgs/5.png)
+![gen 1](/projects/cs180/proj5a/generated_imgs/1.png)
+![gen 2](/projects/cs180/proj5a/generated_imgs/2.png)
+![gen 3](/projects/cs180/proj5a/generated_imgs/3.png)
+![gen 4](/projects/cs180/proj5a/generated_imgs/4.png)
+![gen 5](/projects/cs180/proj5a/generated_imgs/5.png)
 </ImageGrid>
  
 
@@ -70,11 +70,11 @@ I implemented classifier-free guidance according to the spec.
 
  
 <ImageGrid>
-![cfg 0](/projects/cs180/proj5/5a/generated_cfg/0.png)
-![cfg 1](/projects/cs180/proj5/5a/generated_cfg/1.png)
-![cfg 2](/projects/cs180/proj5/5a/generated_cfg/2.png)
-![cfg 3](/projects/cs180/proj5/5a/generated_cfg/3.png)
-![cfg 4](/projects/cs180/proj5/5a/generated_cfg/4.png)
+![cfg 0](/projects/cs180/proj5a/generated_cfg/0.png)
+![cfg 1](/projects/cs180/proj5a/generated_cfg/1.png)
+![cfg 2](/projects/cs180/proj5a/generated_cfg/2.png)
+![cfg 3](/projects/cs180/proj5a/generated_cfg/3.png)
+![cfg 4](/projects/cs180/proj5a/generated_cfg/4.png)
 </ImageGrid>
  
 
@@ -83,52 +83,52 @@ I implemented classifier-free guidance according to the spec.
 
 I applied various amounts of noise to the test image to get the following results.
 
-![i2i altogether](/projects/cs180/proj5/5a/1.7.0/test_img_altogether.png)
+<Figure src="/projects/cs180/proj5a/1.7.0/test_img_altogether.png" alt="i2i altogether" caption="Image-to-image results vs noise strength (test image)." />
 
 Here is the result of applying different amounts of noise to cheems.
 
-![cheems altogether](/projects/cs180/proj5/5a/1.7.0/cheems_altogether.png)
+<Figure src="/projects/cs180/proj5a/1.7.0/cheems_altogether.png" alt="cheems altogether" caption="Image-to-image results vs noise strength (cheems)." />
 
 And here are the results for a picture I found on a [cool wikipedia page about ecdysis](https://en.wikipedia.org/wiki/Ecdysis).
 
-![spider altogether](/projects/cs180/proj5/5a/1.7.0/spider_altogether.png)
+<Figure src="/projects/cs180/proj5a/1.7.0/spider_altogether.png" alt="spider altogether" caption="Image-to-image results vs noise strength (spider)." />
 
 <a id="part-1-7-1" />
 #### 1.7.1 Editing Hand-Drawn and Web Images
 
 The image I chose from the web is nyan cat.
 
-![nyan cat](/projects/cs180/proj5/5a/1.7.1/nyan_cat.png)
+<Figure src="/projects/cs180/proj5a/1.7.1/nyan_cat.png" alt="nyan cat" caption="Web image used for editing (Nyan Cat)." />
 
 Here are the results of editing two images I drew.
 
-![moon sketch](/projects/cs180/proj5/5a/1.7.1/moon_sketch.png)
+<Figure src="/projects/cs180/proj5a/1.7.1/moon_sketch.png" alt="moon sketch" caption="Hand-drawn sketch: moon." />
 
-![drawn cat](/projects/cs180/proj5/5a/1.7.1/drawn_cat.png)
+<Figure src="/projects/cs180/proj5a/1.7.1/drawn_cat.png" alt="drawn cat" caption="Hand-drawn sketch: cat." />
 
 <a id="part-1-7-2" />
 #### 1.7.2 Inpainting
 
 Here is the inpainted image of the Campanile.
 
-![camp inpainted](/projects/cs180/proj5/5a/1.7.2/camp_inpainted.png)
+<Figure src="/projects/cs180/proj5a/1.7.2/camp_inpainted.png" alt="camp inpainted" caption="Inpainting result: Campanile." />
 
 I wondered how the diffusion model would fill in nyan cat's rainbow trail. I was sort of disappointed.
 
-![nyan cat inpainted](/projects/cs180/proj5/5a/1.7.2/nyan_cat_inpainted.png)
+<Figure src="/projects/cs180/proj5a/1.7.2/nyan_cat_inpainted.png" alt="nyan cat inpainted" caption="Inpainting result: Nyan Cat." />
 
 I also wondered how the diffusion model would fill in Aphex Twin's face; I was similarly disappointed.
 
-![aphex inpainted](/projects/cs180/proj5/5a/1.7.2/aphex_inpainted.png)
+<Figure src="/projects/cs180/proj5a/1.7.2/aphex_inpainted.png" alt="aphex inpainted" caption="Inpainting result: Aphex Twin." />
 
 <a id="part-1-7-3" />
 #### 1.7.3 Text-Conditional Image-to-image Translation
 
 I just turned everything into a rocket.
 
-![rocket camp](/projects/cs180/proj5/5a/1.7.3/rocket_camp.png)
-![rocket nyan](/projects/cs180/proj5/5a/1.7.3/rocket_nyan_cat.png)
-![rocket cheems](/projects/cs180/proj5/5a/1.7.3/rocket_cheems.png)
+<Figure src="/projects/cs180/proj5a/1.7.3/rocket_camp.png" alt="rocket camp" caption="Text-conditional translation: campfire to rocket." />
+<Figure src="/projects/cs180/proj5a/1.7.3/rocket_nyan_cat.png" alt="rocket nyan" caption="Text-conditional translation: Nyan Cat to rocket." />
+<Figure src="/projects/cs180/proj5a/1.7.3/rocket_cheems.png" alt="rocket cheems" caption="Text-conditional translation: cheems to rocket." />
 
 <a id="part-1-8" />
 ### 1.8 Visual Anagrams
@@ -136,12 +136,12 @@ I just turned everything into a rocket.
 I was pleasantly surprised by how well this part worked. Here is my result for 
 <i>A visual anagram where on one orientation "an oil painting of people around a campfire" is displayed and, when flipped, "an oil painting of an old man" is displayed.</i>
 
-![old man campfire](/projects/cs180/proj5/5a/1.8/old_man_campfire.png)
+<Figure src="/projects/cs180/proj5a/1.8/old_man_campfire.png" alt="old man campfire" caption="Visual anagram: campfire vs old man." />
 
 Here are my other results:
 
-![skull coast](/projects/cs180/proj5/5a/1.8/skull_coast.png)
-![dog man hhat](/projects/cs180/proj5/5a/1.8/dog_man_hhat.png)
+<Figure src="/projects/cs180/proj5a/1.8/skull_coast.png" alt="skull coast" caption="Visual anagram result: skull/coast." />
+<Figure src="/projects/cs180/proj5a/1.8/dog_man_hhat.png" alt="dog man hhat" caption="Visual anagram result." />
 
 <a id="part-1-9" />
 ### 1.9 Hybrid Images
@@ -156,15 +156,15 @@ Although I got odd results, I'm pretty sure I implemented this part correctly. T
 
 here is the result I got for the skull and waterfall:
 
-![skull waterfall](/projects/cs180/proj5/5a/1.9/skull_waterfall.png)
+<Figure src="/projects/cs180/proj5a/1.9/skull_waterfall.png" alt="skull waterfall" caption="Hybrid images: skull/waterfall." />
 
 here are the other results I got:
 
  
 
-![rocket man hat](/projects/cs180/proj5/5a/1.9/rocket_man_hat.png)
-![hipster barista dog](/projects/cs180/proj5/5a/1.9/hipster_barista_dog.png)
-![old man snow](/projects/cs180/proj5/5a/1.9/old_man_snow.png)
+<Figure src="/projects/cs180/proj5a/1.9/rocket_man_hat.png" alt="rocket man hat" caption="Hybrid images: rocket/man hat." />
+<Figure src="/projects/cs180/proj5a/1.9/hipster_barista_dog.png" alt="hipster barista dog" caption="Hybrid images: hipster barista dog." />
+<Figure src="/projects/cs180/proj5a/1.9/old_man_snow.png" alt="old man snow" caption="Hybrid images: old man in snow." />
 
  
 

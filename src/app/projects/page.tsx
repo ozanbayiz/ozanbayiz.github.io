@@ -1,10 +1,10 @@
 import Link from 'next/link'
 
-import ExternalLink from '@/components/ExternalLink'
-import ProjectCard from '@/components/ProjectCard'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
-import { Separator } from '@/components/ui/separator'
-import { projectsData, type Project } from '@/data/projects'
+import ExternalLink from '@/components/common/ExternalLink'
+import { projectsData, type Project } from '@/features/projects'
+import ProjectCard from '@/features/projects/components/ProjectCard'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/ui/breadcrumb'
+import { Separator } from '@/shared/ui/separator'
 
 const byDateDesc = (a?: string, b?: string) => {
     const ad = a ? Date.parse(a) : 0

@@ -15,15 +15,15 @@ Ok..
 
 I stumbled on [phase correlation](https://sthoduka.github.io/imreg_fmt/docs/phase-correlation/). Turns out that the maximum index (i,j) of the phase correlation matrix corresponds to the best shift. Implemented it and tried it out:
 
-![Lady Raw Channels](/projects/cs180/proj1/lady_channels_raw.png)
+<Figure src="/projects/cs180/proj1/lady_channels_raw.png" alt="Lady Raw Channels" caption="Raw RGB channels for the ‘Lady’ image before alignment." />
 
 ↓ ↓ ↓ ↓
 
-![Phase Correlation Code](/projects/cs180/proj1/phase_correlation_code.png)
+<Figure src="/projects/cs180/proj1/phase_correlation_code.png" alt="Phase Correlation Code" caption="Phase correlation implementation (code excerpt)." />
 
 ↓ ↓ ↓ ↓
 
-![Lady Shifted Channels](/projects/cs180/proj1/lady_channels_shifted.png)
+<Figure src="/projects/cs180/proj1/lady_channels_shifted.png" alt="Lady Shifted Channels" caption="‘Lady’ channels after alignment via phase correlation." />
 
 sweet. done? But I still had to implement the image pyramid.
 
@@ -31,7 +31,7 @@ sweet. done? But I still had to implement the image pyramid.
 
 ## Image Pyramid
 
-![Onion Church Pyramid](/projects/cs180/proj1/onion_church_pyramid.png)
+<Figure src="/projects/cs180/proj1/onion_church_pyramid.png" alt="Onion Church Pyramid" caption="Image pyramid illustration for Onion Church across scales." />
 
 At each level, I divided the height/width of the query image by a power of 2. Each iteration would displace the query image 1 px up, down, left, and right, then pick the shift which yielded the highest metric.
 
@@ -43,7 +43,7 @@ Getting the metric involved:
 
 At first I tried MSE & NCC as metric functions. These didn't work so I went back online and found NGD, which also didn't really work (but maybe I was just being impatient). Eventually I found the [Structural Similarity Index Measure](https://en.wikipedia.org/wiki/Structural_similarity_index_measure) [(and its scikit-image documentation)](https://scikit-image.org/docs/stable/auto_examples/transform/plot_ssim.html), which gave me pretty good results.
 
-![Pyramid Code](/projects/cs180/proj1/pyramid_code.png)
+<Figure src="/projects/cs180/proj1/pyramid_code.png" alt="Pyramid Code" caption="Image pyramid implementation (code excerpt)." />
 
 This worked fine (~15sec/TIF). Still lot slower than the phase correlation approach. I'm not super patient so the result images are those I got using phase correlation.
 

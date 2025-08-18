@@ -3,8 +3,9 @@ import 'katex/dist/katex.min.css'
 
 import { JetBrains_Mono } from 'next/font/google'
 
-import { Providers } from '@/components/providers'
 import { HUE_BOOTSTRAP_IIFE } from '@/lib/hue-script'
+
+import { Providers } from './providers'
 
 import type { Metadata } from 'next'
 

@@ -6,34 +6,34 @@
 
 I implemented an unconditional U-Net with the architecture provided in the project spec.
 
-<Figure src="/projects/cs180/proj5/5b/backbones/unconditional_arch.png" alt="Unconditional U-Net architecture" caption="Figure 1. Unconditional U-Net architecture." />
-<Figure src="/projects/cs180/proj5/5b/backbones/atomic_ops_new.png" alt="Atomic operations block" caption="Figure 2. Atomic operations block in the backbone." />
+<Figure src="/projects/cs180/proj5b/backbones/unconditional_arch.png" alt="Unconditional U-Net architecture" caption="Figure 1. Unconditional U-Net architecture." />
+<Figure src="/projects/cs180/proj5b/backbones/atomic_ops_new.png" alt="Atomic operations block" caption="Figure 2. Atomic operations block in the backbone." />
 
 <a id="part-2-2" />
 ### 1.2 Using the U-Net to Train a Denoiser
 
 Given a clean image, $x$, I noised it to get $z = x + \sigma \epsilon$, where $\epsilon \sim \mathcal{N}(0, 1)$, and $\sigma \in \{0.0, 0.2, 0.4, 0.6, 0.8, 1.0\}$.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/noising_process.png" alt="Noising process" caption="Figure 3. Forward noising process for constructing $(\mathbf{x}, \mathbf{z})$ pairs." />
+<Figure src="/projects/cs180/proj5b/uncond/noising_process.png" alt="Noising process" caption="Figure 3. Forward noising process for constructing $(\mathbf{x}, \mathbf{z})$ pairs." />
 
 Using this, I created a dataloader for training, which produced batches of the form $(x, z)$ with $ \sigma = 0.5 $.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/noising_dataloader.png" alt="Noising dataloader" caption="Figure 4. Noising dataloader output for $\sigma = 0.5$." />
+<Figure src="/projects/cs180/proj5b/uncond/noising_dataloader.png" alt="Noising dataloader" caption="Figure 4. Noising dataloader output for $\sigma = 0.5$." />
 
 <a id="part-2-2-1" />
 #### 1.2.1 Training
 
 I trained the U-Net and plotted the training loss.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/uncond_unet_6_epochs.png" alt="Unconditional U-Net training loss" caption="Figure 5. Training loss for the unconditional U-Net." />
+<Figure src="/projects/cs180/proj5b/uncond/uncond_unet_6_epochs.png" alt="Unconditional U-Net training loss" caption="Figure 5. Training loss for the unconditional U-Net." />
 
 I sampled after 1 epoch.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/1_epoch_samples.png" alt="1 epoch samples (unconditional)" caption="Figure 6. Samples after 1 epoch of training (unconditional)." />
+<Figure src="/projects/cs180/proj5b/uncond/1_epoch_samples.png" alt="1 epoch samples (unconditional)" caption="Figure 6. Samples after 1 epoch of training (unconditional)." />
 
 And 5 epochs.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/5_epoch_samples.png" alt="5 epoch samples (unconditional)" caption="Figure 7. Samples after 5 epochs of training (unconditional)." />
+<Figure src="/projects/cs180/proj5b/uncond/5_epoch_samples.png" alt="5 epoch samples (unconditional)" caption="Figure 7. Samples after 5 epochs of training (unconditional)." />
 
 Pretty good!
 
@@ -42,7 +42,7 @@ Pretty good!
 
 Then I tried denoising images with $\sigma \neq 0.5$.
 
-<Figure src="/projects/cs180/proj5/5b/uncond/out_of_dist_samples.png" alt="Out-of-distribution samples" caption="Figure 8. Denoising performance for out-of-distribution $\sigma$ values." />
+<Figure src="/projects/cs180/proj5b/uncond/out_of_dist_samples.png" alt="Out-of-distribution samples" caption="Figure 8. Denoising performance for out-of-distribution $\sigma$ values." />
 
 Still, not bad!
 
@@ -56,9 +56,9 @@ Still, not bad!
 
 I followed the spec and implemented time conditioning.
 
-<Figure src="/projects/cs180/proj5/5b/backbones/conditional_arch.png" alt="Time-conditioned U-Net architecture" caption="Figure 9. Time-conditioned U-Net architecture." />
+<Figure src="/projects/cs180/proj5b/backbones/conditional_arch.png" alt="Time-conditioned U-Net architecture" caption="Figure 9. Time-conditioned U-Net architecture." />
 
-<Figure src="/projects/cs180/proj5/5b/backbones/fc_long.png" alt="Fully connected block (time embedding)" caption="Figure 10. Fully connected block used for time embeddings." />
+<Figure src="/projects/cs180/proj5b/backbones/fc_long.png" alt="Fully connected block (time embedding)" caption="Figure 10. Fully connected block used for time embeddings." />
 
 As recommended in the spec, I used a hidden dimension of 64 and a batch size of 128. For optimization, I used Adam with a learning rate of 0.001 and an exponential learning rate scheduler with $\gamma = 0.9$.
 
@@ -82,7 +82,7 @@ $$
 
 Here is the training loss for the time-conditioned U-Net during 20 epochs.
 
-<Figure src="/projects/cs180/proj5/5b/time_cond/training_loss.png" alt="Time-conditioned U-Net training loss" caption="Figure 11. Training loss for the time-conditioned U-Net (20 epochs)." />
+<Figure src="/projects/cs180/proj5b/time_cond/training_loss.png" alt="Time-conditioned U-Net training loss" caption="Figure 11. Training loss for the time-conditioned U-Net (20 epochs)." />
 
 <a id="part-3-3" />
 ### 2.3 Sampling from the U-Net
@@ -105,8 +105,8 @@ Here are my results for 5 and 20 epochs of training.
 
  
 <ImageGrid>
-<Figure src="/projects/cs180/proj5/5b/time_cond/5_epoch_samples.png" alt="5 epoch samples (time-conditioned)" caption="Figure 12. Samples after 5 epochs (time-conditioned)." />
-<Figure src="/projects/cs180/proj5/5b/time_cond/20_epoch_samples.png" alt="20 epoch samples (time-conditioned)" caption="Figure 13. Samples after 20 epochs (time-conditioned)." />
+<Figure src="/projects/cs180/proj5b/time_cond/5_epoch_samples.png" alt="5 epoch samples (time-conditioned)" caption="Figure 12. Samples after 5 epochs (time-conditioned)." />
+<Figure src="/projects/cs180/proj5b/time_cond/20_epoch_samples.png" alt="20 epoch samples (time-conditioned)" caption="Figure 13. Samples after 20 epochs (time-conditioned)." />
 </ImageGrid>
  
 
@@ -131,7 +131,7 @@ $$
 \end{aligned}
 $$
 
-<Figure src="/projects/cs180/proj5/5b/class_cond/training_loss.png" alt="Class-conditioned U-Net training loss" caption="Figure 14. Training loss for the class-conditioned U-Net (20 epochs)." />
+<Figure src="/projects/cs180/proj5b/class_cond/training_loss.png" alt="Class-conditioned U-Net training loss" caption="Figure 14. Training loss for the class-conditioned U-Net (20 epochs)." />
 
 <a id="part-3-5" />
 ### 2.5 Sampling from the Class-Conditioned U-Net
@@ -156,8 +156,8 @@ $$
 Here are my results for 5 and 20 epochs of training.
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj5/5b/class_cond/5_epoch_samples.png" alt="5 epoch samples (class-conditioned)" caption="Figure 15. Samples after 5 epochs (class-conditioned)." />
-<Figure src="/projects/cs180/proj5/5b/class_cond/20_epoch_samples.png" alt="20 epoch samples (class-conditioned)" caption="Figure 16. Samples after 20 epochs (class-conditioned)." />
+<Figure src="/projects/cs180/proj5b/class_cond/5_epoch_samples.png" alt="5 epoch samples (class-conditioned)" caption="Figure 15. Samples after 5 epochs (class-conditioned)." />
+<Figure src="/projects/cs180/proj5b/class_cond/20_epoch_samples.png" alt="20 epoch samples (class-conditioned)" caption="Figure 16. Samples after 20 epochs (class-conditioned)." />
 </ImageGrid>
 
 Frankly, the denoised results do not look as good as I would have wanted. My handwriting is also pretty bad, so maybe it's not my place to be so critical.

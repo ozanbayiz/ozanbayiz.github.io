@@ -12,30 +12,30 @@ $$im_{D_y} = im*D_y$$
 
 $$ (im_D)_{ij} = \left\lVert\begin{bmatrix} (im_{D_x})_{ij} \\ (im_{D_y})_{ij} \end{bmatrix} \right\rVert _2^2 $$
 
-![cameraman raw and edges](/projects/cs180/proj2/figures/camerman_raw_edges.png)
+<Figure src="/projects/cs180/proj2/figures/camerman_raw_edges.png" alt="cameraman raw and edges" caption="Gradient magnitude and edges of Cameraman (finite differences)." />
 
 To find the threshold I plotted the histogram of pixel intensity levels and found that most of them were below 0.1. I found 0.14 to be the best threshold.
 
-![hist and edges](/projects/cs180/proj2/figures/hist_and_edges.png)
+<Figure src="/projects/cs180/proj2/figures/hist_and_edges.png" alt="hist and edges" caption="Intensity histogram and edge map (threshold 0.14)." />
 
 <a id="part-1-2" />
 ### 1.2 Derivative of Gaussian
 
 I created a gaussian kernel using `cv2.GetGaussianKernel()`.
 
-![blurred cameraman](/projects/cs180/proj2/figures/blurred_cameraman.png)
+<Figure src="/projects/cs180/proj2/figures/blurred_cameraman.png" alt="blurred cameraman" caption="Cameraman after Gaussian blur." />
 
 After blurring, I noticed the gradient magnitude matrix was much less noisy, and that the edges were better defined. Cool.
 
-![blurred hist and edges](/projects/cs180/proj2/figures/blurred_hist_and_edges.png)
+<Figure src="/projects/cs180/proj2/figures/blurred_hist_and_edges.png" alt="blurred hist and edges" caption="Histogram and edges after Gaussian blur." />
 
 Then I created the DoG Filters.
 
-![DoG filters](/projects/cs180/proj2/figures/DoG_filters.png)
+<Figure src="/projects/cs180/proj2/figures/DoG_filters.png" alt="DoG filters" caption="Derivative-of-Gaussian filters (Dx, Dy)." />
 
 I got almost the same result, but noticed that the DoG-convolved images had a little bit more texture. I think that this may be due to zero-padding, but I'm not sure.
 
-![DoG hist edges](/projects/cs180/proj2/figures/DoG_hist_edges.png)
+<Figure src="/projects/cs180/proj2/figures/DoG_hist_edges.png" alt="DoG hist edges" caption="DoG-based histogram and edge map." />
 
 ---
 
@@ -47,15 +47,15 @@ I got almost the same result, but noticed that the DoG-convolved images had a li
 
 To create the high-pass filter, I took the gaussian Kernel, normalized it, and subtracted it from a unit impulse. To create the unsharp-masking filter, I took this high-pass filter and added it back to the unit impulse.
 
-![hp lp um filters](/projects/cs180/proj2/figures/hp_lp_um_filters.png)
+<Figure src="/projects/cs180/proj2/figures/hp_lp_um_filters.png" alt="hp lp um filters" caption="High-pass, low-pass, and unsharp masking filters." />
 
 Here is the Taj Mahal convolved with this unsharp masking filter
 
-![taj sharpened](/projects/cs180/proj2/figures/taj_sharpened.png)
+<Figure src="/projects/cs180/proj2/figures/taj_sharpened.png" alt="taj sharpened" caption="Taj Mahal sharpened with unsharp masking." />
 
 Here is my cat, de noot, after being sharpened, blurred, and sharpened again.
 
-![noot sharpening](/projects/cs180/proj2/figures/noot_sharpening.png)
+<Figure src="/projects/cs180/proj2/figures/noot_sharpening.png" alt="noot sharpening" caption="De Noot: sharpen → blur → sharpen sequence." />
 
 <a id="part-2-2" />
 ### 2.2 Hybrid Images
@@ -89,11 +89,11 @@ My steps to separate an image into high and low frequencies were to:
 - subtract the low frequencies from the frequency spectrum to get the high frequencies
 - convert the high and low frequency ranges into back into images using `np.fft.ifft2()`
 
-![efrostrawberry spectra](/projects/cs180/proj2/figures/efrostrawberry_spectra.png)
+<Figure src="/projects/cs180/proj2/figures/efrostrawberry_spectra.png" alt="efrostrawberry spectra" caption="Frequency spectra for the ‘efrostrawberry’ hybrid." />
 
 of course, it was not always so simple. here's a flop (i forgot to pick \( \alpha \in [0,1] \) for blending)
 
-![efrostrawberry flop](/projects/cs180/proj2/hybrids/efrostrawberry_flop.png)
+<Figure src="/projects/cs180/proj2/hybrids/efrostrawberry_flop.png" alt="efrostrawberry flop" caption="Failed hybrid due to missing blend weight selection." />
 
 <a id="part-2-3" />
 ### 2.3 Gaussian and Laplacian Stacks
@@ -102,19 +102,19 @@ my intuition: at each level of the stack, we only want a subset of the frequenci
 
 At first I created ring masks with $r_{i1} = 2^i, r_{i2}=2^{i-1}$, $ \forall i \in \{0, 1, ..., \log_2(\min(h,w)) \} $. This way I could isolate each octave band of frequencies, and convert these bands to images directly get the Laplacian stack. It did not really work.
 
-![ring mask](/projects/cs180/proj2/figures/ring_mask.png)
+<Figure src="/projects/cs180/proj2/figures/ring_mask.png" alt="ring mask" caption="Octave ring masks for band-pass filtering." />
 
 Then I created circle masks with $r_i = 2^i$, $ \forall i \in \{0, 1, ..., \log_2(\min(h,w)) \} $. This way I could isolate each group of frequencies, and convert these bands to images directly get the gaussian stack stack. It did not really work.
 
-![circle mask](/projects/cs180/proj2/figures/circle_mask.png)
+<Figure src="/projects/cs180/proj2/figures/circle_mask.png" alt="circle mask" caption="Circular masks for Gaussian stack construction." />
 
 I thought it was all getting too complicated. I created a series of Gaussian masks with $\sigma_i = \min(h,w) \times 2^{-i}$. Each gaussian was then scaled so that the maximum value was 1. This seemed to work fine. 
 
-![gauss mask](/projects/cs180/proj2/figures/gauss_mask.png)
+<Figure src="/projects/cs180/proj2/figures/gauss_mask.png" alt="gauss mask" caption="Gaussian masks across scales." />
 
 To get the Laplacian stack, I took the difference of every two adjacent levels of the Gaussian stack, then appended the last layer of the Gaussian stack.
 
-![apple orange gl stacks](/projects/cs180/proj2/figures/apple_orange_gl_stacks.png)
+<Figure src="/projects/cs180/proj2/figures/apple_orange_gl_stacks.png" alt="apple orange gl stacks" caption="Gaussian and Laplacian stacks for the apple/orange example." />
 
 <a id="part-2-4" />
 ### 2.4 Multiresolution Blending
@@ -132,7 +132,7 @@ chillllllll
 
 #### Le Oraple ... . .. . .. .
 
-![oraple](/projects/cs180/proj2/blends/oraple.png)
+<Figure src="/projects/cs180/proj2/blends/oraple.png" alt="oraple" caption="Multiresolution blend result: the ‘Oraple’." />
 
 </div>
 

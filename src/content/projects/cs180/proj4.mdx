@@ -137,7 +137,7 @@ I was lazy ish and did not want to manually label correspondences between images
 
 Here is an example of feature matching between two images.
 
-![matched features](/projects/cs180/proj4/matched_features.png)
+<Figure src="/projects/cs180/proj4/matched_features.png" alt="matched features" caption="Matched feature correspondences between two images." />
 
 Using the matched features, I computed the homography between the base image (chosen to be the top), and the query image (the bottom).
 
@@ -174,7 +174,7 @@ putting it all together
 
 I thought I could get away with not manually labeling correspondences between images. I was wrong.
 
-![truth hurts](/projects/cs180/proj4/truth_hurts.png)
+<Figure src="/projects/cs180/proj4/truth_hurts.png" alt="truth hurts" caption="Manual correspondences were ultimately required." />
 
 Here are some manually labeled correspondences and the mosaics they yielded.
 
@@ -207,15 +207,15 @@ We use the Harris corner detector that was provided in the starter code (thank y
 
 <div className="image-grid">
 
-![corners1a](/projects/cs180/proj4/corners1a.png)
-![corners1b](/projects/cs180/proj4/corners1b.png)
+<Figure src="/projects/cs180/proj4/corners1a.png" alt="corners1a" caption="Top 500 Harris corners after ANMS (image 1a)." />
+<Figure src="/projects/cs180/proj4/corners1b.png" alt="corners1b" caption="Top 500 Harris corners after ANMS (image 1b)." />
 
 </div>
 
 <div className="image-grid">
 
-![corners2a](/projects/cs180/proj4/corners2a.png)
-![corners2b](/projects/cs180/proj4/corners2b.png)
+<Figure src="/projects/cs180/proj4/corners2a.png" alt="corners2a" caption="Top 500 Harris corners after ANMS (image 2a)." />
+<Figure src="/projects/cs180/proj4/corners2b.png" alt="corners2b" caption="Top 500 Harris corners after ANMS (image 2b)." />
 
 </div>
 
@@ -228,7 +228,7 @@ We take $(8s)\,\text{px} \times (8s)\,\text{px}$ patches centered around each co
 
 We then downsample each patch by taking every $(s)$th pixel and normalized each patch to have zero mean and unit variance.
 
-![feature descriptors](/projects/cs180/proj4/feature_descriptors.png)
+<Figure src="/projects/cs180/proj4/feature_descriptors.png" alt="feature descriptors" caption="Normalized feature descriptor patches." />
 
 ---
 
@@ -342,6 +342,6 @@ Also, now that I look at the submission requirements, I realize that I should ha
 
 The `cv2.stitcher` class is a wrapper for OpenCV's stitching functions. I thought it would be fun to use this existing code, along with an HTML scipt I found online, to create a [360° panorama viewer](/projects/cs180/proj4/room_viewer.html).
 
-![room panorama](/projects/cs180/proj4/room_panorama.jpg)
+<Figure src="/projects/cs180/proj4/room_panorama.jpg" alt="room panorama" caption="Stitched 360° panorama used by the viewer." />
 
 

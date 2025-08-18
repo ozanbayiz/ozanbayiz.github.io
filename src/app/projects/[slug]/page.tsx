@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation'
 
-import { default as ProjectHeader } from '@/components/content/ProjectHeader'
-import ProjectsMdx from '@/components/mdx/ProjectsMdx'
-import { Separator } from '@/components/ui/separator'
-import { projectsData } from '@/data/projects'
+import { LightboxProvider } from '@/features/lightbox'
+import { projectsData } from '@/features/projects'
+import { default as ProjectHeader } from '@/features/projects/components/ProjectHeader'
+import ProjectsMdx from '@/features/projects/mdx/ProjectsMdx'
+import { Separator } from '@/shared/ui/separator'
 
 type Params = { slug: string }
 
@@ -44,7 +45,9 @@ export default async function UnifiedProjectPage({
       />
       <Separator />
 
-      <ProjectsMdx slug={slug} />
+      <LightboxProvider>
+        <ProjectsMdx slug={slug} />
+      </LightboxProvider>
     </section>
   )
 }
