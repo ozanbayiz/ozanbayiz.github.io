@@ -19,11 +19,13 @@ export const metadata: Metadata = {
     metadataBase: new URL('https://ozanbayiz.github.io'),
     alternates: { canonical: '/' },
     openGraph: {
+        type: 'website',
         title: 'ozanbayiz',
         description: 'ozanbayiz',
         url: '/',
-        siteName: 'ozanbayiz'
-    },
+        siteName: 'ozanbayiz',
+        images: [{ url: '/og.png', width: 1200, height: 630, alt: 'ozanbayiz' }]
+      },
     twitter: {
         card: 'summary_large_image',
         title: 'ozanbayiz',
