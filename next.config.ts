@@ -1,4 +1,5 @@
 import createMDX from '@next/mdx'
+import path from 'node:path'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
 import rehypeSlug from 'rehype-slug'
@@ -53,6 +54,14 @@ const nextConfig: NextConfig = {
     },
     output: 'export',
     trailingSlash: true,
+    webpack: (config) => {
+        config.resolve = config.resolve || {}
+        config.resolve.alias = {
+            ...(config.resolve.alias || {}),
+            '@': path.resolve(__dirname, 'src')
+        }
+        return config
+    },
     async redirects() {
         return [
             // CS180 → unified projects slugs
