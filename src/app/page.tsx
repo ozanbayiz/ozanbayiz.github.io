@@ -1,10 +1,9 @@
+import SectionDivider from '@/components/common/SectionDivider'
+import TopAscii from '@/components/layout/TopAscii'
+import OzanSection from '@/features/home/components/OzanSection'
+import ProjectSection from '@/features/home/components/ProjectSection'
 import ResearchSection from '@/features/home/components/ResearchSection'
 import SocialLinks from '@/features/home/components/SocialLinks'
-
-import SectionDivider from '../components/common/SectionDivider'
-import TopAscii from '../components/layout/TopAscii'
-import OzanSection from '../features/home/components/OzanSection'
-import ProjectSection from '../features/home/components/ProjectSection'
 
 export default function Home() {
     return (

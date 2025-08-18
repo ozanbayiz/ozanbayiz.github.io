@@ -5,7 +5,7 @@ import { JetBrains_Mono } from 'next/font/google'
 
 import { HUE_BOOTSTRAP_IIFE } from '@/lib/hue-script'
 
-import { Providers } from './providers'
+import { Providers } from '@/app/providers'
 
 import type { Metadata } from 'next'
 
