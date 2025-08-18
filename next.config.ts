@@ -6,7 +6,13 @@ import remarkGfm from 'remark-gfm'
 // Import JS version to avoid TS transpile issues in Next config
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import remarkCollectHeadings from './src/shared/mdx/plugins/remark-collect-headings.js'
+// Use absolute resolution to avoid path issues in CI when loading local JS plugin
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import path from 'node:path'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const remarkCollectHeadings = require(path.resolve(__dirname, 'src/shared/mdx/plugins/remark-collect-headings.js'))
 import remarkMath from 'remark-math'
 
 import type { NextConfig } from 'next'
