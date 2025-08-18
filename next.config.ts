@@ -3,7 +3,10 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeKatex from 'rehype-katex'
 import rehypeSlug from 'rehype-slug'
 import remarkGfm from 'remark-gfm'
-import remarkCollectHeadings from './src/shared/mdx/plugins/remark-collect-headings'
+// Import JS version to avoid TS transpile issues in Next config
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import remarkCollectHeadings from './src/shared/mdx/plugins/remark-collect-headings.js'
 import remarkMath from 'remark-math'
 
 import type { NextConfig } from 'next'
