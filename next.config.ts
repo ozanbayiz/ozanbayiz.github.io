@@ -6,13 +6,34 @@ import remarkGfm from 'remark-gfm'
 // Import JS version to avoid TS transpile issues in Next config
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-// Use absolute resolution to avoid path issues in CI when loading local JS plugin
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import path from 'node:path'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const remarkCollectHeadings = require(path.resolve(__dirname, 'src/shared/mdx/plugins/remark-collect-headings.js'))
+import { visit } from 'unist-util-visit'
+
+// Inline remark plugin to collect H2/H3 headings from MDX
+const remarkCollectHeadings = () => {
+  return (tree: any, file: { data?: Record<string, unknown> }) => {
+    const headings: { id: string; title: string; level: number }[] = []
+    visit(tree, 'heading', (node: { depth: number; children?: { type: string; value?: string }[]; data?: any }) => {
+      const level = node.depth
+      if (level !== 2 && level !== 3) return
+      const text = (node.children || [])
+        .filter((c: { type: string }) => c.type === 'text' || c.type === 'inlineCode')
+        .map((c: { value?: string }) => c.value || '')
+        .join(' ')
+        .trim()
+      if (!text) return
+      const data = node.data as { hProperties?: { id?: string } } | undefined
+      const id = (data && data.hProperties && data.hProperties.id) ||
+        text.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-')
+      headings.push({ id, title: text, level })
+    })
+    if (!file.data) file.data = {}
+    file.data.headings = headings
+    ;(tree as unknown as { children: any[] }).children.push({
+      type: 'mdxjsEsm',
+      value: `export const headings = ${JSON.stringify(headings)}`
+    })
+  }
+}
 import remarkMath from 'remark-math'
 
 import type { NextConfig } from 'next'
