@@ -58,7 +58,7 @@ export default function LightboxModal({ isOpen, items, currentIndex, onClose, on
   const content = (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-50 flex max-h-[100svh] max-w-[100svw] flex-col overflow-hidden bg-black/80"
+      className="fixed inset-0 z-[60] flex h-[100svh] w-[100svw] flex-col overflow-hidden bg-black/80 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]"
       role="dialog"
       aria-modal="true"
       aria-label={item.alt || 'Image viewer'}
@@ -101,12 +101,29 @@ export default function LightboxModal({ isOpen, items, currentIndex, onClose, on
       </div>
 
       {/* Image */}
-      <div className="flex-1 min-h-0 min-w-0 flex items-center justify-center px-3 pb-3">
+      <div
+        className="flex-1 min-h-0 min-w-0 flex items-center justify-center px-3 pb-0 sm:pb-3 touch-pan-x overflow-hidden"
+        onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
+          const el = e.currentTarget as HTMLDivElement & { _swipeX?: number }
+          el._swipeX = e.touches[0]?.clientX ?? 0
+        }}
+        onTouchEnd={(e: React.TouchEvent<HTMLDivElement>) => {
+          const el = e.currentTarget as HTMLDivElement & { _swipeX?: number }
+          const startX = el._swipeX ?? 0
+          const endX = e.changedTouches[0]?.clientX ?? startX
+          const dx = endX - startX
+          const threshold = 30
+          if (Math.abs(dx) > threshold) {
+            if (dx < 0) onNext()
+            else onPrev()
+          }
+        }}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={item.src}
           alt={item.alt}
-          className="max-h-full max-w-full object-contain max-w-[100svw] max-h-[100svh]"
+          className="max-h-full max-w-full object-contain"
         />
       </div>
 

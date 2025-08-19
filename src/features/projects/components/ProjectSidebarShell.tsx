@@ -200,8 +200,8 @@ export default function ProjectSidebarShell({
         return ids
     }, [toc])
 
-    // Account for sticky header height (~64px)
-    const activeId = useScrollSpy(allIds, '-64px 0px -55% 0px')
+    // Account for sticky header height (~64px) by expanding top rootMargin
+    const activeId = useScrollSpy(allIds, '-80px 0px -55% 0px')
     const effectiveActiveId = activeOverrideId ?? activeId
 
     // Initialize expansion state: default closed; will expand active path after detecting activeId
@@ -448,7 +448,7 @@ export default function ProjectSidebarShell({
                 </SidebarContent>
             </Sidebar>
             <SidebarInset className='[&_.container]:!max-w-none [&_.container]:!px-0'>
-                <header className='sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4'>
+                <header className='sticky top-0 z-50 isolate pointer-events-auto flex h-16 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4'>
                     <SidebarTrigger className='-ml-1 hover:text-accent rounded-none' />
                     <Separator orientation='vertical' className='mr-2 h-6 self-center' />
                     {header}

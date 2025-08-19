@@ -94,12 +94,31 @@ body {
     }
 }
 
+/* Math (KaTeX) sizing and wrapping helpers */
+@layer utilities {
+    .math-wrap .katex-display {
+        overflow: visible;
+        max-width: 100%;
+    }
+    .math-wrap .katex {
+        /* Let math wrap instead of forcing a single unbroken line */
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        max-width: 100%;
+    }
+}
+
 @layer base {
     * {
         @apply border-border;
     }
     body {
         @apply bg-background text-foreground;
+    }
+    /* Ensure anchored headings scroll below the sticky project header */
+    :is(h1, h2, h3, h4, h5, h6)[id] {
+        scroll-margin-top: 5rem; /* ~80px; header is 64px (h-16) */
     }
     /* Classless media responsiveness */
     img, video, canvas {

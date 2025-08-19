@@ -25,6 +25,7 @@ type LightboxContextValue = {
   // Controls
   openAt: (index: number) => void
   openById: (id: string) => void
+  openOrRegister: (args: RegisterArgs) => void
   next: () => void
   prev: () => void
   close: () => void
@@ -87,6 +88,31 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     setIsOpen(true)
   }, [items])
 
+  // Ensure the clicked image always opens, registering on the fly if needed
+  const openOrRegister = React.useCallback((args: RegisterArgs) => {
+    setItems(prev => {
+      const existingIdx = prev.findIndex(it => it.src === args.src)
+      if (existingIdx >= 0) {
+        setCurrentIndex(existingIdx)
+        setIsOpen(true)
+        return prev
+      }
+      const id = generateId(args.src)
+      const next: LightboxItem[] = [
+        ...prev,
+        {
+          id,
+          src: args.src,
+          ...(args.alt !== undefined ? { alt: args.alt } : {}),
+          ...(args.caption !== undefined ? { caption: args.caption } : {})
+        }
+      ]
+      setCurrentIndex(next.length - 1)
+      setIsOpen(true)
+      return next
+    })
+  }, [])
+
   const close = React.useCallback(() => setIsOpen(false), [])
 
   const next = React.useCallback(() => {
@@ -100,9 +126,37 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
   // Lock body scroll when open
   React.useEffect(() => {
     if (!isOpen) return
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prevOverflow }
+    const html = document.documentElement
+    const body = document.body
+    const prevHtmlOverflow = html.style.overflow
+    const prevBodyOverflow = body.style.overflow
+    const prevHtmlOverscroll = window.getComputedStyle(html).getPropertyValue('overscroll-behavior')
+    const prevBodyOverscroll = window.getComputedStyle(body).getPropertyValue('overscroll-behavior')
+    const prevBodyPosition = body.style.position
+    const prevBodyWidth = body.style.width
+    const prevScrollY = window.scrollY
+
+    // Robust scroll lock across browsers/iOS
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+    html.style.setProperty('overscroll-behavior', 'none')
+    body.style.setProperty('overscroll-behavior', 'none')
+    // Prevent iOS rubber-band and maintain layout
+    body.style.position = 'fixed'
+    body.style.width = '100%'
+    body.style.top = `-${prevScrollY}px`
+
+    return () => {
+      html.style.overflow = prevHtmlOverflow
+      body.style.overflow = prevBodyOverflow
+      html.style.setProperty('overscroll-behavior', prevHtmlOverscroll || 'auto')
+      body.style.setProperty('overscroll-behavior', prevBodyOverscroll || 'auto')
+      body.style.position = prevBodyPosition
+      body.style.width = prevBodyWidth
+      const y = Math.abs(parseInt(body.style.top || '0', 10)) || prevScrollY
+      body.style.top = ''
+      window.scrollTo(0, y)
+    }
   }, [isOpen])
 
   const value = React.useMemo<LightboxContextValue>(() => ({
@@ -110,13 +164,14 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     unregisterItem,
     openAt,
     openById,
+    openOrRegister,
     next,
     prev,
     close,
     isOpen,
     currentIndex,
     items
-  }), [registerItem, unregisterItem, openAt, openById, next, prev, close, isOpen, currentIndex, items])
+  }), [registerItem, unregisterItem, openAt, openById, openOrRegister, next, prev, close, isOpen, currentIndex, items])
 
   return (
     <LightboxContext.Provider value={value}>

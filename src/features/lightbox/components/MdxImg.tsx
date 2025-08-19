@@ -42,7 +42,11 @@ export default function MdxImg(props: MdxImgProps) {
         'border border-transparent hover:border-accent transition-colors',
         className
       ].filter(Boolean).join(' ')}
-      onClick={lightbox ? () => { if (idRef.current) lightbox.openById(idRef.current) } : undefined}
+      onClick={lightbox ? () => {
+        if (!lightbox) return
+        if (idRef.current) lightbox.openById(idRef.current)
+        else lightbox.openOrRegister({ src: String(rest.src ?? ''), alt: String(rest.alt ?? ''), caption: rest.alt })
+      } : undefined}
       role={lightbox ? 'button' : undefined}
       tabIndex={lightbox ? 0 : undefined}
       onKeyDown={lightbox ? (e) => { if ((e.key === 'Enter' || e.key === ' ') && idRef.current) { e.preventDefault(); lightbox.openById(idRef.current) } } : undefined}

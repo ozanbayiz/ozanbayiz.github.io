@@ -3,6 +3,7 @@
 import { Slot } from '@radix-ui/react-slot'
 import { VariantProps, cva } from 'class-variance-authority'
 import { PanelLeft } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 import * as React from 'react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -75,6 +76,7 @@ const SidebarProvider = React.forwardRef<
     ) => {
         const isMobile = useIsMobile()
         const [openMobile, setOpenMobile] = React.useState(false)
+        const pathname = usePathname()
 
         // This is the internal state of the sidebar.
         // We use openProp and setOpenProp for control from outside the component.
@@ -118,6 +120,12 @@ const SidebarProvider = React.forwardRef<
             window.addEventListener('keydown', handleKeyDown)
             return () => window.removeEventListener('keydown', handleKeyDown)
         }, [toggleSidebar])
+
+        // Auto-close the mobile sheet when the route changes
+        React.useEffect(() => {
+            if (openMobile) setOpenMobile(false)
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [pathname])
 
         // We add a state so that we can do data-state="expanded" or "collapsed".
         // This makes it easier to style the sidebar with Tailwind classes.
@@ -258,7 +266,7 @@ const Sidebar = React.forwardRef<
                 />
                 <div
                     className={cn(
-                        'fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] md:flex',
+                        'fixed inset-y-0 z-10 hidden h-svh w-[--sidebar-width] pointer-events-none md:flex',
                         side === 'left'
                             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
                             : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
@@ -272,7 +280,7 @@ const Sidebar = React.forwardRef<
                 >
                     <div
                         data-sidebar='sidebar'
-                        className='flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow'
+                        className='flex h-full w-full flex-col bg-sidebar pointer-events-auto group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow'
                     >
                         {children}
                     </div>

@@ -150,9 +150,14 @@ export default function Figure({
   }, [src, alt, captionContent, !!lightbox])
 
   const handleOpen = React.useCallback(() => {
-    if (!lightbox || !idRef.current) return
-    lightbox.openById(idRef.current)
-  }, [lightbox])
+    if (!lightbox) return
+    if (idRef.current) {
+      lightbox.openById(idRef.current)
+    } else {
+      // Fallback: register on the fly, using caption/alt as caption
+      lightbox.openOrRegister({ src, alt: String(alt ?? ''), caption: captionContent })
+    }
+  }, [lightbox, idRef, src, alt, captionContent])
 
   return (
     <figure ref={rootRef} className={containerClasses}>
