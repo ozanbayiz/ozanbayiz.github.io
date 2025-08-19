@@ -1,5 +1,3 @@
-import Link from 'next/link'
-
 import { projectsData } from '@/features/projects'
 import ProjectSidebarShell from '@/features/projects/components/ProjectSidebarShell'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/ui/breadcrumb'
@@ -20,15 +18,11 @@ export default async function ProjectLayout({
     <Breadcrumb>
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href='/'>Home</Link>
-          </BreadcrumbLink>
+          <BreadcrumbLink href='/'>Home</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href='/projects/'>Projects</Link>
-          </BreadcrumbLink>
+          <BreadcrumbLink href='/projects/'>Projects</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>

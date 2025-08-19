@@ -448,7 +448,7 @@ export default function ProjectSidebarShell({
                 </SidebarContent>
             </Sidebar>
             <SidebarInset className='[&_.container]:!max-w-none [&_.container]:!px-0'>
-                <header className='sticky top-0 z-50 isolate pointer-events-auto flex h-16 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4'>
+                <header className='sticky top-0 z-50 md:z-[55] isolate pointer-events-auto flex h-16 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4'>
                     <SidebarTrigger className='-ml-1 hover:text-accent rounded-none' />
                     <Separator orientation='vertical' className='mr-2 h-6 self-center' />
                     {header}
