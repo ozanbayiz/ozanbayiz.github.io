@@ -7,7 +7,7 @@
 I implemented an unconditional U-Net with the architecture provided in the project spec.
 
 <Figure src="/projects/cs180/proj5b/backbones/unconditional_arch.png" alt="Unconditional U-Net architecture" caption="Figure 1. Unconditional U-Net architecture." />
-<Figure src="/projects/cs180/proj5b/backbones/atomic_ops_new.png" alt="Atomic operations block" caption="Figure 2. Atomic operations block in the backbone." />
+<Figure src="/projects/cs180/proj5b/backbones/atomic_ops_new.png" alt="Atomic operations block" caption="Figure 2. Blocks that compose the backbone." />
 
 <a id="part-2-2" />
 ### 1.2 Using the U-Net to Train a Denoiser
@@ -16,25 +16,26 @@ Given a clean image, $x$, I noised it to get $z = x + \sigma \epsilon$, where $\
 
 <Figure src="/projects/cs180/proj5b/uncond/noising_process.png" alt="Noising process" caption="Figure 3. Forward noising process for constructing $(\mathbf{x}, \mathbf{z})$ pairs." />
 
-Using this, I created a dataloader for training, which produced batches of the form $(x, z)$ with $ \sigma = 0.5 $.
+Using this, I created a dataloader which produced batches of the form $(x, z)$ with $ \sigma = 0.5 $.
 
 <Figure src="/projects/cs180/proj5b/uncond/noising_dataloader.png" alt="Noising dataloader" caption="Figure 4. Noising dataloader output for $\sigma = 0.5$." />
 
 <a id="part-2-2-1" />
 #### 1.2.1 Training
 
-I trained the U-Net and plotted the training loss.
+I trained the U-Net to predict the noise $\epsilon_{\sigma} = z - x$, and optimized it against the loss $\| \epsilon_{\sigma}  - \hat{\epsilon}\|^2 $
 
 <Figure src="/projects/cs180/proj5b/uncond/uncond_unet_6_epochs.png" alt="Unconditional U-Net training loss" caption="Figure 5. Training loss for the unconditional U-Net." />
 
-I sampled after 1 epoch.
+Here are my results sampling after 1 and 5 training epochs.
+
+<ImageGrid>
 
 <Figure src="/projects/cs180/proj5b/uncond/1_epoch_samples.png" alt="1 epoch samples (unconditional)" caption="Figure 6. Samples after 1 epoch of training (unconditional)." />
 
-And 5 epochs.
-
 <Figure src="/projects/cs180/proj5b/uncond/5_epoch_samples.png" alt="5 epoch samples (unconditional)" caption="Figure 7. Samples after 5 epochs of training (unconditional)." />
 
+</ImageGrid>
 Pretty good!
 
 <a id="part-2-2-2" />
@@ -60,11 +61,13 @@ I followed the spec and implemented time conditioning.
 
 <Figure src="/projects/cs180/proj5b/backbones/fc_long.png" alt="Fully connected block (time embedding)" caption="Figure 10. Fully connected block used for time embeddings." />
 
-As recommended in the spec, I used a hidden dimension of 64 and a batch size of 128. For optimization, I used Adam with a learning rate of 0.001 and an exponential learning rate scheduler with $\gamma = 0.9$.
+As recommended in the spec, I used a hidden dimension of 64 and a batch size of 128. 
+For optimization, I used Adam with a learning rate of 0.001 and an exponential learning rate scheduler with $\gamma = 0.9$.
 
 <a id="part-3-2" />
 ### 2.2 Training the U-Net
 
+I used this algorithm for training the Unconditional U-Net
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
 $$
 \begin{aligned}
@@ -82,12 +85,14 @@ $$
 $$
 </div>
 
-Here is the training loss for the time-conditioned U-Net during 20 epochs.
+I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-conditioned U-Net during 20 epochs.
 
 <Figure src="/projects/cs180/proj5b/time_cond/training_loss.png" alt="Time-conditioned U-Net training loss" caption="Figure 11. Training loss for the time-conditioned U-Net (20 epochs)." />
 
 <a id="part-3-3" />
 ### 2.3 Sampling from the U-Net
+
+After training, I used this algorithm to sample from the U-Net.
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
 $$
@@ -105,7 +110,7 @@ $$
 $$
 </div>
 
-Here are my results for 5 and 20 epochs of training.
+I sampled after 5 and 20 epochs of training.
 
  
 <ImageGrid>
@@ -117,6 +122,8 @@ Here are my results for 5 and 20 epochs of training.
 ### 2.4 Adding Class-Conditioning to U-Net
 
 I implemented class conditioning as specified in the spec. I used the same hyperparameters as in part 2.2, and got the following training loss for 20 epochs.
+
+Here is the algorithm I used for class-conditioned training.
 
 $$
 \begin{aligned}
@@ -134,10 +141,14 @@ $$
 \end{aligned}
 $$
 
+Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
+
 <Figure src="/projects/cs180/proj5b/class_cond/training_loss.png" alt="Class-conditioned U-Net training loss" caption="Figure 14. Training loss for the class-conditioned U-Net (20 epochs)." />
 
 <a id="part-3-5" />
 ### 2.5 Sampling from the Class-Conditioned U-Net
+
+After training, I used this algorithm to sample from the class-conditioned U-Net
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
 $$
@@ -158,34 +169,34 @@ $$
 $$
 </div>
 
-Here are my results for 5 and 20 epochs of training.
+I sampled after 5 and 20 epochs of training.
 
 <ImageGrid>
 <Figure src="/projects/cs180/proj5b/class_cond/5_epoch_samples.png" alt="5 epoch samples (class-conditioned)" caption="Figure 15. Samples after 5 epochs (class-conditioned)." />
 <Figure src="/projects/cs180/proj5b/class_cond/20_epoch_samples.png" alt="20 epoch samples (class-conditioned)" caption="Figure 16. Samples after 20 epochs (class-conditioned)." />
 </ImageGrid>
 
-<a id="part-3-5-1" />
-#### 2.5.1 Sampling Progress During Training
+But something was wrong. My handwriting is pretty bad too, but like, come on man.
+
+After closer inspection, I noticed that I was missing normalization layers in my convolutional blocks. So I fixed this bug and re-launched training.
+
 
 <Figure src="/projects/cs180/proj5b/ddpm_samples_training.gif" alt="DDPM sampling progression across training epochs" caption="Figure 17. DDPM sampling progression as training proceeds." />
 
-<a id="part-3-5-2" />
-#### 2.5.2 DDPM Sampling (Trained Model)
+My samples were much cleaner this time around. *The Lesson?* normalization layers are pretty important.
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj5b/ddpm_samples.gif" alt="DDPM sampling animation from noise with the trained model" caption="Figure 18. DDPM sampling process from noise with the trained model." />
-<Figure src="/projects/cs180/proj5b/ddpm_samples.png" alt="DDPM generated samples (grid view)" caption="Figure 19. Grid of DDPM samples after training." />
+<Figure src="/projects/cs180/proj5b/ddpm_samples.gif" alt="DDPM sampling animation from noise with the trained model" caption="Figure 18. DDPM sampling process." />
+<Figure src="/projects/cs180/proj5b/ddpm_samples.png" alt="DDPM generated samples (grid view)" caption="Figure 19.  DDPM samples after training." />
 </ImageGrid>
 
-Frankly, the denoised results do not look as good as I would have wanted. My handwriting is also pretty bad, so maybe it's not my place to be so critical.
 
 <a id="appendix-rf" />
-## Appendix A: Rectified Flow (Bonus)
+## Bonus: Rectified Flow
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj5b/rf_samples.gif" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling animation (bonus)." />
-<Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Grid of Rectified Flow samples." />
+<Figure src="/projects/cs180/proj5b/rf_samples.gif" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling process." />
+<Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Rectified Flow samples." />
 </ImageGrid>
 
 {/* summary-of-edits

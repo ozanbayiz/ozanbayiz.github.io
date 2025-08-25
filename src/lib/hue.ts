@@ -1,6 +1,7 @@
 export function applyRandomHue(): void {
     try {
-        const hues = [0, 20, 30, 40, 50, 65, 120, 140, 160, 190, 200, 210, 230, 250, 270, 300, 340]
+        // Neon-leaning palette (high-chroma stops that read vividly)
+        const hues = [50, 90, 120, 140, 155, 170, 185, 200, 215, 235, 255, 270, 285, 300, 315, 330, 345]
         const idx = Math.floor(Math.random() * hues.length)
         const H: number = hues[idx] as number
         const root = document.documentElement
@@ -34,19 +35,17 @@ export function applyRandomHue(): void {
             const B = srgbToLinear(b)
             return 0.2126 * R + 0.7152 * G + 0.0722 * B
         }
+        // Ensure minimum text contrast vs background (AA 4.5:1)
         const ensureContrast = (h: number, sPct: number, initialLPct: number, darkMode: boolean): number => {
-            // Targets vs white or black background
             const minRatio = 4.5
-            const targetYAgainstWhite = (1.0 + 0.05) / minRatio - 0.05 // ~0.1833 max luminance when bg is white
-            const targetYAgainstBlack = minRatio * 0.05 - 0.05 // ~0.175 min luminance when bg is black
+            const targetYAgainstWhite = (1.0 + 0.05) / minRatio - 0.05 // ~0.1833
+            const targetYAgainstBlack = minRatio * 0.05 - 0.05 // ~0.175
             let low = 0, high = 100
             let l = initialLPct
             for (let i = 0; i < 14; i++) {
                 const y = relativeLuminance(h, sPct, l)
                 if (!darkMode) {
-                    // Need y <= target vs white (make darker)
                     if (y <= targetYAgainstWhite) {
-                        // try a bit lighter but keep within bound
                         low = l
                         l = (l + high) / 2
                     } else {
@@ -54,7 +53,6 @@ export function applyRandomHue(): void {
                         l = (l + low) / 2
                     }
                 } else {
-                    // Need y >= target vs black (make brighter)
                     if (y >= targetYAgainstBlack) {
                         high = l
                         l = (l + low) / 2
@@ -67,29 +65,24 @@ export function applyRandomHue(): void {
             return Math.max(0, Math.min(100, l))
         }
 
-        if (!isDark) {
-            const s = 100
-            const lMain = ensureContrast(H, s, 50, false)
-            const l2 = Math.max(0, lMain - 14)
-            const l3 = Math.min(100, lMain + 14)
-            const l4 = Math.min(100, lMain + 30)
-            setVar('--accent', H, s, lMain)
-            setVar('--accent2', H, s, l2)
-            setVar('--accent3', H, s, l3)
-            setVar('--accent4', H, s, l4)
-            root.style.setProperty('--accent-foreground', '0 0% 100%')
-        } else {
-            const s = 80
-            const lMain = ensureContrast(H, s, 66, true)
-            const l2 = Math.max(0, lMain - 16)
-            const l3 = Math.min(100, lMain + 8)
-            const l4 = Math.min(100, lMain + 20)
-            setVar('--accent', H, s, lMain)
-            setVar('--accent2', H, s, l2)
-            setVar('--accent3', H, s, l3)
-            setVar('--accent4', H, s, l4)
-            root.style.setProperty('--accent-foreground', '0 0% 100%')
-        }
+        // Neon intent: fully saturated; push brighter in dark mode while preserving contrast
+        const s = 100
+        const baseL = ensureContrast(H, s, isDark ? 66 : 50, isDark)
+        const lMain = isDark ? Math.max(baseL, 64) : baseL
+
+        setVar('--accent', H, s, lMain)
+        // Tiering for neon look (glow-like lighter tiers and a slightly darker pressed tier)
+        const l2 = Math.max(0, lMain - (isDark ? 8 : 12))
+        const l3 = Math.min(100, lMain + (isDark ? 12 : 10))
+        const l4 = Math.min(100, lMain + (isDark ? 24 : 18))
+        setVar('--accent2', H, s, l2)
+        setVar('--accent3', H, s, l3)
+        setVar('--accent4', H, s, l4)
+
+        // Foreground on accent backgrounds (for badges/buttons/etc.)
+        const y = relativeLuminance(H, s, lMain)
+        const accentFg = y > 0.5 ? '0 0% 0%' : '0 0% 100%'
+        root.style.setProperty('--accent-foreground', accentFg)
     } catch {
         // no-op
     }

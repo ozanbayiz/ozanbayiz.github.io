@@ -1,7 +1,8 @@
 export const HUE_BOOTSTRAP_IIFE = `
 (function(){
   try {
-    var hues = [0, 20, 30, 40, 50, 65, 120, 140, 160, 190, 200, 210, 230, 250, 270, 300, 340];
+    // Neon-leaning palette for vivid output
+    var hues = [50, 90, 120, 140, 155, 170, 185, 200, 215, 235, 255, 270, 285, 300, 315, 330, 345];
     var H = hues[Math.floor(Math.random() * hues.length)];
     var root = document.documentElement;
     var isDark = root.classList.contains('dark');
@@ -20,8 +21,8 @@ export const HUE_BOOTSTRAP_IIFE = `
     }
     function ensureContrast(h, sPct, initialLPct, darkMode){
       var minRatio=4.5;
-      var targetYAgainstWhite=(1.0+0.05)/minRatio - 0.05; // ~0.1833
-      var targetYAgainstBlack=minRatio*0.05 - 0.05; // ~0.175
+      var targetYAgainstWhite=(1.0+0.05)/minRatio - 0.05;
+      var targetYAgainstBlack=minRatio*0.05 - 0.05;
       var low=0, high=100, l=initialLPct;
       for(var i=0;i<14;i++){
         var y=relativeLuminance(h, sPct, l);
@@ -30,23 +31,19 @@ export const HUE_BOOTSTRAP_IIFE = `
       }
       return Math.max(0, Math.min(100, l));
     }
-    if (!isDark) {
-      var s=100; var lMain=ensureContrast(H, s, 50, false);
-      var l2=Math.max(0, lMain-14), l3=Math.min(100, lMain+14), l4=Math.min(100, lMain+30);
-      setVar('--accent', H, s, lMain);
-      setVar('--accent2', H, s, l2);
-      setVar('--accent3', H, s, l3);
-      setVar('--accent4', H, s, l4);
-      root.style.setProperty('--accent-foreground','0 0% 100%');
-    } else {
-      var sD=80; var lMainD=ensureContrast(H, sD, 66, true);
-      var l2D=Math.max(0, lMainD-16), l3D=Math.min(100, lMainD+8), l4D=Math.min(100, lMainD+20);
-      setVar('--accent', H, sD, lMainD);
-      setVar('--accent2', H, sD, l2D);
-      setVar('--accent3', H, sD, l3D);
-      setVar('--accent4', H, sD, l4D);
-      root.style.setProperty('--accent-foreground','0 0% 100%');
-    }
+    var s=100;
+    var baseL=ensureContrast(H, s, isDark ? 66 : 50, isDark);
+    var lMain=isDark ? Math.max(baseL, 64) : baseL;
+    setVar('--accent', H, s, lMain);
+    var l2=Math.max(0, lMain - (isDark ? 8 : 12));
+    var l3=Math.min(100, lMain + (isDark ? 12 : 10));
+    var l4=Math.min(100, lMain + (isDark ? 24 : 18));
+    setVar('--accent2', H, s, l2);
+    setVar('--accent3', H, s, l3);
+    setVar('--accent4', H, s, l4);
+    var y=relativeLuminance(H, s, lMain);
+    var accentFg = y > 0.5 ? '0 0% 0%' : '0 0% 100%';
+    root.style.setProperty('--accent-foreground', accentFg);
   } catch(_){
   }
 })();
