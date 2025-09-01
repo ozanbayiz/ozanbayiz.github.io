@@ -1,6 +1,11 @@
 ## Abstract
 
-Machine learning systems, especially modern Vision-Language Models (VLMs), can inherit and amplify societal biases related to race, gender, and age (Florence‑2 VLM; FairFace dataset). To build fairer and more trustworthy AI, we move beyond merely measuring bias to analyzing how it is represented internally in the vision encoder. In this project, we investigate Microsoft's Florence‑2 vision encoder using a combination of linear probing and Sparse Autoencoders (SAEs) to identify and visualize which internal features encode sensitive demographic attributes. Our findings show that some features align with demographic labels, while others often rely on contextual or cultural markers (e.g., headscarves, beards), illuminating one mechanism by which bias can emerge in downstream tasks.
+Machine learning systems are prone to exhibiting misaligned behavior when inputs include sensitive attributes such as race, age or gender. 
+Understanding how neural networks encode these attributes is essential for achieving fairness, transparency, interpretability, and overall alignment. 
+This project investigates activations of the vision encoder (VE) of a vision language model (VLM) – in this case a vision transformer (ViT) – when provided input of images of people of different races, genders, and ages. 
+We specifically use Microsoft’s Florence-2-base model, and perform the following analyses: First, we determined the degree to which the VE’s output activations contain features that are relevant to encoding demographic information by training linear probes to classify VE encoded images of people based on race, gender, and age. 
+We then train sparse autoencoders (SAEs) to decompose these activations into human-interpretable latent features. 
+Finally, we identify sparse dictionary features (SDFs) that are correlated with particular demographic features, providing insights into how these attributes might be represented.
 
 <SectionDivider />
 
@@ -59,10 +64,6 @@ Future work includes: (1) causal interventions (feature editing/pruning/ablation
 
 <SectionDivider />
 
-## Resources
-
-- Read the full paper (PDF): [writeup.pdf](/idarve/writeup.pdf)
-- Code: https://github.com/ozanbayiz/idarve
 
 
 export const meta = {

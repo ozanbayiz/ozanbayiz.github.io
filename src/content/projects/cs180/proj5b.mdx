@@ -83,7 +83,7 @@ $$
 &\textbf{until happy}
 \end{aligned}
 $$
-</div>
+ </div> 
 
 I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-conditioned U-Net during 20 epochs.
 
@@ -192,16 +192,42 @@ My samples were much cleaner this time around. *The Lesson?* normalization layer
 
 
 <a id="appendix-rf" />
-## Bonus: Rectified Flow
+## Bonus: Flow-Matching
+
+Flow-matching models the data generation process as an ordinary differential equation (ODE):
+
+$$
+\frac{d\mathbf{x}_t}{dt} = \mathbf{v}(\mathbf{x}_t, t)
+$$
+
+where $\mathbf{x}_t$ is a data point at time $t \in [0, 1]$, and $\mathbf{v}(\mathbf{x}_t, t)$ is the velocity vector field that moves the data from the noise distribution at $t=0$ to the data distribution at $t=1$. 
+The key idea of flow-matching is to define a conditional probability path, or "flow," from noise to data. 
+A common choice is the conditional flow, where each data point $\mathbf{x}_1$ is connected to a noise point $\mathbf{x}_0$ by a straight line.
+
+$$
+\mathbf{x}_t = t\mathbf{x}_1 + (1-t)\mathbf{x}_0
+$$
+
+The velocity vector for this path is simply the difference between the data and noise points:
+
+$$
+\mathbf{v}_t = \frac{d\mathbf{x}_t}{dt} = \mathbf{x}_1 - \mathbf{x}_0
+$$
+
+The model, which we call a neural ODE, is trained to predict this velocity vector. 
+The loss function minimizes the difference between the predicted velocity and the true velocity of the straight-line paths, averaged over all data points and times:
+
+$$
+\mathcal{L} = \mathbb{E}_{p(\mathbf{x}_1), p(\mathbf{x}_0), t \sim \mathcal{U}[0, 1]} [||\mathbf{v}_\theta(\mathbf{x}_t, t) - (\mathbf{x}_1 - \mathbf{x}_0)||^2]
+$$
+
+During sampling, you start with a random noise vector $\mathbf{x}_0 \sim p(\mathbf{x}_0)$ and numerically solve the ODE to get the final data point $\mathbf{x}_1$.
+
+***
+
+
 
 <ImageGrid>
 <Figure src="/projects/cs180/proj5b/rf_samples.gif" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling process." />
 <Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Rectified Flow samples." />
 </ImageGrid>
-
-{/* summary-of-edits
-- Standardized terminology to "U-Net" throughout and corrected grammar/punctuation.
-- Fixed broken image tags/paths and added missing attributes; removed stray markup.
-- Converted all images to use `Figure` with sequential captions (Figure 1–16) and concise, descriptive alt text.
-- Resolved minor inconsistencies (e.g., epoch counts) and improved clarity without altering technical content.
-*/}
