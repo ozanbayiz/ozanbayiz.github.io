@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
-import { projectsData } from '@/features/projects/data/projects'
 import ProjectCard from '@/features/projects/components/ProjectCard'
+import { projectsData } from '@/features/projects/data/projects'
 
 export default function ProjectSection() {
     return (
