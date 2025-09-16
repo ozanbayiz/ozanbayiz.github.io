@@ -2,72 +2,199 @@
 
 Machine learning systems are prone to exhibiting misaligned behavior when inputs include sensitive attributes such as race, age or gender. 
 Understanding how neural networks encode these attributes is essential for achieving fairness, transparency, interpretability, and overall alignment. 
-This project investigates activations of the vision encoder (VE) of a vision language model (VLM) – in this case a vision transformer (ViT) – when provided input of images of people of different races, genders, and ages. 
+This project investigates activations of the vision encoder (VE) of a Vision Langage Model (VLM) – in this case a vision transformer (ViT) – when provided input of images of people of different races, genders, and ages. 
 We specifically use Microsoft’s Florence-2-base model, and perform the following analyses: First, we determined the degree to which the VE’s output activations contain features that are relevant to encoding demographic information by training linear probes to classify VE encoded images of people based on race, gender, and age. 
 We then train sparse autoencoders (SAEs) to decompose these activations into human-interpretable latent features. 
 Finally, we identify sparse dictionary features (SDFs) that are correlated with particular demographic features, providing insights into how these attributes might be represented.
 
 <SectionDivider />
 
-## The Challenge: Seeing Inside the "Black Box"
+## Motivation
 
-Large-scale vision models are often treated as "black boxes," making it difficult to understand why they produce particular outputs. When these models leverage sensitive attributes—explicitly or via proxies—it can perpetuate stereotypes and harm user trust. Our goal is to dissect internal representations to clarify how, and where, demographic information is encoded within the visual pathway of the model.
+Vision Language Models (VLMs) like 
+<ExternalLink href="https://arxiv.org/abs/2311.06242"> Microsoft Florence-2</ExternalLink>
+(<ExternalLink href="https://huggingface.co/microsoft/Florence-2-base">huggingface model card</ExternalLink>)
+represent a significant leap in AI, 
+adeptly integrating visual and textual information for diverse tasks such as image captioning
+and visual question answering. 
 
-<SectionDivider />
+However, these powerful models often inherit societal biases related to sensitive attributes like race, gender, and age from their vast training data.
+This causes models to propagate harmful stereotypes.
 
-## Our Approach: A Three-Step Methodological Pipeline
+Should VLMs' internal representation of a person be agnostic to their age, race, and/or gender identity? 
+If so, is it posible to steer this latent respresentation away from harmful biases in the training data?
 
-### Step 1: Confirming the Signal with Linear Probing
 
-We first test whether demographic information is linearly decodable from the vision encoder's activations. We extract patch-level features, average-pool to image vectors, and train simple linear probes for race, gender, and age. The race probe achieves 62.15% accuracy on a 7-class task (vs. 14.3% random baseline), confirming that demographic information is strongly present and justifying a deeper analysis (Florence‑2; FairFace).
 
-![Linear probing pipeline](/projects/idarve/LP_training.png)
-> Figure 1: Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction.
-
-### Step 2: Decomposing Activations with Sparse Autoencoders (SAEs)
-
-To understand the structure of this information, we train an overcomplete SAE on patch-level activations, preserving spatial detail for more fine-grained interpretability. The SAE learns a dictionary of sparse, interpretable features (Sparse Dictionary Features, SDFs) that can be visualized and analyzed at the image and patch levels.
-
-![Patch-level SAE pipeline](/projects/idarve/SAE_training.png)
-> Figure 2: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original features.
-
-### Step 3: Identifying and Filtering Race‑Correlated Features
-
-From the learned dictionary, we apply a filtering pipeline to surface SDFs most relevant to race:
-
-- Activation frequency: features that frequently activate for a specific group
-- Mean activation strength: features that activate strongly (not just often)
-- Label entropy: features with high specificity to a single group
+Understanding how visually observable demographic attributes are represented
+within the activation space of a VLM will provide useful insights into aligning ML behaviors
+to constructive human preferences.
 
 <SectionDivider />
 
-## Key Findings: Models Learn Proxies and Shortcuts
+## FairFace Dataset
 
-The analysis reveals a mixture of signals. Some features align strongly with demographic labels, while others are entangled with unrelated concepts. Most notably, several features act as proxies for demographic categories by firing on contextual or cultural markers (e.g., headscarves or beards), suggesting shortcut learning that can manifest as bias in downstream tasks.
+The 
+<ExternalLink href="https://arxiv.org/abs/1908.04913">FairFace dataset</ExternalLink>
+(<ExternalLink href="https://huggingface.co/datasets/HuggingFaceM4/FairFace">huggingface dataset card</ExternalLink>)
+ is a publicly available collection of face images created to address and reduce racial bias in computer vision, especially in facial recognition systems.
+
+FairFace contains over 100,000 face images, annotated by age, gender, and race. 
+The dataset includes seven race groups: 
+White, Black, East Asian, Southeast Asian, Indian, Middle Eastern, and Latino.
+Unlike many existing datasets that are skewed toward certain demographics, 
+FairFace aims for balanced representation across races, ages, and genders.
+
+We chose FairFace due to this explicit balancing, 
+enabling us to overcome entanglement of attributes
+and control for specific attributes using stratified sampling.
+
+<SectionDivider />
+
+## Methodology
+
+### Linear Probing
+
+First, we test if demographic information can be linearly decoded from the Vision Encoder's (VE) activations.
+Using Florence-2's VE, we encode images to extract patch-level features:
+
+$$
+\text{VE}(X_{\text{img}}) = Z_{\text{img}} \in \mathbb{R}^{N_{\text{patches}} \times D_{\text{patch}}}
+$$
+
+Due to compute constraints,
+we could not train linear probes directly on flattened image features.
+To resolve this, we computed the mean across the patch dimension, yielding a single vector for each image:
+
+$$
+\text{mean}(Z_{\text{img}}) = \overline{z_{\text{img}}} \in \mathbb{R}^{D_{\text{patch}}}
+$$
+
+We then train simple linear probes to predict the race, age, and gender labels of the face in the encoded image.
+
+<Figure src="/projects/idarve/LP_training.png" alt="Linear probing pipeline" caption="Figure 1: Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction." />
+
+After training, we evaluated the performance of linear probes on a validation dataset. 
+
+<Figure src="/projects/idarve/LP_performance.png" alt="Linear probe validation results" caption="Figure 2: Linear probe performance on validation set." />
+
+Despite the loss of spatial information through patch-wise averaging, 
+the trained probes predicted demographic attribute labels with an accuracy considerably higher than random chance.
+This indicated to us that the patch-level features in Florence-2's VE were relevant to demographic attribute identification,
+justifying our next stage of investigations.
+
+### Decomposing Activations with Sparse Autoencoders (SAEs)
+
+We trained a SAE on patch-level activations.
+
+<Figure src="/projects/idarve/SAE_training.png" alt="SAE training pipeline" caption="Figure 3: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature" />
+
+The SAE learns a dictionary of sparse, interpretable features (aka Sparse Dictionary Features, SDFs)
+that can be analyzed to identify correlations between demographic labels and particular patterns in the activation space
+
+### Identifying Relevant SDFs
+
+After training our SAE, we identified which SDFs were correlated to which particular labels $l \in \{ l_1, ... l_c \} = \mathcal{L}$
+
+We follow the multi-stage process outlined in [CITATION]
+to systematically narrows down the vast SDF dictionary to focused lists of candidates.
+
+#### 1. Activation frequency
+
+The first step identifies SDFs that are commonly activated when processing
+images belonging to a particular label. 
+For each SDF and each label, 
+we calculate the proportion of datapoints with that label for which the SDF’s aggregated activation exceeds a threshold $\tau > 0$. 
+
+This yields a frequency score indicating how often the feature "fires" for that label.
+We select the top $k_1$ SDFs exhibiting the highest activation frequency for each label, 
+forming an initial pool of candidates based on prevalence.
+
+#### 2. Mean activation strength
+
+Simply being frequently active might not be sufficient; 
+we are also interested in features that activate strongly when present,
+suggesting higher salience or confidence according to the SAE. 
+
+For each race group, 
+we consider its $k_1$ candidate SDFs identified in the previous step. 
+We then calculate the mean activation value for each of these SDFs, 
+averaging only across those images within the group where the SDF was active (activation $> τ $). 
+
+By retaining the top $k_2$ SDFs per group, ranked by this mean activation value, 
+we prioritize SDFs that are both common and exhibit strong activation signals for inputs of a given label.
+
+#### 3. Label Entropy
+
+A feature might be frequent and strong within one group but also activate substantially for other
+groups. To isolate features more uniquely associated with a target group, we calculate the label
+entropy for each of the remaining $k_2$ candidate SDFs per group, following. 
+
+For each SDF $f_i$, we:
+1. Compute the sum of $f_i$'s activation across all images with a given label:
+
+$$ 
+\text{label activation}(f_i, \ l) = \sum_{\text{img}_k \in l} \text{activation}( f_i, x_{\text{img}_k})
+$$
+
+2. Normalize these sums to obtain a probability distribution $\pi_{f_i, l_j}$, 
+indicating how "likely" a feature $f_i$ is to fire for an image with label $l_j$
+
+$$
+\pi_{f_i, l_j} = \frac{ \text{label activation} (f_i, l_j) }{\sum_{l_k \in \mathcal{L} } \text{label activation}(f_i, l_k) }
+$$
+
+3. Compute the Shannon entropy using these distributions.
+
+$$
+\text{entropy}(f_i) = - \sum_{l_j \in \mathcal{L} } \pi_{f_i,l_j} \log \pi_{f_i,l_j}
+$$
+
+A low entropy value signifies that the SDF’s activation is concentrated within one or a few labels, 
+indicating higher specificity. Conversely, high entropy suggests the feature is broadly active across many groups.
+
+We retain the top $k_3$ SDFs per label that demonstrate the lowest label entropy, 
+yielding our final set of candidate SDFs considered most statistically relevant and specific to each label based
+on their activation patterns. 
+
+<SectionDivider />
+
+## Findings: VEs "See" Cultural Markers
+
+Due to time constraints, we were only able to perform the SDF identification process for 
+the race attribute of our dataset.
+
+The analysis revealed a mixture of signals.
+Some features align strongly with demographic labels, 
+while others are entangled with unrelated concepts.
+
+<Figure src="/projects/idarve/neckbeard_feature.jpg" alt="A message indicating the identification of the neckbeard feature" caption="Figure 4. We found a feature associated with images of people wearing sunglasses."/>
+Most notably, 
+we found features aligned to cultural markers such as headscarves and beards.
 
 <ImageGrid>
-![Headscarves activate a race‑associated feature](/projects/idarve/stereotype_feature1.png)
-![Beards activate a race‑associated feature](/projects/idarve/stereotype_feature2.png)
+<Figure src="/projects/idarve/stereotype_feature1.png" alt="Headscarves activate a race‑associated feature" caption="Figure 5a: A feature strongly activates on headscarves, acting as a demographic proxy." />
+<Figure src="/projects/idarve/stereotype_feature2.png" alt="Beards activate a race‑associated feature" caption="Figure 5b: Another feature activates on beards, also acting as a demographic proxy." />
 </ImageGrid>
-> Figure 3: Examples of proxy features. Left: a feature strongly activates on headscarves; Right: another activates on beards. These contextual cues act as demographic proxies rather than intrinsic facial characteristics.
+
+Without a doubt, 
+a dataset used to train contemporary VLMs will display correlations between certain visual features and demographic attribute.
+
 
 <SectionDivider />
 
 ## Limitations & Future Directions
 
+
 - Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific
 - Proxy sensitivity: contextual cues may reflect dataset correlations rather than intrinsic attributes
-- Scope: analysis focused on race in FairFace; broader datasets and attributes are needed
-- Causality not established: correlations do not prove that features cause biased behavior
+- Scope: analysis focused on race in FairFace; controlling for age/gender could guide the identification of more concentrated SDF.
+- Causality not established: correlations do not prove that features contribute to demographic attribute understanding in the language model.
 
-Future work includes: (1) causal interventions (feature editing/pruning/ablation) to test whether identified features drive biased outcomes, (2) semi‑supervised SAEs guided by concept targets, and (3) evaluation of robustness and generalization across datasets and VLMs.
+We think future work will involve:
 
-<SectionDivider />
+1. Causal interventions (feature editing/pruning/ablation) to test whether identified features drive biased outcomes
 
+2. Semi‑supervised SAEs guided by concept targets
 
-
-export const meta = {
-  layout: 'project'
-}
-
-
+3. Evaluation of robustness and generalization across datasets and VLMs.

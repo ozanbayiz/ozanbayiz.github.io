@@ -1,3 +1,4 @@
+import ExternalLink from '@/components/common/ExternalLink'
 import SectionDivider from '@/components/common/SectionDivider'
 import ImageGrid from '@/components/mdx/ImageGrid'
 import Figure from '@/features/lightbox/components/Figure'
@@ -15,6 +16,7 @@ export function useMDXComponents(components: MdxComponents): MdxComponents {
     img: MdxImg as unknown as ComponentType<unknown>,
     Figure: Figure as ComponentType<unknown>,
     SectionDivider: SectionDivider as unknown as ComponentType<unknown>,
+    ExternalLink: ExternalLink as ComponentType<unknown>,
     ...components
   }
 }

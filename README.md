@@ -1,5 +1,13 @@
 personal website; [check me out](https://ozanbayiz.github.io/)
 
+## Getting Started
+
+- **Install dependencies**: `pnpm install`
+- **Run dev server**: `pnpm dev` (opens at `http://localhost:3000`)
+- **Build static site**: `pnpm build` (outputs to `out/` via Next `output: 'export'`)
+- **Preview build locally**: `pnpm preview` (serves `out/` at `http://localhost:3000`)
+- **Serve production build**: `pnpm start` (same as preview; serves `out/`)
+
 ## Folder structure
 
 This project uses a feature-first layout optimized for reuse and clarity.
@@ -27,13 +35,13 @@ src/
       components/      # Figure, ImageTile, MdxImg
       lightbox/        # LightboxProvider, LightboxModal
       index.ts
-  shared/              # Cross-cutting UI primitives, hooks, utils, mdx glue
-    ui/                # shadcn components (moved from components/ui)
-    components/        # SectionDivider, ExternalLink, etc.
-    hooks/             # useIsMobile, useScrollSpy
-    lib/               # utils.ts, hue.ts, hue-script.ts
+  shared/              # shadcn and MDX glue
+    ui/                # shadcn components
     mdx/               # mdx-client, mdx-components, remark plugins
-    types/             # shared types like content Heading
+  components/          # SectionDivider, ExternalLink, etc.
+  hooks/               # useIsMobile, useScrollSpy
+  lib/                 # utils.ts, hue.ts, hue-script.ts
+  types/               # shared types like content Heading
 ```
 
 ### Conventions
@@ -47,7 +55,7 @@ src/
 - UI primitives: `@/shared/ui` (updated from `@/components/ui`)
 - Features: import via `@/features/<feature>` barrels where possible
 - Domain data: `@/entities/...`
-- Shared helpers: `@/shared/{components,hooks,lib,mdx,types}`
+- Helpers: `@/{components,hooks,lib,types}` and `@/shared/{mdx,ui}`
 
 ### Notes
 - MDX remark plugin is wired from `src/shared/mdx/plugins` in `next.config.ts`

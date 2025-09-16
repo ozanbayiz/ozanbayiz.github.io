@@ -4,7 +4,7 @@ const SocialLinks = () => {
     return (
         <>
             <div className='m-4 flex items-center justify-center gap-2'>
-                <ExternalLink
+                {/* <ExternalLink
                     className='m-1'
                     href='https://open.spotify.com/user/obayiz'
                     aria-label='Spotify profile'
@@ -57,7 +57,7 @@ const SocialLinks = () => {
 
                 <div className='m-1 flex items-center text-center'>
                     <h1 className='text-xl'>+</h1>
-                </div>
+                </div> */}
 
                 <ExternalLink
                     className='m-1'

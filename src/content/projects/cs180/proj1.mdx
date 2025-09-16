@@ -17,9 +17,6 @@ I stumbled on [phase correlation](https://sthoduka.github.io/imreg_fmt/docs/phas
 
 <Figure src="/projects/cs180/proj1/lady_channels_raw.png" alt="Lady Raw Channels" caption="Raw RGB channels for the ‘Lady’ image before alignment." />
 
-↓ ↓ ↓ ↓
-
-<Figure src="/projects/cs180/proj1/phase_correlation_code.png" alt="Phase Correlation Code" caption="Phase correlation implementation (code excerpt)." />
 
 ↓ ↓ ↓ ↓
 
@@ -37,8 +34,8 @@ At each level, I divided the height/width of the query image by a power of 2. Ea
 
 Getting the metric involved:
 
-- applying the shift with np.roll
-- cropping the image to the inner 0.8*W x 0.8*H px, since the border was interfering with the metric function's results
+- applying the shift with `np.roll`
+- cropping the image to the inner 0.8W x 0.8H px, since the border was interfering with the metric function's results
 - applying the metric function
 
 At first I tried MSE & NCC as metric functions. These didn't work so I went back online and found NGD, which also didn't really work (but maybe I was just being impatient). Eventually I found the [Structural Similarity Index Measure](https://en.wikipedia.org/wiki/Structural_similarity_index_measure) [(and its scikit-image documentation)](https://scikit-image.org/docs/stable/auto_examples/transform/plot_ssim.html), which gave me pretty good results.

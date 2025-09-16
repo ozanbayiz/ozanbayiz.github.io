@@ -67,9 +67,10 @@ For optimization, I used Adam with a learning rate of 0.001 and an exponential l
 <a id="part-3-2" />
 ### 2.2 Training the U-Net
 
-I used this algorithm for training the Unconditional U-Net
-<div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
-$$
+Training the Unconditional U-Net followed this algorithm:
+<div className='display-flex justify-center'>
+<a>
+$
 \begin{aligned}
 &\textbf{Training}\\
 &\text{Precompute } \bar{\alpha}\\
@@ -82,8 +83,9 @@ $$
 &\quad \text{update } \theta \text{ to minimize } \lVert \boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}\rVert^2\\
 &\textbf{until happy}
 \end{aligned}
-$$
- </div> 
+$
+</a>
+</div> 
 
 I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-conditioned U-Net during 20 epochs.
 
@@ -92,10 +94,10 @@ I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-co
 <a id="part-3-3" />
 ### 2.3 Sampling from the U-Net
 
-After training, I used this algorithm to sample from the U-Net.
+After training, sampling from the U-Net followed this algorithm:
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
-$$
+$
 \begin{aligned}
 &\textbf{Sampling}\\
 &\text{Precompute } \boldsymbol{\beta},\, \boldsymbol{\alpha},\, \bar{\boldsymbol{\alpha}}\\
@@ -107,7 +109,7 @@ $$
 &\textbf{end for}\\
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
-$$
+$
 </div>
 
 I sampled after 5 and 20 epochs of training.
@@ -123,9 +125,9 @@ I sampled after 5 and 20 epochs of training.
 
 I implemented class conditioning as specified in the spec. I used the same hyperparameters as in part 2.2, and got the following training loss for 20 epochs.
 
-Here is the algorithm I used for class-conditioned training.
+Class-conditioned training followed this algorithm.
 
-$$
+$
 \begin{aligned}
 &\textbf{Class-Conditioned Training}\\
 &\text{Precompute } \bar{\alpha}\\
@@ -139,7 +141,7 @@ $$
 &\quad \text{update } \theta \text{ to minimize } \lVert \boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}\rVert^2\\
 &\textbf{until happy}
 \end{aligned}
-$$
+$
 
 Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
 
@@ -148,10 +150,10 @@ Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
 <a id="part-3-5" />
 ### 2.5 Sampling from the Class-Conditioned U-Net
 
-After training, I used this algorithm to sample from the class-conditioned U-Net
+After training, sampling from the class-conditioned U-Net followed this algorithm:
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
-$$
+$
 \begin{aligned}
 &\textbf{Class-Conditioned Sampling}\\
 &\text{input: one-hot } c,\ \text{guidance scale } \gamma\\
@@ -166,7 +168,7 @@ $$
 &\textbf{end for}\\
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
-$$
+$
 </div>
 
 I sampled after 5 and 20 epochs of training.
@@ -181,13 +183,13 @@ But something was wrong. My handwriting is pretty bad too, but like, come on man
 After closer inspection, I noticed that I was missing normalization layers in my convolutional blocks. So I fixed this bug and re-launched training.
 
 
-<Figure src="/projects/cs180/proj5b/ddpm_samples_training.gif" alt="DDPM sampling progression across training epochs" caption="Figure 17. DDPM sampling progression as training proceeds." />
+<Figure src="/projects/cs180/proj5b/ddpm_samples_training.gif" alt="DDPM sampling results over training epochs." caption="Figure 17. DDPM sampling results over training epochs." />
 
 My samples were much cleaner this time around. *The Lesson?* normalization layers are pretty important.
 
 <ImageGrid>
 <Figure src="/projects/cs180/proj5b/ddpm_samples.gif" alt="DDPM sampling animation from noise with the trained model" caption="Figure 18. DDPM sampling process." />
-<Figure src="/projects/cs180/proj5b/ddpm_samples.png" alt="DDPM generated samples (grid view)" caption="Figure 19.  DDPM samples after training." />
+<Figure src="/projects/cs180/proj5b/ddpm_samples.png" alt="DDPM generated samples (grid view)" caption="Figure 19.  DDPM sampling results." />
 </ImageGrid>
 
 
@@ -201,6 +203,7 @@ $$
 $$
 
 where $\mathbf{x}_t$ is a data point at time $t \in [0, 1]$, and $\mathbf{v}(\mathbf{x}_t, t)$ is the velocity vector field that moves the data from the noise distribution at $t=0$ to the data distribution at $t=1$. 
+
 The key idea of flow-matching is to define a conditional probability path, or "flow," from noise to data. 
 A common choice is the conditional flow, where each data point $\mathbf{x}_1$ is connected to a noise point $\mathbf{x}_0$ by a straight line.
 
@@ -222,12 +225,9 @@ $$
 $$
 
 During sampling, you start with a random noise vector $\mathbf{x}_0 \sim p(\mathbf{x}_0)$ and numerically solve the ODE to get the final data point $\mathbf{x}_1$.
-
-***
-
-
+I opted with the Euler method for ease of implementation.
 
 <ImageGrid>
 <Figure src="/projects/cs180/proj5b/rf_samples.gif" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling process." />
-<Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Rectified Flow samples." />
+<Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Rectified Flow sampling results." />
 </ImageGrid>
