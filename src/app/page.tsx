@@ -1,9 +1,10 @@
-import SectionDivider from '@/components/common/SectionDivider'
-import TopAscii from '@/components/layout/TopAscii'
+import FavoritesSection from '@/features/home/components/FavoritesSection'
 import OzanSection from '@/features/home/components/OzanSection'
 import ProjectSection from '@/features/home/components/ProjectSection'
 import ResearchSection from '@/features/home/components/ResearchSection'
 import SocialLinks from '@/features/home/components/SocialLinks'
+import TopAscii from '@/features/home/components/TopAscii'
+import SectionDivider from '@/shared/ui/section-divider'
 
 export default function Home() {
     return (
@@ -30,6 +31,11 @@ export default function Home() {
             {/* <Separator /> */}
 
             <ResearchSection />
+
+            <SectionDivider />
+            {/* <Separator /> */}
+
+            <FavoritesSection />
 
             Ozan Bayiz, 2025
 

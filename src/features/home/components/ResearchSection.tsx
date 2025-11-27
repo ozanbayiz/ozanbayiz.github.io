@@ -29,10 +29,10 @@ export default function ResearchSection() {
         <section>
             <div className='mx-0 my-4 grid grid-cols-1 justify-stretch gap-8 sm:mx-4 md:grid-cols-2 md:gap-16'>
                 <div className='text-center sm:text-left'>
-                    <h1 className='mb-4 text-center text-xl font-bold sm:text-left sm:text-2xl'>
+                    <h1 className='mb-4 text-center h2 sm:text-left'>
                         Research
                     </h1>
-                    <p className='mb-4'>{first?.description}</p>
+                    <p className='mb-4 body-text'>{first?.description}</p>
                     <div className='flex items-center'>
                         <Image
                             src={first?.imageUrl ?? '/nyan_cat.gif'}

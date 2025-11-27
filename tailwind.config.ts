@@ -77,15 +77,7 @@ export default {
                 DEFAULT: {
                     css: {
                         color: theme('colors.foreground'),
-                        // Site-wide smaller body text for prose
-                        p: {
-                            fontSize: '0.875rem'
-                        },
-                        li: {
-                            fontSize: '0.875rem'
-                        },
                         code: {
-                            fontSize: '0.875rem',
                             color: theme('colors.foreground'),
                             backgroundColor: 'transparent',
                             borderWidth: '1px',
@@ -95,9 +87,6 @@ export default {
                             paddingRight: '0.2em',
                             paddingTop: '0.05em',
                             paddingBottom: '0.05em'
-                        },
-                        figcaption: {
-                            fontSize: '0.8125rem'
                         },
                         a: {
                             color: 'inherit',
@@ -148,15 +137,7 @@ export default {
                 invert: {
                     css: {
                         color: theme('colors.foreground'),
-                        // Site-wide smaller body text for prose (dark)
-                        p: {
-                            fontSize: '0.875rem'
-                        },
-                        li: {
-                            fontSize: '0.875rem'
-                        },
                         code: {
-                            fontSize: '0.875rem',
                             color: theme('colors.foreground'),
                             backgroundColor: 'transparent',
                             borderWidth: '1px',
@@ -166,9 +147,6 @@ export default {
                             paddingRight: '0.2em',
                             paddingTop: '0.05em',
                             paddingBottom: '0.05em'
-                        },
-                        figcaption: {
-                            fontSize: '0.8125rem'
                         },
                         a: {
                             color: 'inherit',
@@ -228,6 +206,17 @@ export default {
                 xl: '0px',
                 '2xl': '0px',
                 full: '9999px'
+            },
+            keyframes: {
+                scroll: {
+                    to: {
+                        transform: 'translate(calc(-50% + 0.5rem))'
+                    }
+                }
+            },
+            animation: {
+                scroll:
+                    'scroll var(--animation-duration, 40s) var(--animation-direction, normal) linear infinite'
             }
         }
     },

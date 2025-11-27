@@ -1,9 +1,9 @@
 import Link from 'next/link'
 
-import ExternalLink from '@/components/common/ExternalLink'
 import { projectsData, type Project } from '@/features/projects'
 import ProjectCard from '@/features/projects/components/ProjectCard'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/ui/breadcrumb'
+import ExternalLink from '@/shared/ui/external-link'
 import { Separator } from '@/shared/ui/separator'
 
 const byDateDesc = (a?: string, b?: string) => {
@@ -54,11 +54,11 @@ export default function ProjectsListPage() {
                 </Breadcrumb>
             </div>
             <section className='space-y-4'>
-                <h1 className='text-2xl font-bold'>Projects</h1>
+                <h1 className='h1'>Projects</h1>
                 <div className='flex flex-col gap-12'>
                     <div className='space-y-3'>
-                        <h2 className='text-xl font-semibold'>CS180 Projects</h2>
-                        <p className='text-sm text-foreground'>
+                        <h2 className='h2'>CS180 Projects</h2>
+                        <p className='body-text text-foreground'>
                             Fall 2024 I took{' '}
                             <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='underline hover:text-accent' aria-label='CS 180/280A' newTab={false}>
                                 CS180/280A: Intro to Computer Vision and Computational Photography
@@ -70,14 +70,14 @@ export default function ProjectsListPage() {
                     </div>
                     <Separator />
                     <div className='space-y-3'>
-                        <h2 className='text-xl font-semibold'>Misc Academic Projects</h2>
-                        <p className='text-sm text-foreground'>Projects from classes at Berkeley.</p>
+                        <h2 className='h2'>Misc Academic Projects</h2>
+                        <p className='body-text text-foreground'>Projects from classes at Berkeley.</p>
                         <Section items={research} />
                     </div>
                     <Separator />
                     <div className='space-y-3'>
-                        <h2 className='text-xl font-semibold'>Personal Projects</h2>
-                        <p className='text-sm text-foreground'>Smaller experiments and things I built for fun or learning.</p>
+                        <h2 className='h2'>Personal Projects</h2>
+                        <p className='body-text text-foreground'>Smaller experiments and things I built for fun or learning.</p>
                         <Section items={personal} />
                     </div>
                 </div>

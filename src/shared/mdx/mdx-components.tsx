@@ -1,9 +1,9 @@
-import ExternalLink from '@/components/common/ExternalLink'
-import SectionDivider from '@/components/common/SectionDivider'
-import ImageGrid from '@/components/mdx/ImageGrid'
 import Figure from '@/features/lightbox/components/Figure'
+import ImageGrid from '@/features/lightbox/components/ImageGrid'
 import ImageTile from '@/features/lightbox/components/ImageTile'
 import MdxImg from '@/features/lightbox/components/MdxImg'
+import ExternalLink from '@/shared/ui/external-link'
+import SectionDivider from '@/shared/ui/section-divider'
 
 import type { ComponentType } from 'react'
 

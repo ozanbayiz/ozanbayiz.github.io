@@ -8,8 +8,10 @@ body {
 
 @layer base {
     :root {
-        --background: 0 0% 100%; /* white */
-        --foreground: 0 0% 0%; /* black */
+        --background: 0 0% 100%;
+        /* white */
+        --foreground: 0 0% 0%;
+        /* black */
         --card: 0 0% 100%;
         --card-foreground: 0 0% 0%;
         --popover: 0 0% 100%;
@@ -50,9 +52,12 @@ body {
         --sidebar-border: var(--border);
         --sidebar-ring: var(--ring);
     }
+
     .dark {
-        --background: 0 0% 0%; /* black */
-        --foreground: 0 0% 100%; /* white */
+        --background: 0 0% 0%;
+        /* black */
+        --foreground: 0 0% 100%;
+        /* white */
         --card: 0 0% 0%;
         --card-foreground: 0 0% 100%;
         --popover: 0 0% 0%;
@@ -100,6 +105,7 @@ body {
         overflow: visible;
         max-width: 100%;
     }
+
     .math-wrap .katex {
         /* Let math wrap instead of forcing a single unbroken line */
         white-space: normal;
@@ -113,18 +119,52 @@ body {
     * {
         @apply border-border;
     }
+
     body {
         @apply bg-background text-foreground;
     }
+
     /* Ensure anchored headings scroll below the sticky project header */
     :is(h1, h2, h3, h4, h5, h6)[id] {
-        scroll-margin-top: 5rem; /* ~80px; header is 64px (h-16) */
+        scroll-margin-top: 5rem;
+        /* ~80px; header is 64px (h-16) */
     }
+
     /* Classless media responsiveness */
-    img, video, canvas {
+    img,
+    video,
+    canvas {
         display: block;
         max-width: 100%;
         height: auto;
+    }
+}
+
+@layer components {
+    .h1 {
+        @apply text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight;
+    }
+
+    .h2 {
+        @apply text-xl font-bold sm:text-2xl md:text-3xl tracking-tight;
+    }
+
+    .h3 {
+        @apply text-lg font-semibold sm:text-xl md:text-2xl tracking-tight;
+    }
+
+    .subtitle {
+        @apply text-sm font-medium text-muted-foreground sm:text-base;
+    }
+
+    /* Standard body text class with responsive scaling */
+    .body-text {
+        @apply text-sm leading-relaxed;
+    }
+
+    /* Fixed small text class (your preference) */
+    .body-sm {
+        @apply text-sm leading-relaxed;
     }
 }
 
@@ -132,10 +172,10 @@ body {
 
 /* Generic utilities */
 .clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* KaTeX CSS handled via app/layout.tsx import */

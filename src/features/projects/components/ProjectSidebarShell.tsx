@@ -6,7 +6,6 @@ import * as React from 'react'
 
 import { useScrollSpy } from '@/hooks/useScrollSpy'
 import { cn } from '@/lib/utils'
-import { Separator } from '@/shared/ui/separator'
 import {
     SidebarProvider,
     Sidebar,
@@ -90,18 +89,18 @@ export default function ProjectSidebarShell({
             headings
                 .filter(h => h.level === 2 || h.level === 3)
                 .forEach(h => {
-                const node: Node = { id: h.id, title: h.title, children: [] }
-                while (stack.length > 0 && (stack[stack.length - 1]?.level ?? 0) >= h.level) {
-                    stack.pop()
-                }
-                const last = stack[stack.length - 1]
-                if (!last) {
-                    root.push(node)
-                } else {
-                    last.node.children.push(node)
-                }
-                stack.push({ level: h.level, node })
-            })
+                    const node: Node = { id: h.id, title: h.title, children: [] }
+                    while (stack.length > 0 && (stack[stack.length - 1]?.level ?? 0) >= h.level) {
+                        stack.pop()
+                    }
+                    const last = stack[stack.length - 1]
+                    if (!last) {
+                        root.push(node)
+                    } else {
+                        last.node.children.push(node)
+                    }
+                    stack.push({ level: h.level, node })
+                })
             setToc(root)
         },
         []
@@ -145,7 +144,7 @@ export default function ProjectSidebarShell({
             try {
                 const detail = (e as CustomEvent).detail as Heading[]
                 if (Array.isArray(detail)) setHeadingsFromMdx(detail)
-            } catch {}
+            } catch { }
         }
         if (typeof window !== 'undefined') {
             window.addEventListener('mdx:headings', handler as EventListener)
@@ -222,7 +221,7 @@ export default function ProjectSidebarShell({
         try {
             const key = `toc:open:${pathname ?? ''}`
             window.localStorage.setItem(key, JSON.stringify(expandedMap))
-        } catch {}
+        } catch { }
     }, [expandedMap, pathname])
 
     // Auto-expand only the active path (collapse siblings)
@@ -286,11 +285,18 @@ export default function ProjectSidebarShell({
             return { ...prev, ...map }
         })
     }
+
     return (
-            <SidebarProvider className='[&_.container]:!max-w-none [&_.container]:!px-0'>
-            <Sidebar side='left' collapsible='offcanvas' className='[&_.container]:!max-w-none [&_.container]:!px-0'>
+        <SidebarProvider
+            className='[&_.container]:!max-w-none [&_.container]:!px-0'
+        >
+            <Sidebar
+                side='left'
+                collapsible='offcanvas'
+                className='[&_.container]:!max-w-none [&_.container]:!px-0 border-r-0'
+            >
                 <SidebarHeader>
-                    <div className='px-2 text-sm font-medium'>Content</div>
+                    <div className='px-2 text-sm font-medium truncate'>Content</div>
                 </SidebarHeader>
                 <SidebarSeparator />
                 <SidebarContent>
@@ -310,21 +316,21 @@ export default function ProjectSidebarShell({
                                         return (
                                             <SidebarMenuItem key={section.id || section.title}>
                                                 <div className='flex items-center'>
-                                                <SidebarMenuButton
+                                                    <SidebarMenuButton
                                                         asChild
                                                         isActive={sectionActive}
-                                                    className='text-foreground flex-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent'
+                                                        className='text-foreground flex-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent'
                                                     >
                                                         <a
                                                             href={section.id ? `#${section.id}` : '#'}
-                                                    className='cursor-pointer'
-                                                        onClick={() => {
-                                                            setActiveOverrideId(section.id)
+                                                            className='cursor-pointer'
+                                                            onClick={() => {
+                                                                setActiveOverrideId(section.id)
                                                                 if (hasChildren) {
                                                                     setExpandedMap(prev => ({ ...prev, [section.id]: true }))
                                                                 }
                                                             }}
-                                                    >
+                                                        >
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <span
@@ -338,8 +344,8 @@ export default function ProjectSidebarShell({
                                                                     {section.title}
                                                                 </TooltipContent>
                                                             </Tooltip>
-                                                    </a>
-                                            </SidebarMenuButton>
+                                                        </a>
+                                                    </SidebarMenuButton>
                                                     {hasChildren ? (
                                                         // right-edge toggle
                                                         <SidebarMenuAction
@@ -439,8 +445,8 @@ export default function ProjectSidebarShell({
                                                     </SidebarMenuSub>
                                                 ) : null}
                                             </SidebarMenuItem>
-                                            )
-                                        })}
+                                        )
+                                    })}
                                 </SidebarMenu>
                             </SidebarGroupContent>
                         ) : null}
@@ -448,15 +454,14 @@ export default function ProjectSidebarShell({
                 </SidebarContent>
             </Sidebar>
             <SidebarInset className='[&_.container]:!max-w-none [&_.container]:!px-0'>
-                <header className='sticky top-0 z-50 md:z-[55] isolate pointer-events-auto flex h-16 shrink-0 items-center gap-2 border-b bg-background px-2 sm:px-4'>
-                    <SidebarTrigger className='-ml-1 hover:text-accent rounded-none' />
-                    <Separator orientation='vertical' className='mr-2 h-6 self-center' />
+                <header className='sticky top-0 z-50 md:z-[55] isolate pointer-events-auto flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4'>
+                    <SidebarTrigger className='hover:text-accent' />
                     {header}
                     <div className='ml-auto' />
                     {rightActions}
                 </header>
-                <div ref={contentRef} className='flex flex-1 flex-col gap-4 p-4'>
-                    <div className='prose prose-neutral dark:prose-invert max-w-none w-full'>
+                <div ref={contentRef} className='flex flex-1 flex-col gap-4 px-3 py-4 md:p-6 lg:p-8'>
+                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-none w-full mx-auto'>
                         {children}
                     </div>
                 </div>

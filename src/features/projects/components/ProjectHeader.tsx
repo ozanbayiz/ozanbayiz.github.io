@@ -1,6 +1,5 @@
-import ExternalLink from '@/components/common/ExternalLink'
-import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
+import ExternalLink from '@/shared/ui/external-link'
 
 export type HeaderProps = {
     title: string
@@ -13,15 +12,15 @@ export type HeaderProps = {
 export default function ProjectHeader({
     title,
     repoUrl,
-    date,
+    // date,
     authors,
     pdfUrl
 }: HeaderProps) {
     return (
-        <div className='space-y-3'>
-            <div className='flex items-center justify-between gap-4'>
-                <h1 className='text-2xl font-bold'>{title}</h1>
-                <div className='flex items-center gap-2'>
+        <div className='space-y-4'>
+            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
+                <h1 className='h1 leading-tight'>{title}</h1>
+                <div className='flex shrink-0 items-center gap-2'>
                     {pdfUrl ? (
                         <ExternalLink href={pdfUrl} aria-label='View PDF'>
                             <Button variant='outlineAccent' size='sm'>
@@ -37,15 +36,10 @@ export default function ProjectHeader({
                 </div>
             </div>
             {/* Tags removed per request */}
-            {(authors?.length || date) ? (
+            {(authors?.length) ? (
                 <div className='flex flex-wrap items-center gap-2 text-xs text-foreground/90'>
                     {authors?.length ? (
                         <span>{authors.join(' · ')}</span>
-                    ) : null}
-                    {date ? (
-                        <Badge variant='outline' className='border-foreground bg-foreground text-background'>
-                            {date}
-                        </Badge>
                     ) : null}
                 </div>
             ) : null}

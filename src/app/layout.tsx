@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         url: '/',
         siteName: 'ozanbayiz',
         images: [{ url: '/og.png', width: 1200, height: 630, alt: 'ozanbayiz' }]
-      },
+    },
     twitter: {
         card: 'summary_large_image',
         title: 'ozanbayiz',
@@ -48,7 +48,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${jetBrainsMono.variable} antialiased`}>
+            <body className={`${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
                 <script dangerouslySetInnerHTML={{ __html: HUE_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>

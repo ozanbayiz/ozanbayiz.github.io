@@ -26,7 +26,7 @@ export default async function UnifiedProjectPage({
   const heroSrc = project.heroImageSrc ?? project.imageUrl
 
   return (
-    <section className='space-y-6'>
+    <section className='space-y-4 md:space-y-6'>
       <ProjectHeader
         title={project.title}
         repoUrl={project.gitUrl}
@@ -41,7 +41,7 @@ export default async function UnifiedProjectPage({
       <img
         src={heroSrc}
         alt={project.title}
-        className='mx-auto block h-auto max-h-[clamp(220px,40vh,520px)] w-auto max-w-full'
+        className='mx-auto block h-auto max-h-[clamp(220px,40vh,520px)] w-auto max-w-full rounded-lg shadow-sm'
       />
       <Separator />
 

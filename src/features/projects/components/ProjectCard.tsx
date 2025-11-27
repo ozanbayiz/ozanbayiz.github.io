@@ -4,9 +4,9 @@ import { FileText, Github } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-import { Badge } from '@/shared/ui/badge'
+import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card'
 
 /**
  * ProjectCard
@@ -28,6 +28,7 @@ type ProjectCardProps = {
     heroImageSrc?: string // cs180
     tags?: string[] | undefined
     date?: string | undefined
+    className?: string
 }
 
 export default function ProjectCard(props: ProjectCardProps) {
@@ -41,7 +42,8 @@ export default function ProjectCard(props: ProjectCardProps) {
         summary,
         imageUrl,
         heroImageSrc,
-        date
+        // date,
+        className
     } = props
 
     const resolvedHref = href ?? (slug ? `/projects/${slug}/` : (gitUrl ?? '#'))
@@ -49,71 +51,73 @@ export default function ProjectCard(props: ProjectCardProps) {
     const displayImage = imageUrl ?? heroImageSrc ?? '/logo512.png'
 
     return (
-        <Card className='relative w-full overflow-hidden text-foreground transition-colors hover:border-accent'>
+        <Card className={cn('group relative flex h-full flex-col overflow-hidden transition-colors hover:border-accent', className)}>
             {/* Clickable overlay link to make the entire card clickable without nesting anchors */}
-            <Link href={resolvedHref} prefetch={false} aria-label={`Open ${title}`} className='absolute inset-0' />
-            <CardHeader>
-                <CardTitle className='flex min-w-0 items-center justify-between gap-2'>
-                    <span className='flex-1 break-words text-left line-clamp-3'>{title}</span>
-                    <div className='flex shrink-0 items-center gap-1'>
-                        {pdfUrl ? (
-                            <Button
-                                variant='ghost'
-                                size='icon'
-                                className='relative z-10'
-                                aria-label='View PDF'
-                                title='View PDF'
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    window.open(pdfUrl, '_blank', 'noopener,noreferrer')
-                                }}
-                            >
-                                <FileText className='h-4 w-4' />
-                            </Button>
-                        ) : null}
-                        {gitUrl ? (
-                            <Button
-                                variant='ghost'
-                                size='icon'
-                                className='relative z-10'
-                                aria-label='View repository'
-                                title='View repository'
-                                onClick={(e) => {
-                                    e.preventDefault()
-                                    e.stopPropagation()
-                                    window.open(gitUrl, '_blank', 'noopener,noreferrer')
-                                }}
-                            >
-                                <Github className='h-4 w-4' />
-                            </Button>
-                        ) : null}
-                    </div>
-                </CardTitle>
-                {date ? (
-                    <div className='text-left'>
-                        <Badge variant='outline' className='w-max'>
-                            {date}
-                        </Badge>
-                    </div>
-                ) : null}
-            </CardHeader>
-            <CardContent className='space-y-3'>
-                <div className='overflow-hidden rounded-md'>
+            <Link
+                href={resolvedHref}
+                prefetch={false}
+                aria-label={`Open ${title}`}
+                className='absolute inset-0 z-10'
+            />
+
+            <div className='p-4 pb-0'>
+                <div className='relative aspect-video w-full overflow-hidden rounded-md bg-muted'>
                     <Image
                         src={displayImage}
                         alt={title}
-                        width={800}
-                        height={450}
-                        className='mx-auto block h-auto max-h-[220px] w-auto max-w-full object-contain'
+                        fill
+                        className='object-cover'
+                        sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
                     />
                 </div>
-                <p className='break-words text-left text-sm text-foreground'>
+            </div>
+
+            <CardHeader className='space-y-2'>
+                <div className='flex items-start justify-between gap-2'>
+                    <CardTitle className='line-clamp-2 h3 leading-tight'>{title}</CardTitle>
+                </div>
+            </CardHeader>
+
+            <CardContent className='flex-1'>
+                <p className='line-clamp-3 body-text'>
                     {displayDescription}
                 </p>
             </CardContent>
+
+            {(gitUrl || pdfUrl) && (
+                <CardFooter className='relative z-20 gap-2 pt-0'>
+                    {pdfUrl && (
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            className='h-8 gap-2'
+                            onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+                            }}
+                        >
+                            <FileText className='h-3.5 w-3.5' />
+                            <span className='text-xs'>PDF</span>
+                        </Button>
+                    )}
+                    {gitUrl && (
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            className='h-8 gap-2'
+                            onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                window.open(gitUrl, '_blank', 'noopener,noreferrer')
+                            }}
+                        >
+                            <Github className='h-3.5 w-3.5' />
+                            <span className='text-xs'>Code</span>
+                        </Button>
+                    )}
+                </CardFooter>
+            )}
         </Card>
     )
 }
-
-

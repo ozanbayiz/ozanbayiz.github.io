@@ -41,7 +41,7 @@ const baseProjects: Project[] = [
         collection: 'misc-academic',
         slug: 'idarve',
         title: 'Investigating Demographic Attribute Representation in Vision Encoders',
-        shortTitle: 'CS182 Project: IDARVE',
+        shortTitle: 'IDARVE',
         description:
             'Probed Florence‑2’s DaViT vision encoder with linear classifiers and trained patch‑level SAEs to discover interpretable sparse dictionary features (SDFs).',
         imageUrl: '/projects/idarve/thumbnail.png',
@@ -60,8 +60,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj1',
-        title: 'CS180 Project 1: Colorizing the Prokudin-Gorskii Photo Collection',
-        shortTitle: 'CS180 Project 1',
+        title: 'Colorizing the Prokudin-Gorskii Photo Collection',
+        shortTitle: 'Prokudin-Gorskii',
         description:
             'Aligning RGB channels using phase correlation and an image pyramid to colorize Prokudin-Gorskii glass plate photos; results across the dataset.',
         imageUrl: '/projects/cs180/proj1/wide_emir.png',
@@ -72,8 +72,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj2',
-        title: 'CS180 Project 2: Fun with Filters and Frequencies!',
-        shortTitle: 'CS180 Project 2',
+        title: '    Fun with Filters and Frequencies!',
+        shortTitle: 'Filters and Frequencies',
         description:
             'Edges and DoG, unsharp masking, hybrid images, Gaussian/Laplacian stacks, multiresolution blending, and related experiments.',
         imageUrl: '/projects/cs180/proj2/misc/header.png',
@@ -84,8 +84,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj3',
-        title: 'CS180 Project 3: Face Morphing',
-        shortTitle: 'CS180 Project 3',
+        title: 'Face Morphing',
+        shortTitle: 'Face Morphing',
         description:
             'Defining correspondences with landmarks, Delaunay triangulation, mid-way face, morph sequence, population mean, caricatures, and extras.',
         imageUrl: '/projects/cs180/proj3/failed_attempt.png',
@@ -96,8 +96,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj4',
-        title: 'CS180 Project 4: [Auto]stitching Photo Mosaics',
-        shortTitle: 'CS180 Project 4',
+        title: '[Auto]stitching Photo Mosaics',
+        shortTitle: 'Photo Mosaics',
         description:
             'Homographies, warping, rectification, feature detection/description, matching, RANSAC, Laplacian blending, and photo mosaics.',
         imageUrl: '/projects/cs180/proj4/cool_bug.jpg',
@@ -108,8 +108,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj5a',
-        title: 'CS180 Project 5A: The Power of Diffusion Models!',
-        shortTitle: 'CS180 Project 5A',
+        title: 'The Power of Diffusion Models!',
+        shortTitle: 'The Power of DMs',
         description:
             'Diffusion sampling loops, CFG, image-to-image, visual anagrams, and hybrid images.',
         imageUrl: '/projects/cs180/proj5a/thumbnail.jpeg',
@@ -120,8 +120,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj5b',
-        title: 'CS180 Project 5B: Diffusion Models from Scratch!',
-        shortTitle: 'CS180 Project 5B',
+        title: 'Diffusion Models from Scratch!',
+        shortTitle: 'Diffusion from Scratch',
         description:
             'Training UNets: unconditional, time-conditioned, and class-conditioned; results and samples.',
         imageUrl: '/projects/cs180/proj5b/thumbnail.jpeg',
@@ -132,8 +132,8 @@ projectsData.push(
     {
         collection: 'cs180',
         slug: 'cs180-proj6',
-        title: 'CS180 Project 6: Neural Radiance Field!',
-        shortTitle: 'CS180 Project 6',
+        title: 'Neural Radiance Field!',
+        shortTitle: 'NeRF',
         description:
             'Fitting a 2D neural field and a NeRF from multi-view images, including ray generation, sampling, NeRF architecture, and volume rendering results.',
         imageUrl: '/projects/cs180/proj6/agony.jpeg',

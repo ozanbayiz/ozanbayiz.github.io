@@ -1,4 +1,4 @@
-import ExternalLink from '@/components/common/ExternalLink'
+import ExternalLink from '@/shared/ui/external-link'
 
 const SocialLinks = () => {
     return (

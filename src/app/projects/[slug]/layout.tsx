@@ -17,16 +17,16 @@ export default async function ProjectLayout({
   const header = (
     <Breadcrumb>
       <BreadcrumbList>
-        <BreadcrumbItem>
+        <BreadcrumbItem className="hidden sm:inline-flex">
           <BreadcrumbLink href='/'>Home</BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
+        <BreadcrumbSeparator className="hidden sm:block" />
         <BreadcrumbItem>
           <BreadcrumbLink href='/projects/'>Projects</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbPage>{project?.shortTitle ?? project?.title ?? slug}</BreadcrumbPage>
+          <BreadcrumbPage className="truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">{project?.shortTitle ?? project?.title ?? slug}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

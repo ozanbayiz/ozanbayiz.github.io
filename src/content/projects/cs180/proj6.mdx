@@ -1,69 +1,71 @@
+
+Neural Radiance Fields (NeRF) represent a method for synthesizing novel views of complex 3D scenes by optimizing an underlying continuous volumetric scene function. This project implements a NeRF from scratch, starting with fitting a 2D neural field to an image and progressing to a full 3D neural radiance field trained on multi-view data.
+
+### What are NeRFs?
+
+A NeRF represents a scene as a continuous volumetric function, parameterized by a fully-connected neural network (MLP). The network takes a 5D coordinate input—spatial location $(x, y, z)$ and viewing direction $(\theta, \phi)$—and outputs the volume density ($\sigma$) and view-dependent emitted radiance (color, $c$) at that spatial location.
+
+To render a view:
+1.  **Ray Casting**: Rays are marched from the camera center through each pixel of the image plane into the scene.
+2.  **Sampling**: Points are sampled along each ray.
+3.  **Querying**: The MLP predicts density and color for each sampled point.
+4.  **Volume Rendering**: These values are composited using differentiable volume rendering techniques to compute the final color of the pixel.
+
+By minimizing the error between the rendered pixels and the ground truth pixels from the input images, the network learns a high-fidelity 3D representation of the scene.
+
+---
+
 <a id="part-1" />
 ## Part 1: Fit a Neural Field to a 2D Image
 
+Before tackling 3D scenes, I first implemented a neural field to represent a 2D image. In this context, the network learns a mapping from 2D pixel coordinates $(x, y)$ to RGB colors $(r, g, b)$.
+
 ### Implementation
 
-For my initial implementation, I used what was recommended in the project description:
-
+For the initial implementation, I adopted the architecture recommended in the project description:
 - 4 hidden layers
 - 256 hidden dimensions
-- 10-band positional encoding
+- 10-band positional encoding (to map low-dimensional inputs to a higher-dimensional space, enabling the network to learn high-frequency functions)
 
 ### Results
 
-Using the above parameters, I was able to fit a neural field to the image.
+Using these parameters, the neural field successfully reconstructed the target image.
 
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256.png" alt="NeF fox 10 256" caption="Neural field reconstruction (Fox, 10 bands, 256 dims)." />
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256_psnr.png" alt="NeF fox 10 256 psnr" caption="PSNR over training (Fox, 10 bands, 256 dims)." />
 
-I fit the neural field to an image of my cat.
+I also trained the neural field on a custom image of my cat.
 
 <Figure src="/projects/cs180/proj6/NeF_cat.png" alt="NeF cat" caption="Neural field reconstruction (Cat)." />
 <Figure src="/projects/cs180/proj6/NeF_cat_psnr.png" alt="NeF cat psnr" caption="PSNR over training (Cat)." />
 
 ### Hyperparameter Tuning
 
-The hyperparameters I varied were the number of frequency bands and the hidden dimension size.
+I experimented with varying the number of frequency bands and the hidden dimension size.
 
-Varying the number of frequency bands generally led to worse results. The result of using 15 frequency bands was pretty interesting to me.
-
- 
+Varying the number of frequency bands generally led to worse results if deviated too far from the optimal range. The result of using 15 frequency bands produced some interesting artifacts.
 
 <ImageGrid>
 ![NeF fox 4 256](/projects/cs180/proj6/NeF_fox_4_256.png)
 ![NeF fox 15 256](/projects/cs180/proj6/NeF_fox_15_256.png)
 </ImageGrid>
 
- 
-
- 
-
 <ImageGrid>
 ![NeF fox 4 256 psnr](/projects/cs180/proj6/NeF_fox_4_256_psnr.png)
 ![NeF fox 15 256 psnr](/projects/cs180/proj6/NeF_fox_15_256_psnr.png)
 </ImageGrid>
 
- 
-
-Altering the hidden dimension size did not have much of an effect on the results.
-
- 
+Altering the hidden dimension size did not have a significant effect on the qualitative results for this 2D task.
 
 <ImageGrid>
 ![NeF fox 10 128](/projects/cs180/proj6/NeF_fox_10_128.png)
 ![NeF fox 10 384](/projects/cs180/proj6/NeF_fox_10_384.png)
 </ImageGrid>
 
- 
-
- 
-
 <ImageGrid>
 ![NeF fox 10 128 psnr](/projects/cs180/proj6/NeF_fox_10_128_psnr.png)
 ![NeF fox 10 384 psnr](/projects/cs180/proj6/NeF_fox_10_384_psnr.png)
 </ImageGrid>
-
- 
 
 ---
 
@@ -73,19 +75,19 @@ Altering the hidden dimension size did not have much of an effect on the results
 <a id="part-2-1" />
 ### 2.1 Create Rays from Cameras
 
-I implemented `transform`, `pixel_to_camera`, and `pixel_to_ray` using tensor operations. I used einops when I got sick of tensor wrangling.
+To train the NeRF, we need to generate rays corresponding to pixels in the training images. I implemented `transform`, `pixel_to_camera`, and `pixel_to_ray` functions using standard coordinate transformations. I utilized `einops` to simplify complex tensor rearrangements and ensure operations were broadcast correctly.
 
 <a id="part-2-2" />
 ### 2.2 Sampling Rays
 
-I implemented `sample_rays` by first computing how many rays to sample from each image. I sampled this amount of pixel coordinates from each image, computed $r_d, r_o$ using the appropriate camera parameters, and returned these rays alongside the ground truth pixel values.
+The `sample_rays` function handles the data sampling strategy. It computes how many rays to sample from each image, selects random pixel coordinates, and generates the corresponding rays ($r_o, r_d$) along with their ground truth pixel colors.
 
-When the `RaysDataset` is initialized, it precomputes pixel coordinates and the corresponding rays for image 1 in order to support the visualization code.
+When the `RaysDataset` is initialized, it precomputes pixel coordinates and corresponding rays for the first image to support the visualization code and debugging.
 
 <a id="part-2-3" />
 ### 2.3 Putting the Dataloading All Together
 
- 
+Visualizing the generated rays ensures that the camera geometry and ray generation are working as expected.
 
 <ImageGrid>
 ![all rays](/projects/cs180/proj6/all_rays.png)
@@ -93,15 +95,12 @@ When the `RaysDataset` is initialized, it precomputes pixel coordinates and the 
 ![top left rays](/projects/cs180/proj6/top_left_rays.png)
 </ImageGrid>
 
- 
-
 <a id="part-2-4" />
 ### 2.4 Implementing the NeRF
 
-I initially implemented the NeRF as recommended in the project description. I wasn't sure if I had implemented it correctly, so I re-implemented it using `nn.ModuleList` to make it easier to adjust hyperparameters.
+I initially implemented the NeRF architecture following the project guidelines. To facilitate easier hyperparameter tuning and modularity, I later refactored the implementation using `nn.ModuleList`.
 
-My final parameters were:
-
+My final architecture parameters were:
 - 10-layer MLP + 1 density layer + 3-layer color MLP
 - 384 hidden dimensions
 - 10-band positional encoding
@@ -109,20 +108,25 @@ My final parameters were:
 <a id="part-2-5" />
 ### 2.5 Volume Rendering
 
-I compute $a_i = \exp(-\sigma_i \delta_i)$ for all $i$.
+The core of the NeRF is the volume rendering equation.
 
-This lets me find each $T_i$ using `torch.cumprod`.
-
-I weight each color $c_i$ by $w_i = T_i a_i$ and compute $\hat{C} = \sum_i w_i c_i$ to get the final color.
+1.  Compute transparency along the ray: $a_i = \exp(-\sigma_i \delta_i)$ for all sample points $i$.
+2.  Compute transmittance (probability of the ray reaching point $i$ without terminating): $T_i$ using `torch.cumprod`.
+3.  Weight each color contribution: $w_i = T_i a_i$.
+4.  Compute the final pixel color: $\hat{C} = \sum_i w_i c_i$.
 
 <a id="part-2-6" />
 ### 2.6 Results
 
-128 samples per ray, 10000 rays per step, 10000 gradient steps (~3H on A1000 GPU).
+Training configuration:
+- 128 samples per ray
+- 10,000 rays per step
+- 10,000 gradient steps
+- Approximately 3 hours on an NVIDIA A1000 GPU
 
 <Figure src="/projects/cs180/proj6/NeRF_training.png" alt="NeRF training" caption="NeRF training curve and sample renders." />
 
-(in a way, I made it to 30+ PSNR!)
+The model achieved strong performance, reaching ~30 PSNR on the validation set.
 
 <div className="image-grid">
 
@@ -136,8 +140,8 @@ I weight each color $c_i$ by $w_i = T_i a_i$ and compute $\hat{C} = \sum_i w_i c
 <a id="bw" />
 # Bells and Whistles: New Background Color
 
-When rendering the pixel, I compute weights for the background with $ w_i = T_i(1 - a_i) $ and compute the final color as $ \hat{C}(r) = \sum_i T_i a_i c_i + T_i( 1- a_i) c_{\text{bg}} $.
+To render the scene against a different background, I modified the volume rendering equation. Instead of assuming empty space is black, I composited the final color with a background color $c_{\text{bg}}$ weighted by the remaining transmittance:
+
+$$ \hat{C}(r) = \sum_i T_i a_i c_i + T_i( 1- a_i) c_{\text{bg}} $$
 
 <Figure src="/projects/cs180/proj6/spherical_render_blue.gif" alt="spherical render blue" caption="Spherical render with blue background." />
-
-
