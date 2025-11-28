@@ -39,21 +39,20 @@ const OzanSection = () => {
                     </p>
                 </div>
                 <div className='col-span-5 mt-4 place-self-center md:mt-0'>
-                    <figure className="figure">
-                        <div className='relative h-[250px] w-[250px] overflow-hidden rounded-full'>
-                            <Image
-                                src={imageSrc}
-                                alt='Ozan Bayiz'
-                                width={250}
-                                height={250}
-                                className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform'
-                                priority
-                            />
-                        </div>
-                        <figcaption className="body-text text-center">
-                            {caption}
-                        </figcaption>
-                    </figure>
+                    <div className='relative h-[250px] w-[250px] overflow-hidden rounded-full place-self-center mb-4'>
+                        <Image
+                            src={imageSrc}
+                            alt='Ozan Bayiz'
+                            width={250}
+                            height={250}
+                            className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform place-self-center'
+                            priority
+                        />
+                    </div>
+                    {/* </figure> */}
+                    <p className="body-text text-center">
+                        {caption}
+                    </p>
                 </div>
             </div>
         </section>
