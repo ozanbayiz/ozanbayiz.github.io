@@ -60,10 +60,10 @@ export default function ProjectsListPage() {
                         <h2 className='h2'>CS180 Projects</h2>
                         <p className='body-text text-foreground'>
                             Fall 2024 I took{' '}
-                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='underline hover:text-accent' aria-label='CS 180/280A' newTab={false}>
+                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='italic hover:text-accent' aria-label='CS 180/280A' newTab={false}>
                                 CS180/280A: Intro to Computer Vision and Computational Photography
                             </ExternalLink>
-                            , taught by Prof. Alexei Efros.
+                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent' aria-label='Prof. Alexei Efros' newTab={false}>Prof. Alexei Efros</ExternalLink>.
                             I got to work on some pretty neat projects which you can check out below.
                         </p>
                         <Section items={cs180} />

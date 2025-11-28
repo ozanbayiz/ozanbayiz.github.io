@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { useState } from 'react'
 
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
@@ -16,7 +17,7 @@ export default function FavoritesSection() {
         <TooltipProvider delayDuration={0}>
             <section className="my-12 space-y-4 w-full max-w-full overflow-hidden">
                 <h1 className="relative z-10 mx-4 h1">Things Ozan Likes</h1>
-                <p className="body-text mx-4 mb-8">I like some things enough to tell other people about. This section doesn&apos;t get updated too often...</p>
+                {/* <p className="body-text mx-4 mb-8">I like some things enough to tell other people about. This section doesn&apos;t get updated too often...</p> */}
                 {/* MOVIES SUB-SECTION */}
                 {moviesCategory && (
                     <FavoritesSubSection
@@ -98,10 +99,13 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
 }
 
 function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean }) {
+    const [isOpen, setIsOpen] = useState(false)
+
     return (
-        <Tooltip>
+        <Tooltip open={isOpen} onOpenChange={setIsOpen}>
             <TooltipTrigger asChild>
                 <div
+                    onClick={() => setIsOpen((prev) => !prev)}
                     className={cn(
                         'relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-300 hover:border-accent hover:shadow-[0_0_0_1px_hsl(var(--accent))]',
                         'bg-neutral-100 dark:bg-neutral-800',

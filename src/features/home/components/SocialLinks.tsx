@@ -93,7 +93,7 @@ const SocialLinks = () => {
 
                 <ExternalLink
                     className='m-1 mt-2'
-                    href='https://drive.google.com/file/d/1xnhgHuWAr433DKCIjuw5pBuiVc7G1WIY/view?usp=sharing'
+                    href='/ozanbayiz_cv.pdf'
                     aria-label='Resume'
                 >
                     <svg

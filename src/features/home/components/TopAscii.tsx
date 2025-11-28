@@ -14,7 +14,7 @@ const TopAscii = () => {
             className='align-center flex flex-wrap items-center justify-around text-2xs font-normal leading-tight hover:cursor-pointer hover:text-accent lg:text-sm lg:leading-tight'
             onClick={toggleTheme}
         >
-            <pre className='mb-4 mr-4'>
+            <pre className='mb-4 mr-4 text-bold'>
                 {'                     '}XXXXXXX{'\n'}
                 {'                     '}XXXXXXX{'\n'}
                 {'                    '}XXXXXXXX{'\n'}

@@ -15,7 +15,7 @@ export type FavoriteCategory = {
 export const favoritesData: FavoriteCategory[] = [
     {
         title: 'Movies',
-        description: 'I don\'t watch movies too regularly but here are some that I enjoyed enough to want to tell other people about.',
+        description: 'I don\'t watch many movies these days but here are some that I really liked.',
         items: [
             {
                 title: 'West Beirut',
@@ -84,7 +84,7 @@ export const favoritesData: FavoriteCategory[] = [
     },
     {
         title: 'Music',
-        description: '& here are some albums I\'ve grown to enjoy over the years.',
+        description: '& here are some albums I\'ve come to like over the years.',
         items: [
             {
                 title: 'Live Through This',
