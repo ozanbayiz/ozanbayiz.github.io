@@ -29,7 +29,7 @@ const OzanSection = () => {
                         and applying these techniques to support AI-enhanced learning.
                         <br></br>
                         <br></br>
-                        Lately I've been spending most of my time sitting in BAIR or TAing for <a href="https://eecs189.org/fa25/" className='italic hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
+                        Lately I&apos;ve been spending most of my time sitting in BAIR or TAing for <a href="https://eecs189.org/fa25/" className='italic hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
                         <br></br>
                         <br></br>
                         I&apos;m very grateful for
