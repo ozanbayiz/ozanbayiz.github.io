@@ -4,6 +4,17 @@ import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
+const THEME_CONTENT = {
+    dark: {
+        src: '/ozan_noot.jpeg',
+        caption: 'Figure 1A: Ozan and Luna (Pensive).'
+    },
+    light: {
+        src: '/ozan_root.jpeg',
+        caption: 'Figure 1B: Ozan and Caramel (Peaceful).'
+    }
+} as const
+
 const OzanSection = () => {
     const { resolvedTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
@@ -12,8 +23,10 @@ const OzanSection = () => {
         setMounted(true)
     }, [])
 
-    const imageSrc = mounted && resolvedTheme === 'dark' ? '/ozan_noot.jpeg' : '/ozan_root.jpeg'
-    const caption = mounted && resolvedTheme === 'dark' ? 'Figure 1A: Ozan and Luna (Pensive).' : 'Figure 1B: Ozan and Caramel (Peaceful).'
+    const isDark = mounted && resolvedTheme === 'dark'
+    const { src: imageSrc, caption } = isDark
+        ? THEME_CONTENT.dark
+        : THEME_CONTENT.light
 
     return (
         <section>
@@ -38,19 +51,19 @@ const OzanSection = () => {
                         <br></br>
                     </p>
                 </div>
-                <div className='col-span-5 mt-4 place-self-center md:mt-0'>
-                    <div className='relative h-[250px] w-[250px] overflow-hidden rounded-full place-self-center mb-4'>
+                <div className='col-span-5 mt-4 flex flex-col items-center md:mt-0 md:justify-self-center'>
+                    <div className='relative mb-4 h-[250px] w-[250px] overflow-hidden rounded-full'>
                         <Image
                             src={imageSrc}
                             alt='Ozan Bayiz'
-                            width={250}
-                            height={250}
-                            className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform place-self-center'
+                            fill
+                            className='object-cover'
                             priority
+                            sizes='(max-width: 768px) 250px, 250px'
                         />
                     </div>
                     {/* </figure> */}
-                    <p className="body-text text-center">
+                    <p className='body-text text-center text-muted-foreground'>
                         {caption}
                     </p>
                 </div>

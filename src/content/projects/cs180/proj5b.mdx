@@ -70,7 +70,7 @@ For optimization, I used Adam with a learning rate of 0.001 and an exponential l
 Training the Unconditional U-Net followed this algorithm:
 <div className='display-flex justify-center'>
 <a>
-$
+$$
 \begin{aligned}
 &\textbf{Training}\\
 &\text{Precompute } \bar{\alpha}\\
@@ -83,7 +83,7 @@ $
 &\quad \text{update } \theta \text{ to minimize } \lVert \boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}\rVert^2\\
 &\textbf{until happy}
 \end{aligned}
-$
+$$
 </a>
 </div> 
 
@@ -97,7 +97,7 @@ I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-co
 After training, sampling from the U-Net followed this algorithm:
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
-$
+$$
 \begin{aligned}
 &\textbf{Sampling}\\
 &\text{Precompute } \boldsymbol{\beta},\, \boldsymbol{\alpha},\, \bar{\boldsymbol{\alpha}}\\
@@ -109,7 +109,7 @@ $
 &\textbf{end for}\\
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
-$
+$$
 </div>
 
 I sampled after 5 and 20 epochs of training.
@@ -127,7 +127,7 @@ I implemented class conditioning as specified in the spec. I used the same hyper
 
 Class-conditioned training followed this algorithm.
 
-$
+$$
 \begin{aligned}
 &\textbf{Class-Conditioned Training}\\
 &\text{Precompute } \bar{\alpha}\\
@@ -141,7 +141,7 @@ $
 &\quad \text{update } \theta \text{ to minimize } \lVert \boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}\rVert^2\\
 &\textbf{until happy}
 \end{aligned}
-$
+$$
 
 Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
 
@@ -153,7 +153,7 @@ Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
 After training, sampling from the class-conditioned U-Net followed this algorithm:
 
 <div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
-$
+$$
 \begin{aligned}
 &\textbf{Class-Conditioned Sampling}\\
 &\text{input: one-hot } c,\ \text{guidance scale } \gamma\\
@@ -168,7 +168,7 @@ $
 &\textbf{end for}\\
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
-$
+$$
 </div>
 
 I sampled after 5 and 20 epochs of training.
