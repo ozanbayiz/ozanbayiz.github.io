@@ -38,11 +38,13 @@ const OzanSection = () => {
                     <p className='body-text'>
                         I&apos;m a fourth-year Regents&apos; and Chancellor&apos;s Scholar at
                         UC Berkeley studying Computer Science. I&apos;m interested in
-                        exploring efficient video model adaptation for multimodal generation,
+                        exploring efficient video model adaptation for multimodal conditioning,
                         and applying these techniques to support AI-enhanced learning.
                         <br></br>
                         <br></br>
-                        Lately I&apos;ve been spending most of my time sitting in BAIR or TAing for <a href="https://eecs189.org/fa25/" className='italic hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
+                        These days I spend most of my time in
+                        <a href="https://bair.berkeley.edu/" className='font-bold hover:text-accent'> BAIR </a>
+                        or TAing for <a href="https://eecs189.org/fa25/" className='font-bold hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
                         <br></br>
                         <br></br>
                         I&apos;m very grateful for
