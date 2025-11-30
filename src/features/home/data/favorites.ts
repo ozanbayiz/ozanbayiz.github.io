@@ -176,6 +176,13 @@ export const favoritesData: FavoriteCategory[] = [
                 creator: 'Asha Puthli',
                 cover: '/covers/music/asha-puthli-asha-puthli.webp',
                 note: 'I love a self-titled; this was what I listened to on the way to Safeway and stuff'
+            },
+            {
+                title: 'Windswept Adan',
+                year: '2020',
+                creator: 'Ichiko Aoba',
+                cover: '/covers/music/ichiko-aoba-windswept-adan.webp',
+                note: 'iMessage on my keyboard, cats in my room. Went downstairs for a banana. Now its 4AM again?'
             }
         ]
     }

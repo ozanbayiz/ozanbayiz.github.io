@@ -4,6 +4,8 @@ import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
+import { Section } from '@/shared/ui/section'
+
 const THEME_CONTENT = {
     dark: {
         src: '/ozan_noot.jpeg',
@@ -29,9 +31,9 @@ const OzanSection = () => {
         : THEME_CONTENT.light
 
     return (
-        <section>
-            <div className='m-4 grid grid-cols-1 md:grid-cols-12'>
-                <div className='col-span-7 h-full place-self-center text-left'>
+        <Section>
+            <div className='grid grid-cols-1 gap-8 md:grid-cols-12'>
+                <div className='col-span-1 flex flex-col justify-center text-left md:col-span-7'>
                     <h1 className='mb-4 text-center h1 sm:text-left'>
                         Ozan Bayiz
                     </h1>
@@ -40,20 +42,21 @@ const OzanSection = () => {
                         UC Berkeley studying Computer Science. I&apos;m interested in
                         exploring efficient video model adaptation for multimodal conditioning,
                         and applying these techniques to support AI-enhanced learning.
-                        <br></br>
-                        <br></br>
+                        <br />
+                        <br />
                         These days I spend most of my time in
                         <a href="https://bair.berkeley.edu/" className='font-bold hover:text-accent'> BAIR </a>
                         or TAing for <a href="https://eecs189.org/fa25/" className='font-bold hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
-                        <br></br>
-                        <br></br>
-                        I&apos;m very grateful for
-                        <a href="https://people.eecs.berkeley.edu/~vongani_maluleke/" className='font-bold hover:text-accent'> Vongani Maluleke</a>&apos;s mentorship as I find my way through research.
-                        <br></br>
-                        <br></br>
+                        <br />
+                        <br />
+                        I&apos;m extremely grateful for
+                        <a href="https://people.eecs.berkeley.edu/~vongani_maluleke/" className='font-bold hover:text-accent'> Vongani Maluleke</a>,
+                        who has been an amazing mentor to me as I navigate my odd research journey.
+                        <br />
+                        <br />
                     </p>
                 </div>
-                <div className='col-span-5 mt-4 flex flex-col items-center md:mt-0 md:justify-self-center'>
+                <div className='col-span-1 flex flex-col items-center justify-center md:col-span-5 md:mt-0'>
                     <div className='relative mb-4 h-[250px] w-[250px] overflow-hidden rounded-full'>
                         <Image
                             src={imageSrc}
@@ -70,7 +73,7 @@ const OzanSection = () => {
                     </p>
                 </div>
             </div>
-        </section>
+        </Section>
     )
 }
 

@@ -1,9 +1,10 @@
 import ExternalLink from '@/shared/ui/external-link'
+import { Section } from '@/shared/ui/section'
 
 const SocialLinks = () => {
     return (
-        <>
-            <div className='m-4 flex items-center justify-center gap-2'>
+        <Section className="flex flex-col items-center gap-4">
+            <div className='flex items-center justify-center gap-2'>
                 {/* <ExternalLink
                     className='m-1'
                     href='https://open.spotify.com/user/obayiz'
@@ -108,7 +109,7 @@ const SocialLinks = () => {
                     <span className='sr-only'>Resume</span>
                 </ExternalLink>
             </div>
-            <p className='mb-4 text-center text-sm'>
+            <p className='text-center text-sm'>
                 <a
                     className='hover:text-accent'
                     href='mailto:ozanbayiz@berkeley.edu'
@@ -116,7 +117,7 @@ const SocialLinks = () => {
                     ozanbayiz [at] berkeley [dot] edu
                 </a>
             </p>
-        </>
+        </Section>
     )
 }
 

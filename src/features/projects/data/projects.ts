@@ -31,7 +31,7 @@ const baseProjects: Project[] = [
         collection: 'personal',
         slug: 'personal-website',
         title: 'ozanbayiz.net',
-        description: 'This website! built with React, Next.js, and Tailwind CSS.',
+        description: 'This website! built with React, Next.js, Tailwind CSS, shadcn/ui, and lots and lots and lots of love.',
         imageUrl: '/spinning_star.gif',
         date: '2025-08-13',
         gitUrl: 'https://github.com/ozanbayiz/ozanbayiz.github.io/tree/main',

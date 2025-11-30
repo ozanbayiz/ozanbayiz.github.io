@@ -2,9 +2,12 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
+import AutoScroll from 'embla-carousel-auto-scroll'
 
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
+import { Section } from '@/shared/ui/section'
 
 import { favoritesData, FavoriteItem } from '../data/favorites'
 
@@ -15,8 +18,8 @@ export default function FavoritesSection() {
 
     return (
         <TooltipProvider delayDuration={0}>
-            <section className="my-12 space-y-4 w-full max-w-full overflow-hidden">
-                <h1 className="relative z-10 mx-4 h1">Things Ozan Likes</h1>
+            <Section className="space-y-4 overflow-hidden">
+                <h1 className="relative z-10 h1 text-center sm:text-left">Things Ozan Likes</h1>
                 {/* <p className="body-text mx-4 mb-8">I like some things enough to tell other people about. This section doesn&apos;t get updated too often...</p> */}
                 {/* MOVIES SUB-SECTION */}
                 {moviesCategory && (
@@ -33,7 +36,7 @@ export default function FavoritesSection() {
                         type="music"
                     />
                 )}
-            </section>
+            </Section>
         </TooltipProvider>
     )
 }
@@ -42,20 +45,32 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
     const isMusic = type === 'music'
 
     // Configuration specific to type
-    const direction = isMusic ? 'reverse' : 'normal'
+    const direction = isMusic ? 'backward' : 'forward'
+    const speed = 0.6 // Adjust for velocity
 
-    // Velocity Calc
-    const VELOCITY_REM_PER_SEC = 1.5
-    const itemWidthRem = isMusic ? 13 : 11 // 12+1 vs 10+1
-    const totalWidthRem = category.items.length * itemWidthRem
-    const durationSec = totalWidthRem / VELOCITY_REM_PER_SEC
+    const [emblaRef] = useEmblaCarousel(
+        {
+            loop: true,
+            dragFree: true
+        },
+        [
+            AutoScroll({
+                playOnInit: true,
+                stopOnInteraction: false,
+                stopOnMouseEnter: true,
+                speed,
+                direction,
+                startDelay: 0 // Delay in ms before scrolling resumes after drag
+            })
+        ]
+    )
 
     return (
         <div className="w-full space-y-8">
             {/* Header */}
             <div className={cn(
                 "space-y-2 relative z-10",
-                isMusic ? "text-right pr-4" : "pl-4"
+                isMusic ? "text-right" : ""
             )}>
                 <h2 className="h2 text-black dark:text-white">{category.title}</h2>
                 {category.description && (
@@ -68,30 +83,18 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
 
             {/* Scroll Container */}
             <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-                <div
-                    className="flex w-max min-w-full animate-scroll gap-4 px-4 hover:[animation-play-state:paused]"
-                    style={{
-                        '--animation-duration': `${durationSec}s`,
-                        '--animation-direction': direction,
-                    } as React.CSSProperties}
-                >
-                    {/* Original Items */}
-                    {category.items.map((item, idx) => (
-                        <FavoriteCard
-                            key={`${type}-original-${idx}`}
-                            item={item}
-                            isMusic={isMusic}
-                        />
-                    ))}
-
-                    {/* Duplicate Items */}
-                    {category.items.map((item, idx) => (
-                        <FavoriteCard
-                            key={`${type}-duplicate-${idx}`}
-                            item={item}
-                            isMusic={isMusic}
-                        />
-                    ))}
+                <div ref={emblaRef} className="overflow-hidden cursor-grab active:cursor-grabbing">
+                    <div className="flex gap-4 px-4 touch-pan-y">
+                        {/* Original Items */}
+                        {category.items.map((item, idx) => (
+                            <div key={`${type}-original-${idx}`} className="flex-[0_0_auto]">
+                                <FavoriteCard
+                                    item={item}
+                                    isMusic={isMusic}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,6 +109,7 @@ function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean 
             <TooltipTrigger asChild>
                 <div
                     onClick={() => setIsOpen((prev) => !prev)}
+                    onMouseLeave={() => setIsOpen(false)}
                     className={cn(
                         'relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-300 hover:border-accent hover:shadow-[0_0_0_1px_hsl(var(--accent))]',
                         'bg-neutral-100 dark:bg-neutral-800',
