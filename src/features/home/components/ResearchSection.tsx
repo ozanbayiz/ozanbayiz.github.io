@@ -1,11 +1,12 @@
+import { ExternalLinkIcon, FileTextIcon } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ExternalLinkIcon, FileTextIcon } from 'lucide-react'
 
+import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
 import { Section } from '@/shared/ui/section'
+
 import { researchData } from '../data/research'
 
 export default function ResearchSection() {

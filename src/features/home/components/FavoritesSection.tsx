@@ -1,13 +1,13 @@
 'use client'
 
+import AutoScroll from 'embla-carousel-auto-scroll'
+import useEmblaCarousel from 'embla-carousel-react'
 import Image from 'next/image'
 import { useState } from 'react'
-import useEmblaCarousel from 'embla-carousel-react'
-import AutoScroll from 'embla-carousel-auto-scroll'
 
 import { cn } from '@/lib/utils'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
 import { Section } from '@/shared/ui/section'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
 
 import { favoritesData, FavoriteItem } from '../data/favorites'
 
