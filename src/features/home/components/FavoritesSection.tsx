@@ -2,9 +2,11 @@
 
 import AutoScroll from 'embla-carousel-auto-scroll'
 import useEmblaCarousel from 'embla-carousel-react'
+import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import Image from 'next/image'
 import { useState } from 'react'
 
+import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { Section } from '@/shared/ui/section'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
@@ -19,8 +21,7 @@ export default function FavoritesSection() {
     return (
         <TooltipProvider delayDuration={0}>
             <Section className="space-y-4 overflow-hidden">
-                <h1 className="relative z-10 h1 text-center sm:text-left">Things Ozan Likes</h1>
-                {/* <p className="body-text mx-4 mb-8">I like some things enough to tell other people about. This section doesn&apos;t get updated too often...</p> */}
+                <h1 className="relative z-10 h1 text-center sm:text-left">Things I Like</h1>
                 {/* MOVIES SUB-SECTION */}
                 {moviesCategory && (
                     <FavoritesSubSection
@@ -43,6 +44,7 @@ export default function FavoritesSection() {
 
 function FavoritesSubSection({ category, type }: { category: typeof favoritesData[0], type: 'movies' | 'music' }) {
     const isMusic = type === 'music'
+    const isMobile = useIsMobile()
 
     // Configuration specific to type
     const direction = isMusic ? 'backward' : 'forward'
@@ -57,11 +59,13 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
             AutoScroll({
                 playOnInit: true,
                 stopOnInteraction: false,
-                stopOnMouseEnter: true,
+                stopOnMouseEnter: !isMobile,
                 speed,
                 direction,
                 startDelay: 0 // Delay in ms before scrolling resumes after drag
-            })
+            }),
+            // Enable two-finger trackpad scrolling on desktop
+            ...(!isMobile ? [WheelGesturesPlugin({ forceWheelAxis: 'x' })] : [])
         ]
     )
 

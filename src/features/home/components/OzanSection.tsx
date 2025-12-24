@@ -5,7 +5,6 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
 import { Section } from '@/shared/ui/section'
-
 const THEME_CONTENT = {
     dark: {
         src: '/ozan_noot.jpeg',
@@ -40,13 +39,7 @@ const OzanSection = () => {
                     <p className='body-text'>
                         I&apos;m a fourth-year Regents&apos; and Chancellor&apos;s Scholar at
                         UC Berkeley studying Computer Science. I&apos;m interested in
-                        exploring efficient video model adaptation for multimodal conditioning,
-                        and applying these techniques to support AI-enhanced learning.
-                        <br />
-                        <br />
-                        These days I spend most of my time in
-                        <a href="https://bair.berkeley.edu/" className='font-bold hover:text-accent'> BAIR </a>
-                        or TAing for <a href="https://eecs189.org/fa25/" className='font-bold hover:text-accent'>CS 189/289A: Intro. To Machine Learning</a>.
+                        exploring ways to augment video models to support AI-enhanced learning.
                         <br />
                         <br />
                         I&apos;m extremely grateful for

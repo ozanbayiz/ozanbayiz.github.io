@@ -15,7 +15,7 @@ export type FavoriteCategory = {
 export const favoritesData: FavoriteCategory[] = [
     {
         title: 'Movies',
-        description: 'I don\'t watch many movies these days but here are some that I really liked.',
+        description: 'I\'m not well-versed in film but here are some I like.',
         items: [
             {
                 title: 'West Beirut',
@@ -84,7 +84,7 @@ export const favoritesData: FavoriteCategory[] = [
     },
     {
         title: 'Music',
-        description: '& here are some albums I\'ve come to like over the years.',
+        description: '& here are some albums I\'ve picked up over the years.',
         items: [
             {
                 title: 'Live Through This',
@@ -183,6 +183,41 @@ export const favoritesData: FavoriteCategory[] = [
                 creator: 'Ichiko Aoba',
                 cover: '/covers/music/ichiko-aoba-windswept-adan.webp',
                 note: 'iMessage on my keyboard, cats in my room. Went downstairs for a banana. Now its 4AM again?'
+            },
+            {
+                title: 'Like the Linen',
+                year: '2005',
+                creator: 'Thao',
+                cover: '/covers/music/thao-like-the-linen.webp',
+                note: 'Music for brushing teeth.'
+            },
+            {
+                title: 'Hayat..',
+                year: '2001',
+                creator: 'Sakin',
+                cover: '/covers/music/sakin-hayat.webp',
+                note: 'Music for walking to the 9 AM OH that I am normally not responsible for hosting.(.)'
+            },
+            {
+                title: 'Come Get It!',
+                year: '1978',
+                creator: 'Rick James',
+                cover: '/covers/music/rick-james-come-get-it.webp',
+                note: 'Aw man, so funky. Aw man'
+            },
+            {
+                title: 'Ampersands',
+                year: '2020',
+                creator: 'Mei Ehara',
+                cover: '/covers/music/mei-ehara-ampersands.webp',
+                note: 'Music for writing.'
+            },
+            {
+                title: 'Feet of Mud',
+                year: '2007',
+                creator: 'Ivy Knight',
+                cover: '/covers/music/ivy-knight-feet-of-mud.webp',
+                note: 'Music for driving.'
             }
         ]
     }

@@ -1,3 +1,4 @@
+import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { projectsData } from '@/features/projects'
 import ProjectSidebarShell from '@/features/projects/components/ProjectSidebarShell'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/shared/ui/breadcrumb'
@@ -33,7 +34,12 @@ export default async function ProjectLayout({
   )
 
   return (
-    <ProjectSidebarShell sections={[]} header={header} sidebarTop={null}>
+    <ProjectSidebarShell
+      sections={[]}
+      header={header}
+      sidebarTop={null}
+      rightActions={<ThemeToggle />}
+    >
       <div className="mx-auto w-full max-w-screen-lg" style={{ ['--inset-x' as unknown as string]: '1rem' }}>
         {children}
       </div>
