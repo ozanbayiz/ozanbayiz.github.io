@@ -12,7 +12,7 @@ export function Section({ className, children, ...props }: SectionProps) {
         <section
             className={cn(
                 // GLOBAL DEFAULTS
-                "w-full py-4", // Standard vertical spacing
+                "w-full py-6 md:py-8", // Standard vertical spacing
                 "flex flex-col", // Default layout behavior
                 className // Allow overrides
             )}

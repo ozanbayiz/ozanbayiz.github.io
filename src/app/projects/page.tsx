@@ -34,11 +34,13 @@ function Section({ items }: { items: Project[] }) {
 export default function ProjectsListPage() {
     const all = [...projectsData].sort((a, b) => byDateDesc(a.date, b.date))
     const cs180 = all.filter(p => p.collection === 'cs180')
+    const cs280 = all.filter(p => p.collection === 'cs280')
+    const cs185 = all.filter(p => p.collection === 'cs185')
     const research = all.filter(p => p.collection === 'misc-academic')
     const personal = all.filter(p => p.collection === 'personal')
     return (
-        <div className='mx-auto w-full max-w-screen-lg px-4 pb-8'>
-            <div className='my-4'>
+        <div className='mx-auto w-full max-w-screen-lg px-6 pb-12 md:px-8'>
+            <div className='my-6'>
                 <Breadcrumb>
                     <BreadcrumbList>
                         <BreadcrumbItem>
@@ -53,10 +55,10 @@ export default function ProjectsListPage() {
                     </BreadcrumbList>
                 </Breadcrumb>
             </div>
-            <section className='space-y-4'>
+            <section className='space-y-6'>
                 <h1 className='h1'>Projects</h1>
-                <div className='flex flex-col gap-12'>
-                    <div className='space-y-3'>
+                <div className='flex flex-col gap-14'>
+                    <div className='space-y-4'>
                         <h2 className='h2'>CS180 Projects</h2>
                         <p className='body-text text-foreground'>
                             Fall 2024 I took{' '}
@@ -69,13 +71,36 @@ export default function ProjectsListPage() {
                         <Section items={cs180} />
                     </div>
                     <Separator />
-                    <div className='space-y-3'>
+                    <div className='space-y-4'>
+                        <h2 className='h2'>CS280 Projects</h2>
+                        <p className='body-text text-foreground'>
+                            Spring 2026 I&apos;m taking{' '}
+                            <ExternalLink href='https://cs280-berkeley.github.io/' className='italic hover:text-accent' aria-label='CS 280' newTab={false}>
+                                CS C280: Computer Vision
+                            </ExternalLink>
+                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~malik/' className='font-bold hover:text-accent' aria-label='Prof. Jitendra Malik' newTab={false}>Prof. Jitendra Malik</ExternalLink>.
+                        </p>
+                        <Section items={cs280} />
+                    </div>
+                    <Separator />
+                    <div className='space-y-4'>
+                        <h2 className='h2'>CS185 Projects</h2>
+                        <p className='body-text text-foreground'>
+                            Spring 2026 I&apos;m taking{' '}
+                            <ExternalLink href='https://rail.eecs.berkeley.edu/deeprlcourse/' className='italic hover:text-accent' aria-label='CS 185' newTab={false}>
+                                CS 185/285: Deep Reinforcement Learning, Decision Making, and Control
+                            </ExternalLink>.
+                        </p>
+                        <Section items={cs185} />
+                    </div>
+                    <Separator />
+                    <div className='space-y-4'>
                         <h2 className='h2'>Misc Academic Projects</h2>
                         <p className='body-text text-foreground'>Projects from classes at Berkeley.</p>
                         <Section items={research} />
                     </div>
                     <Separator />
-                    <div className='space-y-3'>
+                    <div className='space-y-4'>
                         <h2 className='h2'>Personal Projects</h2>
                         <p className='body-text text-foreground'>Smaller experiments and things I built for fun or learning.</p>
                         <Section items={personal} />
