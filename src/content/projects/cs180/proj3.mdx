@@ -6,7 +6,7 @@ After doing some research, I found dlib's `shape_predictor_68_face_landmarks.dat
 
 <Figure src="/projects/cs180/proj3/face_landmarks.png" alt="face landmarks" caption="68-point facial landmarks detected by dlib." />
 
-I was able to define correspondencess pretty easily since landmarks are consistent between faces. I noticed, however, that the landmarks did not cover the entire face. To get around this, I added 8 additional landmarks: the 4 corners of the image and the midpoints of the 4 edges.
+I was able to define correspondences pretty easily since landmarks are consistent between faces. The landmarks did not cover the entire face, so I added 8 additional landmarks: the 4 corners of the image and the midpoints of the 4 edges.
 
 I computed the midpoints between corresponding landmarks, and created the triangulation using `scipy.spatial.Delauney` (shoutout scipy as usual), which gave me the following:
 
@@ -64,7 +64,7 @@ Here was the result I got from warping both images to the midpoint landmarks and
 <a id="part-3" />
 ## Part 3: The Morph Sequence
 
-<Figure src="/projects/cs180/proj3/morph_sequence.gif" alt="morph sequence" caption="Morph sequence animation between two faces." />
+<Figure src="/projects/cs180/proj3/morph_sequence.mp4" alt="morph sequence" caption="Morph sequence animation between two faces." />
 
 ---
 
@@ -73,7 +73,6 @@ Here was the result I got from warping both images to the midpoint landmarks and
 
 As my population, I used two sets of manually aligned frontal images from the FEI Face Database.
 
- 
 
 <ImageGrid>
 ![fei face raw](/projects/cs180/proj3/fei_face_raw.png)
@@ -81,9 +80,7 @@ As my population, I used two sets of manually aligned frontal images from the FE
 ![fei face morphed](/projects/cs180/proj3/fei_face_morphed.png)
 </ImageGrid>
 
- 
 
- 
 
 <ImageGrid>
 ![fei face mean](/projects/cs180/proj3/fei_face_mean.png)
@@ -92,7 +89,6 @@ As my population, I used two sets of manually aligned frontal images from the FE
 ![ozan morphed](/projects/cs180/proj3/ozan_morphed.png)
 </ImageGrid>
 
- 
 
 ---
 
@@ -116,13 +112,11 @@ I am Turkish. But could I look more Turkish? I wanted to see what it would look 
 
 I noticed my jaw tends to get distorted when I morph my face, so I tried it again, this time morphing the average faces to me.
 
- 
 
 <ImageGrid>
 ![turks morphed to ozan](/projects/cs180/proj3/turks_morphed_to_ozan.png)
 ![ozan cross dissolved with turks](/projects/cs180/proj3/ozan_cross_dissolved_with_turks.png)
 </ImageGrid>
 
- 
 
 

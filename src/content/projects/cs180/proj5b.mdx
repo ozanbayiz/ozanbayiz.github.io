@@ -36,7 +36,7 @@ Here are my results sampling after 1 and 5 training epochs.
 <Figure src="/projects/cs180/proj5b/uncond/5_epoch_samples.png" alt="5 epoch samples (unconditional)" caption="Figure 7. Samples after 5 epochs of training (unconditional)." />
 
 </ImageGrid>
-Pretty good!
+The samples look reasonable after just a few epochs.
 
 <a id="part-2-2-2" />
 #### 1.2.2 Out-of-Distribution Testing
@@ -45,7 +45,7 @@ Then I tried denoising images with $\sigma \neq 0.5$.
 
 <Figure src="/projects/cs180/proj5b/uncond/out_of_dist_samples.png" alt="Out-of-distribution samples" caption="Figure 8. Denoising performance for out-of-distribution $\sigma$ values." />
 
-Still, not bad!
+The denoiser generalizes to unseen noise levels reasonably well.
 
 ---
 
@@ -68,8 +68,7 @@ For optimization, I used Adam with a learning rate of 0.001 and an exponential l
 ### 2.2 Training the U-Net
 
 Training the Unconditional U-Net followed this algorithm:
-<div className='display-flex justify-center'>
-<a>
+
 $$
 \begin{aligned}
 &\textbf{Training}\\
@@ -84,8 +83,6 @@ $$
 &\textbf{until happy}
 \end{aligned}
 $$
-</a>
-</div> 
 
 I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-conditioned U-Net during 20 epochs.
 
@@ -96,7 +93,6 @@ I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2 $ for the time-co
 
 After training, sampling from the U-Net followed this algorithm:
 
-<div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
 $$
 \begin{aligned}
 &\textbf{Sampling}\\
@@ -110,16 +106,13 @@ $$
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
 $$
-</div>
 
 I sampled after 5 and 20 epochs of training.
 
- 
 <ImageGrid>
 <Figure src="/projects/cs180/proj5b/time_cond/5_epoch_samples.png" alt="5 epoch samples (time-conditioned)" caption="Figure 12. Samples after 5 epochs (time-conditioned)." />
 <Figure src="/projects/cs180/proj5b/time_cond/20_epoch_samples.png" alt="20 epoch samples (time-conditioned)" caption="Figure 13. Samples after 20 epochs (time-conditioned)." />
 </ImageGrid>
- 
 <a id="part-3-4" />
 ### 2.4 Adding Class-Conditioning to U-Net
 
@@ -152,7 +145,6 @@ Once again, I plotted the training loss $\| \epsilon - \hat{\epsilon} \|^2$
 
 After training, sampling from the class-conditioned U-Net followed this algorithm:
 
-<div className='math-wrap text-[clamp(0.9rem,2.4vw,1.05rem)]'>
 $$
 \begin{aligned}
 &\textbf{Class-Conditioned Sampling}\\
@@ -169,7 +161,6 @@ $$
 &\textbf{return } \mathbf{x}_0
 \end{aligned}
 $$
-</div>
 
 I sampled after 5 and 20 epochs of training.
 
@@ -178,17 +169,17 @@ I sampled after 5 and 20 epochs of training.
 <Figure src="/projects/cs180/proj5b/class_cond/20_epoch_samples.png" alt="20 epoch samples (class-conditioned)" caption="Figure 16. Samples after 20 epochs (class-conditioned)." />
 </ImageGrid>
 
-But something was wrong. My handwriting is pretty bad too, but like, come on man.
+Something was wrong. My handwriting is pretty bad too, but like, come on man.
 
 After closer inspection, I noticed that I was missing normalization layers in my convolutional blocks. So I fixed this bug and re-launched training.
 
 
 <Figure src="/projects/cs180/proj5b/ddpm_samples_training.gif" alt="DDPM sampling results over training epochs." caption="Figure 17. DDPM sampling results over training epochs." />
 
-My samples were much cleaner this time around. *The Lesson?* normalization layers are pretty important.
+The samples were cleaner this time around. Normalization layers matter.
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj5b/ddpm_samples.gif" alt="DDPM sampling animation from noise with the trained model" caption="Figure 18. DDPM sampling process." />
+<Figure src="/projects/cs180/proj5b/ddpm_samples.mp4" alt="DDPM sampling animation from noise with the trained model" caption="Figure 18. DDPM sampling process." />
 <Figure src="/projects/cs180/proj5b/ddpm_samples.png" alt="DDPM generated samples (grid view)" caption="Figure 19.  DDPM sampling results." />
 </ImageGrid>
 
@@ -228,6 +219,6 @@ During sampling, you start with a random noise vector $\mathbf{x}_0 \sim p(\math
 I opted with the Euler method for ease of implementation.
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj5b/rf_samples.gif" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling process." />
+<Figure src="/projects/cs180/proj5b/rf_samples.mp4" alt="Rectified Flow sampling animation from noise" caption="Figure 20. Rectified Flow sampling process." />
 <Figure src="/projects/cs180/proj5b/rf_samples.png" alt="Rectified Flow generated samples (grid view)" caption="Figure 21. Rectified Flow sampling results." />
 </ImageGrid>

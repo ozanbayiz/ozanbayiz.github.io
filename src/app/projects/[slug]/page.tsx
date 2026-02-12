@@ -39,6 +39,7 @@ export default async function UnifiedProjectPage({
       {/* Hero image (intrinsic) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        loading="lazy"
         src={heroSrc}
         alt={project.title}
         className='mx-auto block h-auto max-h-[clamp(220px,40vh,520px)] w-auto max-w-full rounded-lg shadow-sm'

@@ -33,15 +33,21 @@ I created a gaussian kernel using `cv2.GetGaussianKernel()`.
 
 <Figure src="/projects/cs180/proj2/figures/blurred_cameraman.png" alt="blurred cameraman" caption="Figure 3. Cameraman, Gaussian Kernel, and Cameraman after Gaussian blur." />
 
-After blurring, I noticed the gradient magnitude matrix was much less noisy, and that the edges were better defined. Cool.
+After blurring, the gradient magnitude matrix was much less noisy, and the edges were better defined.
 
 <Figure src="/projects/cs180/proj2/figures/blurred_hist_and_edges.png" alt="blurred hist and edges" caption="Histogram and edges after Gaussian blur." />
 
-Then I created the DoG Filters.
+Then I created the Derivative of Gaussian (DoG) filters. The key insight is that convolution is associative, so blurring first and then differentiating is equivalent to convolving with the derivative of the Gaussian directly:
+
+$$
+\frac{\partial}{\partial x}(G * \text{img}) = \left(\frac{\partial G}{\partial x}\right) * \text{img}
+$$
+
+This means we can precompute $D_x G$ and $D_y G$ and apply them in a single convolution pass.
 
 <Figure src="/projects/cs180/proj2/figures/DoG_filters.png" alt="DoG filters" caption="Derivative-of-Gaussian filters (Dx, Dy)." />
 
-I got almost the same result, but noticed that the DoG-convolved images had a little bit more texture. I think that this may be due to zero-padding, but I'm not sure.
+I got almost the same result. The DoG-convolved images had slightly more texture, possibly due to zero-padding differences.
 
 <Figure src="/projects/cs180/proj2/figures/DoG_hist_edges.png" alt="DoG hist edges" caption="DoG-based histogram and edge map." />
 
@@ -53,7 +59,13 @@ I got almost the same result, but noticed that the DoG-convolved images had a li
 <a id="part-2-1" />
 ### 2.1 Unsharp Masking
 
-To create the high-pass filter, I took the gaussian Kernel, normalized it, and subtracted it from a unit impulse. To create the unsharp-masking filter, I took this high-pass filter and added it back to the unit impulse.
+Unsharp masking sharpens an image by amplifying its high-frequency content. Given a Gaussian low-pass filter $G$, the sharpened image is:
+
+$$
+\text{img}_{\text{sharp}} = (1 + \alpha)\,\text{img} - \alpha\,(G * \text{img}) = \text{img} + \alpha\,(\text{img} - G * \text{img})
+$$
+
+where $\alpha$ controls the sharpening strength. In filter form, the unsharp mask kernel is $(1 + \alpha)\delta - \alpha G$, where $\delta$ is the unit impulse.
 
 <Figure src="/projects/cs180/proj2/figures/hp_lp_um_filters.png" alt="hp lp um filters" caption="High-pass, low-pass, and unsharp masking filters." />
 
@@ -73,7 +85,6 @@ his efforts to grow berries were undermined
 by a hummingbird which which was able to identify all the ripe berries.
 I present to you:
 
- 
 
 <ImageGrid>
 
@@ -83,14 +94,21 @@ I present to you:
 
 </ImageGrid>
 
- 
+
+A hybrid image combines the low frequencies of one image with the high frequencies of another. Given images $a$ and $b$:
+
+$$
+\text{img}_{\text{hybrid}} = G_\sigma * a + (b - G_\sigma * b)
+$$
+
+where $G_\sigma$ is a Gaussian blur with cutoff controlled by $\sigma$. From far away, only the low-frequency component (from $a$) is visible; up close, the high-frequency component (from $b$) dominates.
 
 My steps to separate an image into high and low frequencies were to:
 
 - convert the image into frequencies with `np.fft.fft2()`
-- apply a gaussian mask to the frequency spectrum to get the low frequencies
+- apply a Gaussian mask to the frequency spectrum to get the low frequencies
 - subtract the low frequencies from the frequency spectrum to get the high frequencies
-- convert the high and low frequency ranges into back into images using `np.fft.ifft2()`
+- convert the high and low frequency ranges back into images using `np.fft.ifft2()`
 
 <Figure src="/projects/cs180/proj2/figures/efrostrawberry_spectra.png" alt="efrostrawberry spectra" caption="Frequency spectra for the ‘efrostrawberry’ hybrid." />
 
@@ -115,7 +133,17 @@ I thought it was all getting too complicated. I created a series of Gaussian mas
 
 <Figure src="/projects/cs180/proj2/figures/gauss_mask.png" alt="gauss mask" caption="Gaussian masks across scales." />
 
-To get the Laplacian stack, I took the difference of every two adjacent levels of the Gaussian stack, then appended the last layer of the Gaussian stack.
+The Laplacian stack captures band-pass details at each level. Given a Gaussian stack $G_0, G_1, \ldots, G_n$:
+
+$$
+L_i = G_i - G_{i+1}, \quad i = 0, \ldots, n-1
+$$
+
+$$
+L_n = G_n
+$$
+
+Each $L_i$ contains the frequencies present at scale $i$ that are absent at scale $i+1$. The last level $L_n$ is the residual low-frequency content.
 
 <Figure src="/projects/cs180/proj2/figures/apple_orange_gl_stacks.png" alt="apple orange gl stacks" caption="Gaussian and Laplacian stacks for the apple/orange example." />
 
@@ -134,17 +162,12 @@ $$
 
 chillllllll
 
-<div style={{ alignItems: 'center', display: 'flex', flexDirection: 'column' }}>
-
 #### Le Oraple ... . .. . .. .
 
 <Figure src="/projects/cs180/proj2/blends/oraple.png" alt="oraple" caption="Multiresolution blend result: the ‘Oraple’." />
 
-</div>
-
 here are my other images:
 
- 
 
 <ImageGrid>
 
@@ -158,6 +181,5 @@ here are my other images:
 
 </ImageGrid>
 
- 
 
 

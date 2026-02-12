@@ -3,7 +3,6 @@
 
 I went to a store and took pictures of mannequins wearing outfits I liked.
 
- 
 
 <ImageGrid>
 ![raw 1a](/projects/cs180/proj4/raw/1a.jpeg)
@@ -20,7 +19,6 @@ I went to a store and took pictures of mannequins wearing outfits I liked.
 ![raw 6b](/projects/cs180/proj4/raw/6b.jpeg)
 </ImageGrid>
 
- 
 
 ---
 
@@ -97,7 +95,7 @@ and we can easily solve for the homography parameters using least squares.
 
 To get the dimensions of the warped image, we can apply the homography matrix to the corners of the image and compute the bounding box of the warped image with these points (or we can skip this step altogether and just use the shape of the source image for the warped image).
 
-However, border points of the warped image can be negative, in which case we must calculate the offset to ensure that all indices in the warped image are non-negative.
+Border points of the warped image can be negative, in which case we must calculate the offset to ensure that all indices in the warped image are non-negative.
 
 Next, we calculate the height and width of the destination image, and use these dimensions to create indices for the warped image. We then apply the inverse offset to these indices (to align with the bounds of the warped image), and apply the inverse homography matrix to these translated indices. This will map the non-negative indices of the destination image to the source image.
 
@@ -108,25 +106,21 @@ Finally, we interpolate the pixels of the source image to the destination image 
 <a id="part-4" />
 ## Part 4: Image Rectification
 
-Here are some results I got from rectifying the images. [note that I was able to avoid some inconveniences by using the shape of the source image for the warped image :D].
+Here are some results I got from rectifying the images. I was able to avoid some inconveniences by using the shape of the source image for the warped image.
 
- 
 
 <ImageGrid>
 ![rect1a](/projects/cs180/proj4/rect1a.png)
 ![rect1b](/projects/cs180/proj4/rect1b.png)
 </ImageGrid>
 
- 
 
- 
 
 <ImageGrid>
 ![rect2a](/projects/cs180/proj4/rect2a.png)
 ![rect2b](/projects/cs180/proj4/rect2b.png)
 </ImageGrid>
 
- 
 
 ---
 
@@ -149,7 +143,6 @@ I implemented blending with a two-level laplacian pyramid. The mask was generate
 
 I used `cv2.fillPoly` to fill the polygon formed by vertices of `img1` with 1, then used `cv2.distanceTransform` to get the distance transform of the polygon. I repeated this for `img2`, and took the ratio of the distance transforms to get the blending mask.
 
- 
 
 <ImageGrid>
 ![blend mask](/projects/cs180/proj4/blend_mask.png)
@@ -157,18 +150,15 @@ I used `cv2.fillPoly` to fill the polygon formed by vertices of `img1` with 1, t
 ![blend lf](/projects/cs180/proj4/blend_lf.png)
 </ImageGrid>
 
- 
 
 putting it all together
 
- 
 
 <ImageGrid>
 ![blend final](/projects/cs180/proj4/blend_final.png)
 ![blend annotated](/projects/cs180/proj4/blend_annotated.png)
 </ImageGrid>
 
- 
 
 ### Part 5.X: Manual Correspondences
 
@@ -178,7 +168,6 @@ I thought I could get away with not manually labeling correspondences between im
 
 Here are some manually labeled correspondences and the mosaics they yielded.
 
- 
 
 <ImageGrid>
 ![manual correspondences1](/projects/cs180/proj4/manual_correspondences1.png)
@@ -186,9 +175,6 @@ Here are some manually labeled correspondences and the mosaics they yielded.
 ![manual correspondences3](/projects/cs180/proj4/manual_correspondences3.png)
 </ImageGrid>
 
- 
-
-<div className="image-grid">
 
 <ImageGrid>
 ![manual mosaic1](/projects/cs180/proj4/manual_mosaic1.png)
@@ -196,28 +182,30 @@ Here are some manually labeled correspondences and the mosaics they yielded.
 ![manual mosaic3](/projects/cs180/proj4/manual_mosaic3.png)
 </ImageGrid>
 
-</div>
-
 ---
 
 <a id="part-6" />
 ## Part 6: Detecting Corner Features in An Images
 
-We use the Harris corner detector that was provided in the starter code (thank you!). However, this is too many points! So we implement automatic non-maximal suppression to get the top corners. K-D Trees were particularly helpful. Here are the results of taking the top 500 corners.
+We use the Harris corner detector provided in the starter code. This returns too many points, so we apply Adaptive Non-Maximal Suppression (ANMS) to select a spatially well-distributed subset.
 
-<div className="image-grid">
+ANMS assigns each corner $i$ a suppression radius:
 
+$$
+r_i = \min_{j} \| \mathbf{x}_i - \mathbf{x}_j \| \quad \text{s.t.} \quad h(\mathbf{x}_j) > c_{\text{robust}} \cdot h(\mathbf{x}_i)
+$$
+
+where $h(\mathbf{x})$ is the Harris response at point $\mathbf{x}$ and $c_{\text{robust}} = 0.9$. We sort corners by $r_i$ in decreasing order and keep the top $n$ (here, 500). This guarantees the selected corners are spread across the image. K-D Trees were helpful for the nearest-neighbor queries.
+
+<ImageGrid>
 <Figure src="/projects/cs180/proj4/corners1a.png" alt="corners1a" caption="Top 500 Harris corners after ANMS (image 1a)." />
 <Figure src="/projects/cs180/proj4/corners1b.png" alt="corners1b" caption="Top 500 Harris corners after ANMS (image 1b)." />
+</ImageGrid>
 
-</div>
-
-<div className="image-grid">
-
+<ImageGrid>
 <Figure src="/projects/cs180/proj4/corners2a.png" alt="corners2a" caption="Top 500 Harris corners after ANMS (image 2a)." />
 <Figure src="/projects/cs180/proj4/corners2b.png" alt="corners2b" caption="Top 500 Harris corners after ANMS (image 2b)." />
-
-</div>
+</ImageGrid>
 
 ---
 
@@ -235,11 +223,15 @@ We then downsample each patch by taking every $(s)$th pixel and normalized each 
 <a id="part-8" />
 ## Part 8: Matching Features Between Images
 
-For every feature descriptor in image $x$, we find the two most similar feature descriptors in image $y$. In accordance to Lowe's test, we threshold the ratio $r = \frac{err_{\text{1st match}}}{err_{\text{2nd match}}}$ as a test to remove bad matchings.
+For every feature descriptor in image $x$, we find the two most similar feature descriptors in image $y$. We apply Lowe's ratio test to reject ambiguous matches:
 
-We cross-validate this by checking how many of the best matches from $y$ are also the best matches for each feature descriptor in $x$.
+$$
+r = \frac{\| d_x - d_{y,1} \|}{\| d_x - d_{y,2} \|}
+$$
 
-<div className="image-grid">
+where $d_{y,1}$ and $d_{y,2}$ are the nearest and second-nearest descriptors in $y$. A match is accepted only if $r < \tau$ (I used $\tau \approx 0.4$). A low ratio means the best match is much better than the second-best, indicating a distinctive correspondence.
+
+We cross-validate by checking how many of the best matches from $y$ are also the best matches for each feature descriptor in $x$.
 
 <ImageGrid>
 ![fm1](/projects/cs180/proj4/fm1.png)
@@ -247,29 +239,28 @@ We cross-validate this by checking how many of the best matches from $y$ are als
 ![fm3](/projects/cs180/proj4/fm3.png)
 </ImageGrid>
 
-</div>
-
 ---
 
 <a id="part-9" />
 ## Part 9: RANSAC
 
-Some bad correspondences are unavoidable, so we use RANSAC to remove outliers.
+Some bad correspondences are unavoidable, so we use RANSAC (Random Sample Consensus) to remove outliers. The algorithm:
 
-The intuition behind RANSAC is to randomly sample a small number (4) of correspondences, compute the homography with this sample of source and destination points, apply the homography to all source points, and count how many warped source points are within some error threshold of their corresponding destination points. The correspondences within this threshold are inliers.
+1. Randomly sample 4 correspondences $\{(p_i, p_i')\}$.
+2. Compute the homography $H$ from these 4 point pairs.
+3. Apply $H$ to all source points and compute the reprojection error: $e_i = \| H p_i - p_i' \|$.
+4. Count inliers: points where $e_i < \epsilon$ (I used $\epsilon = 3$ px).
+5. Repeat for $N$ iterations and keep the largest inlier set.
+6. Recompute $H$ from all inliers using least squares.
 
 We repeat this process many times and keep the largest set of inliers as our correspondences.
 
 Here are some results of RANSAC.
 
-<div className="image-grid">
-
 <ImageGrid>
 ![ransac1a](/projects/cs180/proj4/ransac1a.png)
 ![ransac1b](/projects/cs180/proj4/ransac1b.png)
 </ImageGrid>
-
-</div>
 
 ---
 
@@ -278,7 +269,6 @@ Here are some results of RANSAC.
 
 Here are all of the outfits I took pictures of, stitched together.
 
- 
 
 <ImageGrid>
 ![mosaic1](/projects/cs180/proj4/mosaic1.png)
@@ -289,36 +279,27 @@ Here are all of the outfits I took pictures of, stitched together.
 ![blend final again](/projects/cs180/proj4/blend_final.png)
 </ImageGrid>
 
- 
 
 Here is a comparison of the mosaics from manual and automatic correspondences:
 
- 
 
 <ImageGrid>
 ![automatic mosaic1 labeled](/projects/cs180/proj4/automatic_mosaic1_labeled.png)
 ![manual mosaic1 labeled](/projects/cs180/proj4/manual_mosaic1_labeled.png)
 </ImageGrid>
 
- 
 
- 
 
 <ImageGrid>
 ![automatic mosaic2 labeled](/projects/cs180/proj4/automatic_mosaic2_labeled.png)
 ![manual mosaic2 labeled](/projects/cs180/proj4/manual_mosaic2_labeled.png)
 </ImageGrid>
 
- 
-
-<div className="image-grid">
 
 <ImageGrid>
 ![automatic mosaic3 labeled](/projects/cs180/proj4/automatic_mosaic3_labeled.png)
 ![manual mosaic3 labeled](/projects/cs180/proj4/manual_mosaic3_labeled.png)
 </ImageGrid>
-
-</div>
 
 ---
 
@@ -329,7 +310,7 @@ I though it was interesting how the math underlying perspective warps is so simp
 
 Ironically, the hardest part of this project was the blending step, which I had expected to be easy since I had done it for project 2. I did not expect to be so challenged by calculating the bounding box of the stitched image, the offset to avoid negative indices, and creating the blending mask.
 
-I think the coolest and most important things I learned are:
+The most important things I learned are:
 
 1. to not underestimate the simplicity of things that seem complex
 2. to not underestimate the complexity of things that seem simple

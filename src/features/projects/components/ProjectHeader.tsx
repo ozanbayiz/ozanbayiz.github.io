@@ -12,7 +12,7 @@ export type HeaderProps = {
 export default function ProjectHeader({
     title,
     repoUrl,
-    // date,
+    date,
     authors,
     pdfUrl
 }: HeaderProps) {
@@ -35,9 +35,10 @@ export default function ProjectHeader({
                     </ExternalLink>
                 </div>
             </div>
-            {/* Tags removed per request */}
-            {(authors?.length) ? (
-                <div className='flex flex-wrap items-center gap-2 text-xs text-foreground/90'>
+            {(date || authors?.length) ? (
+                <div className='flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
+                    {date ? <time dateTime={date}>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time> : null}
+                    {date && authors?.length ? <span>·</span> : null}
                     {authors?.length ? (
                         <span>{authors.join(' · ')}</span>
                     ) : null}

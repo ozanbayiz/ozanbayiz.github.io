@@ -1,36 +1,33 @@
 ## Abstract
 
-Machine learning systems are prone to exhibiting misaligned behavior when inputs include sensitive attributes such as race, age or gender. 
-Understanding how neural networks encode these attributes is essential for achieving fairness, transparency, interpretability, and overall alignment. 
-This project investigates activations of the vision encoder (VE) of a Vision Langage Model (VLM) – in this case a vision transformer (ViT) – when provided input of images of people of different races, genders, and ages. 
-We specifically use Microsoft’s Florence-2-base model, and perform the following analyses: First, we determined the degree to which the VE’s output activations contain features that are relevant to encoding demographic information by training linear probes to classify VE encoded images of people based on race, gender, and age. 
-We then train sparse autoencoders (SAEs) to decompose these activations into human-interpretable latent features. 
-Finally, we identify sparse dictionary features (SDFs) that are correlated with particular demographic features, providing insights into how these attributes might be represented.
+Machine learning systems can exhibit misaligned behavior when inputs include sensitive attributes such as race, age, or gender. 
+Understanding how neural networks encode these attributes is important for fairness and interpretability. 
+This project investigates activations of the vision encoder (VE) of a Vision Language Model (VLM), specifically a vision transformer (ViT), when processing images of people of different races, genders, and ages. 
+We use Microsoft's Florence-2-base model and perform the following analyses: first, we train linear probes to classify VE-encoded images based on race, gender, and age, measuring the degree to which output activations encode demographic information. 
+We then train sparse autoencoders (SAEs) to decompose these activations into interpretable latent features. 
+Finally, we identify sparse dictionary features (SDFs) correlated with particular demographic attributes, providing insights into how these attributes are represented.
 
-<SectionDivider />
+---
 
 ## Motivation
 
 Vision Language Models (VLMs) like 
 <ExternalLink href="https://arxiv.org/abs/2311.06242"> Microsoft Florence-2</ExternalLink>
 (<ExternalLink href="https://huggingface.co/microsoft/Florence-2-base">huggingface model card</ExternalLink>)
-represent a significant leap in AI, 
-adeptly integrating visual and textual information for diverse tasks such as image captioning
+integrate visual and textual information for tasks such as image captioning
 and visual question answering. 
 
-However, these powerful models often inherit societal biases related to sensitive attributes like race, gender, and age from their vast training data.
-This causes models to propagate harmful stereotypes.
+These models often inherit societal biases related to sensitive attributes like race, gender, and age from their training data,
+causing them to propagate harmful stereotypes.
 
 Should VLMs' internal representation of a person be agnostic to their age, race, and/or gender identity? 
-If so, is it possible to steer this latent respresentation away from harmful biases in the training data?
-
-
+If so, is it possible to steer this latent representation away from harmful biases in the training data?
 
 Understanding how visually observable demographic attributes are represented
 within the activation space of a VLM will provide useful insights into aligning ML behaviors
 to constructive human preferences.
 
-<SectionDivider />
+---
 
 ## FairFace Dataset
 
@@ -42,14 +39,14 @@ The
 FairFace contains over 100,000 face images, annotated by age, gender, and race. 
 The dataset includes seven race groups: 
 White, Black, East Asian, Southeast Asian, Indian, Middle Eastern, and Latino.
-Unlike many existing datasets that are skewed toward certain demographics, 
-FairFace aims for balanced representation across races, ages, and genders.
+FairFace aims for balanced representation across races, ages, and genders,
+unlike many existing datasets that are skewed toward certain demographics.
 
 We chose FairFace due to this explicit balancing, 
 enabling us to overcome entanglement of attributes
 and control for specific attributes using stratified sampling.
 
-<SectionDivider />
+---
 
 ## Methodology
 
@@ -64,7 +61,7 @@ $$
 
 Due to compute constraints,
 we could not train linear probes directly on flattened image features.
-To resolve this, we computed the mean across the patch dimension, yielding a single vector for each image:
+Instead, we computed the mean across the patch dimension, yielding a single vector for each image:
 
 $$
 \text{mean}(Z_{\text{img}}) = \overline{z_{\text{img}}} \in \mathbb{R}^{D_{\text{patch}}}
@@ -78,57 +75,54 @@ After training, we evaluated the performance of linear probes on a validation da
 
 <Figure src="/projects/idarve/LP_performance.png" alt="Linear probe validation results" caption="Figure 2: Linear probe performance on validation set." />
 
-Despite the loss of spatial information through patch-wise averaging, 
-the trained probes predicted demographic attribute labels with an accuracy considerably higher than random chance.
-This indicated to us that the patch-level features in Florence-2's VE were relevant to demographic attribute identification,
-justifying our next stage of investigations.
+Even after averaging across patches and losing spatial information,
+the trained probes predicted demographic attribute labels with accuracy considerably higher than random chance.
+This indicated that the patch-level features in Florence-2's VE encode demographic information,
+motivating the next stage of analysis.
 
 ### Decomposing Activations with Sparse Autoencoders (SAEs)
 
 We trained a SAE on patch-level activations.
 
-<Figure src="/projects/idarve/SAE_training.png" alt="SAE training pipeline" caption="Figure 3: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature" />
+<Figure src="/projects/idarve/SAE_training.png" alt="SAE training pipeline" caption="Figure 3: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature." />
 
-The SAE learns a dictionary of sparse, interpretable features (aka Sparse Dictionary Features, SDFs)
-that can be analyzed to identify correlations between demographic labels and particular patterns in the activation space
+The SAE learns a dictionary of sparse, interpretable features (Sparse Dictionary Features, SDFs)
+that can be analyzed to identify correlations between demographic labels and particular patterns in the activation space.
 
 ### Identifying Relevant SDFs
 
-After training our SAE, we identified which SDFs were correlated to which particular labels $l \in \{ l_1, ... l_c \} = \mathcal{L}$
+After training our SAE, we identified which SDFs were correlated to which particular labels $l \in \{ l_1, ... l_c \} = \mathcal{L}$.
 
 We follow the multi-stage process outlined in <ExternalLink href="https://arxiv.org/abs/2412.05276">**Lim et al. (2024)**</ExternalLink>
-to systematically narrows down the vast SDF dictionary to focused lists of candidates.
+to systematically narrow down the SDF dictionary to focused lists of candidates.
 
 #### 1. Activation frequency
 
 The first step identifies SDFs that are commonly activated when processing
 images belonging to a particular label. 
 For each SDF and each label, 
-we calculate the proportion of datapoints with that label for which the SDF’s aggregated activation exceeds a threshold $\tau > 0$. 
+we calculate the proportion of datapoints with that label for which the SDF's aggregated activation exceeds a threshold $\tau > 0$. 
 
 This yields a frequency score indicating how often the feature "fires" for that label.
-We select the top $k_1$ SDFs exhibiting the highest activation frequency for each label, 
-forming an initial pool of candidates based on prevalence.
+We select the top $k_1$ SDFs with the highest activation frequency for each label, 
+forming an initial pool of candidates.
 
 #### 2. Mean activation strength
 
-Simply being frequently active might not be sufficient; 
-we are also interested in features that activate strongly when present,
-suggesting higher salience or confidence according to the SAE. 
+Next, we filter for features that activate strongly when present.
+For each label, 
+we consider its $k_1$ candidate SDFs from the previous step 
+and calculate the mean activation value for each, 
+averaging only across images within the group where the SDF was active (activation $> \tau$). 
 
-For each race group, 
-we consider its $k_1$ candidate SDFs identified in the previous step. 
-We then calculate the mean activation value for each of these SDFs, 
-averaging only across those images within the group where the SDF was active (activation $> τ $). 
-
-By retaining the top $k_2$ SDFs per group, ranked by this mean activation value, 
-we prioritize SDFs that are both common and exhibit strong activation signals for inputs of a given label.
+We retain the top $k_2$ SDFs per group ranked by this mean activation value, 
+keeping SDFs that are both frequent and strongly activated.
 
 #### 3. Label Entropy
 
-A feature might be frequent and strong within one group but also activate substantially for other
-groups. To isolate features more uniquely associated with a target group, we calculate the label
-entropy for each of the remaining $k_2$ candidate SDFs per group, following. 
+A feature might be frequent and strong within one group but also activate for other groups.
+To isolate features more uniquely associated with a target group, we calculate the label
+entropy for each of the remaining $k_2$ candidate SDFs per group.
 
 For each SDF $f_i$, we:
 1. Compute the sum of $f_i$'s activation across all images with a given label:
@@ -138,26 +132,25 @@ $$
 $$
 
 2. Normalize these sums to obtain a probability distribution $\pi_{f_i, l_j}$, 
-indicating how "likely" a feature $f_i$ is to fire for an image with label $l_j$
+indicating how likely a feature $f_i$ is to fire for an image with label $l_j$:
 
 $$
 \pi_{f_i, l_j} = \frac{ \text{label activation} (f_i, l_j) }{\sum_{l_k \in \mathcal{L} } \text{label activation}(f_i, l_k) }
 $$
 
-3. Compute the Shannon entropy using these distributions.
+3. Compute the Shannon entropy using these distributions:
 
 $$
 \text{entropy}(f_i) = - \sum_{l_j \in \mathcal{L} } \pi_{f_i,l_j} \log \pi_{f_i,l_j}
 $$
 
-A low entropy value signifies that the SDF’s activation is concentrated within one or a few labels, 
-indicating higher specificity. Conversely, high entropy suggests the feature is broadly active across many groups.
+Low entropy means the SDF's activation is concentrated within one or a few labels, indicating high specificity.
+High entropy means the feature is broadly active across many groups.
 
-We retain the top $k_3$ SDFs per label that demonstrate the lowest label entropy, 
-yielding our final set of candidate SDFs considered most statistically relevant and specific to each label based
-on their activation patterns. 
+We retain the top $k_3$ SDFs per label with the lowest label entropy, 
+yielding the final set of candidate SDFs most specific to each label.
 
-<SectionDivider />
+---
 
 ## Findings: VEs "See" Cultural Markers
 
@@ -168,33 +161,30 @@ The analysis revealed a mixture of signals.
 Some features align strongly with demographic labels, 
 while others are entangled with unrelated concepts.
 
-<Figure src="/projects/idarve/neckbeard_feature.jpg" alt="A message indicating the identification of the neckbeard feature" caption="Figure 4. We found a feature associated with images of people wearing sunglasses."/>
-Most notably, 
-we found features aligned to cultural markers such as headscarves and beards.
+<Figure src="/projects/idarve/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="Figure 4. We found a feature associated with images of people wearing sunglasses."/>
+
+We also found features aligned to cultural markers such as headscarves and beards.
 
 <ImageGrid>
-<Figure src="/projects/idarve/stereotype_feature1.png" alt="Headscarves activate a race‑associated feature" caption="Figure 5a: A feature strongly activates on headscarves, acting as a demographic proxy." />
-<Figure src="/projects/idarve/stereotype_feature2.png" alt="Beards activate a race‑associated feature" caption="Figure 5b: Another feature activates on beards, also acting as a demographic proxy." />
+<Figure src="/projects/idarve/stereotype_feature1.png" alt="Headscarves activate a race-associated feature" caption="Figure 5a: A feature strongly activates on headscarves, acting as a demographic proxy." />
+<Figure src="/projects/idarve/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="Figure 5b: Another feature activates on beards, also acting as a demographic proxy." />
 </ImageGrid>
 
-Without a doubt, 
-a dataset used to train contemporary VLMs will display correlations between certain visual features and demographic attribute.
+Training datasets for contemporary VLMs will contain correlations between certain visual features and demographic attributes.
 
-
-<SectionDivider />
+---
 
 ## Limitations & Future Directions
 
-
-- Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific
-- Proxy sensitivity: contextual cues may reflect dataset correlations rather than intrinsic attributes
-- Scope: analysis focused on race in FairFace; controlling for age/gender could guide the identification of more concentrated SDF.
+- Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific.
+- Proxy sensitivity: contextual cues may reflect dataset correlations rather than intrinsic attributes.
+- Scope: analysis focused on race in FairFace; controlling for age/gender could guide the identification of more concentrated SDFs.
 - Causality not established: correlations do not prove that features contribute to demographic attribute understanding in the language model.
 
 We think future work will involve:
 
 1. Causal interventions (feature editing/pruning/ablation) to test whether identified features drive biased outcomes
 
-2. Semi‑supervised SAEs guided by concept targets
+2. Semi-supervised SAEs guided by concept targets
 
 3. Evaluation of robustness and generalization across datasets and VLMs.

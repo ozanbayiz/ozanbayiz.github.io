@@ -56,10 +56,6 @@ export default function ProjectSidebarShell({
         onActiveChange: expandPath
     })
 
-    const handleNavigate = React.useCallback((id: string) => {
-        navigateTo(id)
-    }, [navigateTo])
-
     return (
         <SidebarProvider className='[&_.container]:!max-w-none [&_.container]:!px-0'>
             <Sidebar
@@ -90,7 +86,7 @@ export default function ProjectSidebarShell({
                                         activeId={activeId}
                                         expandedIds={expandedIds}
                                         onToggle={toggleExpanded}
-                                        onNavigate={handleNavigate}
+                                        onNavigate={navigateTo}
                                     />
                                 ))}
                             </SidebarMenu>
@@ -111,7 +107,7 @@ export default function ProjectSidebarShell({
                 </header>
 
                 <div ref={contentRef} className='flex flex-1 flex-col gap-4 px-3 py-4 md:p-6 lg:p-8'>
-                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-none w-full mx-auto'>
+                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-prose w-full mx-auto [&_figure]:max-w-none [&_.grid]:max-w-none [&_img]:max-w-none [&_video]:max-w-none'>
                         {children}
                     </div>
                 </div>

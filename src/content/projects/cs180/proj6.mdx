@@ -3,7 +3,7 @@ Neural Radiance Fields (NeRF) represent a method for synthesizing novel views of
 
 ### What are NeRFs?
 
-A NeRF represents a scene as a continuous volumetric function, parameterized by a fully-connected neural network (MLP). The network takes a 5D coordinate input—spatial location $(x, y, z)$ and viewing direction $(\theta, \phi)$—and outputs the volume density ($\sigma$) and view-dependent emitted radiance (color, $c$) at that spatial location.
+A NeRF represents a scene as a continuous volumetric function, parameterized by a fully-connected neural network (MLP). The network takes a 5D coordinate input (spatial location $(x, y, z)$ and viewing direction $(\theta, \phi)$) and outputs the volume density ($\sigma$) and view-dependent emitted radiance (color, $c$) at that spatial location.
 
 To render a view:
 1.  **Ray Casting**: Rays are marched from the camera center through each pixel of the image plane into the scene.
@@ -20,16 +20,26 @@ By minimizing the error between the rendered pixels and the ground truth pixels 
 
 Before tackling 3D scenes, I first implemented a neural field to represent a 2D image. In this context, the network learns a mapping from 2D pixel coordinates $(x, y)$ to RGB colors $(r, g, b)$.
 
+### Positional Encoding
+
+Raw low-dimensional coordinates are mapped to a higher-dimensional space using sinusoidal positional encoding. For a scalar input $p$, the encoding with $L$ frequency bands is:
+
+$$
+\gamma(p) = \left[\sin(2^0 \pi p),\, \cos(2^0 \pi p),\, \ldots,\, \sin(2^{L-1} \pi p),\, \cos(2^{L-1} \pi p)\right]
+$$
+
+This enables the network to learn high-frequency functions that it would otherwise struggle to represent.
+
 ### Implementation
 
 For the initial implementation, I adopted the architecture recommended in the project description:
 - 4 hidden layers
 - 256 hidden dimensions
-- 10-band positional encoding (to map low-dimensional inputs to a higher-dimensional space, enabling the network to learn high-frequency functions)
+- $L = 10$ frequency bands for positional encoding
 
 ### Results
 
-Using these parameters, the neural field successfully reconstructed the target image.
+Using these parameters, the neural field reconstructed the target image.
 
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256.png" alt="NeF fox 10 256" caption="Neural field reconstruction (Fox, 10 bands, 256 dims)." />
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256_psnr.png" alt="NeF fox 10 256 psnr" caption="PSNR over training (Fox, 10 bands, 256 dims)." />
@@ -43,7 +53,7 @@ I also trained the neural field on a custom image of my cat.
 
 I experimented with varying the number of frequency bands and the hidden dimension size.
 
-Varying the number of frequency bands generally led to worse results if deviated too far from the optimal range. The result of using 15 frequency bands produced some interesting artifacts.
+Using too few or too many frequency bands degraded reconstruction quality. Using 15 frequency bands produced high-frequency grid-like artifacts.
 
 <ImageGrid>
 ![NeF fox 4 256](/projects/cs180/proj6/NeF_fox_4_256.png)
@@ -55,7 +65,7 @@ Varying the number of frequency bands generally led to worse results if deviated
 ![NeF fox 15 256 psnr](/projects/cs180/proj6/NeF_fox_15_256_psnr.png)
 </ImageGrid>
 
-Altering the hidden dimension size did not have a significant effect on the qualitative results for this 2D task.
+Changing the hidden dimension size had minimal effect on the qualitative results for this 2D task.
 
 <ImageGrid>
 ![NeF fox 10 128](/projects/cs180/proj6/NeF_fox_10_128.png)
@@ -75,7 +85,7 @@ Altering the hidden dimension size did not have a significant effect on the qual
 <a id="part-2-1" />
 ### 2.1 Create Rays from Cameras
 
-To train the NeRF, we need to generate rays corresponding to pixels in the training images. I implemented `transform`, `pixel_to_camera`, and `pixel_to_ray` functions using standard coordinate transformations. I utilized `einops` to simplify complex tensor rearrangements and ensure operations were broadcast correctly.
+To train the NeRF, we need to generate rays corresponding to pixels in the training images. I implemented `transform`, `pixel_to_camera`, and `pixel_to_ray` functions using standard coordinate transformations. I used `einops` to simplify tensor rearrangements and ensure operations were broadcast correctly.
 
 <a id="part-2-2" />
 ### 2.2 Sampling Rays
@@ -87,7 +97,7 @@ When the `RaysDataset` is initialized, it precomputes pixel coordinates and corr
 <a id="part-2-3" />
 ### 2.3 Putting the Dataloading All Together
 
-Visualizing the generated rays ensures that the camera geometry and ray generation are working as expected.
+Visualizing the generated rays confirms that the camera geometry and ray generation are correct.
 
 <ImageGrid>
 ![all rays](/projects/cs180/proj6/all_rays.png)
@@ -98,7 +108,7 @@ Visualizing the generated rays ensures that the camera geometry and ray generati
 <a id="part-2-4" />
 ### 2.4 Implementing the NeRF
 
-I initially implemented the NeRF architecture following the project guidelines. To facilitate easier hyperparameter tuning and modularity, I later refactored the implementation using `nn.ModuleList`.
+I initially implemented the NeRF architecture following the project guidelines. I later refactored using `nn.ModuleList` for easier hyperparameter tuning and modularity.
 
 My final architecture parameters were:
 - 10-layer MLP + 1 density layer + 3-layer color MLP
@@ -108,11 +118,28 @@ My final architecture parameters were:
 <a id="part-2-5" />
 ### 2.5 Volume Rendering
 
-The core of the NeRF is the volume rendering equation.
+The core of the NeRF is the volume rendering equation. For a ray $\mathbf{r}(t) = \mathbf{o} + t\mathbf{d}$ with $N$ sample points at distances $t_1, \ldots, t_N$, the rendered color is:
 
-1.  Compute transparency along the ray: $a_i = \exp(-\sigma_i \delta_i)$ for all sample points $i$.
-2.  Compute transmittance (probability of the ray reaching point $i$ without terminating): $T_i$ using `torch.cumprod`.
-3.  Weight each color contribution: $w_i = T_i a_i$.
+$$
+\hat{C}(\mathbf{r}) = \sum_{i=1}^{N} T_i \, \alpha_i \, c_i
+$$
+
+where:
+
+$$
+\alpha_i = 1 - \exp(-\sigma_i \delta_i), \quad \delta_i = t_{i+1} - t_i
+$$
+
+$$
+T_i = \prod_{j=1}^{i-1}(1 - \alpha_j)
+$$
+
+$\sigma_i$ and $c_i$ are the density and color predicted by the MLP at sample point $i$, $\delta_i$ is the distance between adjacent samples, $\alpha_i$ is the opacity of sample $i$, and $T_i$ is the transmittance (probability that the ray travels from $t_1$ to $t_i$ without hitting anything).
+
+In code:
+1.  Compute opacity: $\alpha_i = 1 - \exp(-\sigma_i \delta_i)$ for all sample points $i$.
+2.  Compute transmittance: $T_i$ using `torch.cumprod` over $(1 - \alpha_j)$.
+3.  Weight each color contribution: $w_i = T_i \alpha_i$.
 4.  Compute the final pixel color: $\hat{C} = \sum_i w_i c_i$.
 
 <a id="part-2-6" />
@@ -126,22 +153,18 @@ Training configuration:
 
 <Figure src="/projects/cs180/proj6/NeRF_training.png" alt="NeRF training" caption="NeRF training curve and sample renders." />
 
-The model achieved strong performance, reaching ~30 PSNR on the validation set.
-
-<div className="image-grid">
+The model reached ~30 PSNR on the validation set.
 
 <ImageGrid>
-![formation](/projects/cs180/proj6/formation.gif)
-![spherical render](/projects/cs180/proj6/spherical_render.gif)
+<Figure src="/projects/cs180/proj6/formation.mp4" alt="formation" />
+<Figure src="/projects/cs180/proj6/spherical_render.mp4" alt="spherical render" />
 </ImageGrid>
-
-</div>
 
 <a id="bw" />
 # Bells and Whistles: New Background Color
 
-To render the scene against a different background, I modified the volume rendering equation. Instead of assuming empty space is black, I composited the final color with a background color $c_{\text{bg}}$ weighted by the remaining transmittance:
+To render the scene against a different background, I modified the volume rendering equation. I composited the final color with a background color $c_{\text{bg}}$ weighted by the remaining transmittance:
 
-$$ \hat{C}(r) = \sum_i T_i a_i c_i + T_i( 1- a_i) c_{\text{bg}} $$
+$$ \hat{C}(r) = \sum_i T_i \alpha_i c_i + T_i( 1- \alpha_i) c_{\text{bg}} $$
 
-<Figure src="/projects/cs180/proj6/spherical_render_blue.gif" alt="spherical render blue" caption="Spherical render with blue background." />
+<Figure src="/projects/cs180/proj6/spherical_render_blue.mp4" alt="spherical render blue" caption="Spherical render with blue background." />

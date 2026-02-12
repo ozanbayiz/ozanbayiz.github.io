@@ -1,5 +1,5 @@
 export type Project = {
-    collection: 'cs180' | 'personal' | 'misc-academic'
+    collection: 'cs180' | 'cs185' | 'cs280' | 'personal' | 'misc-academic'
     slug?: string
     title: string
     shortTitle?: string
@@ -19,7 +19,6 @@ export type Project = {
 const baseProjects: Project[] = [
     {
         collection: 'personal',
-        slug: 'dit-rf',
         title: 'DiT + RF',
         description:
             'My implementation of a diffusion transformer trained on rectified flow.',
@@ -51,6 +50,30 @@ const baseProjects: Project[] = [
         pdfUrl:
             'https://drive.google.com/file/d/1GGZpM5Wz_wwaz6jEWMMBS_Ixga-qs3XV/view?usp=drive_link',
         featured: true
+    },
+    {
+        collection: 'cs185',
+        slug: 'cs185-hw1',
+        title: 'Imitation Learning',
+        shortTitle: 'Imitation Learning',
+        description:
+            'Action-chunking behavioral cloning with MSE and flow matching policies for the Push-T environment.',
+        imageUrl: '/projects/cs185hw1/flow_curves.png',
+        heroImageSrc: '/projects/cs185hw1/flow_curves.png',
+        gitUrl: 'https://github.com/ozanbayiz/cs185hw1',
+        date: '2026-02-11'
+    },
+    {
+        collection: 'cs280',
+        slug: 'cs280-hw1',
+        title: 'Poor Man\'s AR & Homographies',
+        shortTitle: 'AR & Homographies',
+        description:
+            'Keypoint tracking, DLT camera calibration with RANSAC and bundle adjustment, 3D cube projection, and affine/homography transforms from scratch.',
+        imageUrl: '/projects/cs280-hw1/provided_homography.jpg',
+        heroImageSrc: '/projects/cs280-hw1/provided_homography.jpg',
+        gitUrl: 'https://github.com/ozanbayiz/cs280-hw1',
+        date: '2026-02-12'
     }
 ]
 

@@ -1,4 +1,4 @@
-import FavoritesSection from '@/features/home/components/FavoritesSection'
+import LazyFavoritesSection from '@/features/home/components/LazyFavoritesSection'
 import OzanSection from '@/features/home/components/OzanSection'
 import ProjectSection from '@/features/home/components/ProjectSection'
 import ResearchSection from '@/features/home/components/ResearchSection'
@@ -35,11 +35,11 @@ export default function Home() {
             <SectionDivider />
             {/* <Separator /> */}
 
-            <FavoritesSection />
+            <LazyFavoritesSection />
 
-            Ozan Bayiz, 2025
-
-            {/* <BottomAscii /> */}
+            <footer className='py-8 text-xs text-muted-foreground'>
+                Ozan Bayiz, {new Date().getFullYear()}
+            </footer>
         </div>
     )
 }
