@@ -106,8 +106,8 @@ export default function ProjectSidebarShell({
                     {rightActions}
                 </header>
 
-                <div ref={contentRef} className='flex flex-1 flex-col gap-4 px-3 py-4 md:p-6 lg:p-8'>
-                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-prose w-full mx-auto [&_figure]:max-w-none [&_.grid]:max-w-none [&_img]:max-w-none [&_video]:max-w-none'>
+                <div ref={contentRef} className='flex flex-1 flex-col gap-6 px-4 py-6 md:px-8 md:py-10 lg:px-12 lg:py-12'>
+                    <div className='prose prose-neutral dark:prose-invert max-w-prose w-full mx-auto [&_figure]:max-w-none [&_.grid]:max-w-none [&_img]:max-w-none [&_video]:max-w-none'>
                         {children}
                     </div>
                 </div>

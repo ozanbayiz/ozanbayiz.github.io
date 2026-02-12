@@ -5,7 +5,7 @@ export const MEDIA_BASE = 'block h-auto max-w-full m-0 align-middle'
 export const MEDIA_HOVER = 'border border-transparent hover:border-accent transition-colors'
 
 /** Standard figcaption styling. */
-export const CAPTION = 'mt-2 text-sm italic text-muted-foreground'
+export const CAPTION = 'mt-3 text-sm italic text-muted-foreground'
 
 /** Returns alignment utility classes for the media element and caption. */
 export function getAlignmentClasses(align: 'left' | 'center' | 'right') {

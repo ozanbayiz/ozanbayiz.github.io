@@ -26,7 +26,7 @@ export default async function UnifiedProjectPage({
   const heroSrc = project.heroImageSrc ?? project.imageUrl
 
   return (
-    <section className='space-y-4 md:space-y-6'>
+    <section className='space-y-6 md:space-y-8'>
       <ProjectHeader
         title={project.title}
         repoUrl={project.gitUrl}

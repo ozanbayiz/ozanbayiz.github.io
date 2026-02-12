@@ -149,7 +149,7 @@ export default function Figure({
     }
 
     return (
-        <figure ref={rootRef} className={cn('my-6', className)}>
+        <figure ref={rootRef} className={cn('my-8', className)}>
             {isVideo ? (
                 media
             ) : (
