@@ -1,31 +1,33 @@
-<a id="part-1" />
+CS 180: Intro to Computer Vision and Computational Photography, Project 4, Fall 2024
+
+<SectionDivider />
+
+<a id="photos" />
 ## Part 1: Shoot the Pictures
 
-I went to a store and took pictures of mannequins wearing outfits I liked.
-
+I took photos of mannequins at a store.
 
 <ImageGrid>
-![raw 1a](/projects/cs180/proj4/raw/1a.jpeg)
-![raw 1b](/projects/cs180/proj4/raw/1b.jpeg)
-![raw 2a](/projects/cs180/proj4/raw/2a.jpeg)
-![raw 2b](/projects/cs180/proj4/raw/2b.jpeg)
-![raw 3a](/projects/cs180/proj4/raw/3a.jpeg)
-![raw 3b](/projects/cs180/proj4/raw/3b.jpeg)
-![raw 4a](/projects/cs180/proj4/raw/4a.jpeg)
-![raw 4b](/projects/cs180/proj4/raw/4b.jpeg)
-![raw 5a](/projects/cs180/proj4/raw/5a.jpeg)
-![raw 5b](/projects/cs180/proj4/raw/5b.jpeg)
-![raw 6a](/projects/cs180/proj4/raw/6a.jpeg)
-![raw 6b](/projects/cs180/proj4/raw/6b.jpeg)
+<Figure src="/projects/cs180/proj4/raw/1a.jpeg" alt="raw 1a" />
+<Figure src="/projects/cs180/proj4/raw/1b.jpeg" alt="raw 1b" />
+<Figure src="/projects/cs180/proj4/raw/2a.jpeg" alt="raw 2a" />
+<Figure src="/projects/cs180/proj4/raw/2b.jpeg" alt="raw 2b" />
+<Figure src="/projects/cs180/proj4/raw/3a.jpeg" alt="raw 3a" />
+<Figure src="/projects/cs180/proj4/raw/3b.jpeg" alt="raw 3b" />
+<Figure src="/projects/cs180/proj4/raw/4a.jpeg" alt="raw 4a" />
+<Figure src="/projects/cs180/proj4/raw/4b.jpeg" alt="raw 4b" />
+<Figure src="/projects/cs180/proj4/raw/5a.jpeg" alt="raw 5a" />
+<Figure src="/projects/cs180/proj4/raw/5b.jpeg" alt="raw 5b" />
+<Figure src="/projects/cs180/proj4/raw/6a.jpeg" alt="raw 6a" />
+<Figure src="/projects/cs180/proj4/raw/6b.jpeg" alt="raw 6b" />
 </ImageGrid>
 
+<SectionDivider />
 
----
-
-<a id="part-2" />
+<a id="homographies" />
 ## Part 2: Recover Homographies
 
-Applying a homography reduces to a matrix multiplication
+Applying a homography reduces to a matrix multiplication:
 
 $$
 w \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix} 
@@ -33,45 +35,7 @@ w \begin{bmatrix} x' \\ y' \\ 1 \end{bmatrix}
 \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} 
 $$
 
-which can be rewritten as
-
-$$
-\begin{aligned}
-wx' &= ax + by + c \\
-wy' &= dx + ey + f \\
-w &= gx + hy + 1
-\end{aligned}
-$$
-
-$$
-\implies
-\begin{aligned}
-(gx + hy + 1)x' &= ax + by + c \\
-(gx + hy + 1)y' &= dx + ey + f \\
-\end{aligned}
-$$
-
-$$
-\implies
-\begin{aligned}
-x' &= ax + by + c - gxx'- hx'y\\
-y' &= dx + ey + f - gxy'- hyy'\\
-\end{aligned}
-$$
-
-But this is also just
-
-$$
-\begin{bmatrix}  x' \\ y' \end{bmatrix}
-=
-\begin{bmatrix}
-x & y & 1 & 0 & 0 & 0 & -xx' & -xy' \\
-0 & 0 & 0 & x & y & 1 & -yx' & -yy'
-\end{bmatrix}
-\begin{bmatrix} a \\ b \\ c \\ d \\ e \\ f \\g \\ h \end{bmatrix}
-$$
-
-so, given n correspondences, we can write this as a linear system
+Expanding and rearranging yields the linear system:
 
 $$
 \begin{bmatrix}
@@ -86,243 +50,186 @@ x_n & y_n & 1 & 0 & 0 & 0 & -x_nx_n' & -x_ny_n' \\
 \begin{bmatrix} x_1' \\ y_1' \\ \vdots \\ x_n' \\ y_n' \end{bmatrix}
 $$
 
-and we can easily solve for the homography parameters using least squares.
+Given $n$ correspondences, the homography parameters are solved via least squares.
 
----
+<SectionDivider />
 
-<a id="part-3" />
+<a id="warping" />
 ## Part 3: Warp the Images
 
-To get the dimensions of the warped image, we can apply the homography matrix to the corners of the image and compute the bounding box of the warped image with these points (or we can skip this step altogether and just use the shape of the source image for the warped image).
+To warp an image, I applied the homography to the image corners to compute the bounding box of the warped result. Border points of the warped image can be negative, requiring an offset to keep all indices non-negative.
 
-Border points of the warped image can be negative, in which case we must calculate the offset to ensure that all indices in the warped image are non-negative.
+I created indices for the destination image, applied the inverse offset and inverse homography to map them back to the source image, and interpolated with `scipy.interpolate.RectBivariateSpline`.
 
-Next, we calculate the height and width of the destination image, and use these dimensions to create indices for the warped image. We then apply the inverse offset to these indices (to align with the bounds of the warped image), and apply the inverse homography matrix to these translated indices. This will map the non-negative indices of the destination image to the source image.
+<SectionDivider />
 
-Finally, we interpolate the pixels of the source image to the destination image (I used `scipy.interpolate.RectBivariateSpline`), and apply a mask to the destination image to remove the parts that are not in the source image.
-
----
-
-<a id="part-4" />
+<a id="rectification" />
 ## Part 4: Image Rectification
 
-Here are some results I got from rectifying the images. I was able to avoid some inconveniences by using the shape of the source image for the warped image.
-
-
 <ImageGrid>
-![rect1a](/projects/cs180/proj4/rect1a.png)
-![rect1b](/projects/cs180/proj4/rect1b.png)
+<Figure src="/projects/cs180/proj4/rect1a.png" alt="rectification 1a" />
+<Figure src="/projects/cs180/proj4/rect1b.png" alt="rectification 1b" />
 </ImageGrid>
 
-
-
 <ImageGrid>
-![rect2a](/projects/cs180/proj4/rect2a.png)
-![rect2b](/projects/cs180/proj4/rect2b.png)
+<Figure src="/projects/cs180/proj4/rect2a.png" alt="rectification 2a" />
+<Figure src="/projects/cs180/proj4/rect2b.png" alt="rectification 2b" />
 </ImageGrid>
 
+<SectionDivider />
 
----
+<a id="mosaic" />
+## Part 5: Blend the Images into a Mosaic
 
-<a id="part-5" />
-## Part 5: Blend The Images into a Mosaic
-
-I was lazy ish and did not want to manually label correspondences between images. This led me to implement [automatic non-maximal suppression](#part-6), [feature description extraction](#part-7), and [feature matching](#part-8).
-
-Here is an example of feature matching between two images.
+I implemented blending with a two-level Laplacian pyramid. The mask was generated from the distance transform of each image's polygon (using `cv2.fillPoly` and `cv2.distanceTransform`), and the blending weights were computed as the ratio of the two distance transforms.
 
 <Figure src="/projects/cs180/proj4/matched_features.png" alt="matched features" caption="Matched feature correspondences between two images." />
 
-Using the matched features, I computed the homography between the base image (chosen to be the top), and the query image (the bottom).
-
-I warped the corners of the query image to the base image, then found the bounding box of the entire image after stitching. I computed the translation to apply to the final image to avoid negative indices.
-
-This all boiled down to a mess of calling `np.min` and `np.max` on all sorts of corner points and I really hope I never feel so confused with something so simple ever again.
-
-I implemented blending with a two-level laplacian pyramid. The mask was generated by taking the distance transform of the polygon made by the four corners of the images.
-
-I used `cv2.fillPoly` to fill the polygon formed by vertices of `img1` with 1, then used `cv2.distanceTransform` to get the distance transform of the polygon. I repeated this for `img2`, and took the ratio of the distance transforms to get the blending mask.
-
-
 <ImageGrid>
-![blend mask](/projects/cs180/proj4/blend_mask.png)
-![blend hf](/projects/cs180/proj4/blend_hf.png)
-![blend lf](/projects/cs180/proj4/blend_lf.png)
+<Figure src="/projects/cs180/proj4/blend_mask.png" alt="blend mask" />
+<Figure src="/projects/cs180/proj4/blend_hf.png" alt="blend high frequency" />
+<Figure src="/projects/cs180/proj4/blend_lf.png" alt="blend low frequency" />
 </ImageGrid>
 
-
-putting it all together
-
-
 <ImageGrid>
-![blend final](/projects/cs180/proj4/blend_final.png)
-![blend annotated](/projects/cs180/proj4/blend_annotated.png)
-</ImageGrid>
-
-
-### Part 5.X: Manual Correspondences
-
-I thought I could get away with not manually labeling correspondences between images. I was wrong.
-
-<Figure src="/projects/cs180/proj4/truth_hurts.png" alt="truth hurts" caption="Manual correspondences were ultimately required." />
-
-Here are some manually labeled correspondences and the mosaics they yielded.
-
-
-<ImageGrid>
-![manual correspondences1](/projects/cs180/proj4/manual_correspondences1.png)
-![manual correspondences2](/projects/cs180/proj4/manual_correspondences2.png)
-![manual correspondences3](/projects/cs180/proj4/manual_correspondences3.png)
-</ImageGrid>
-
-
-<ImageGrid>
-![manual mosaic1](/projects/cs180/proj4/manual_mosaic1.png)
-![manual mosaic2](/projects/cs180/proj4/manual_mosaic2.png)
-![manual mosaic3](/projects/cs180/proj4/manual_mosaic3.png)
+<Figure src="/projects/cs180/proj4/blend_final.png" alt="blend final" />
+<Figure src="/projects/cs180/proj4/blend_annotated.png" alt="blend annotated" />
 </ImageGrid>
 
 ---
 
-<a id="part-6" />
-## Part 6: Detecting Corner Features in An Images
+### Part 5.X: Manual Correspondences
 
-We use the Harris corner detector provided in the starter code. This returns too many points, so we apply Adaptive Non-Maximal Suppression (ANMS) to select a spatially well-distributed subset.
+Automatic feature matching did not always succeed, requiring manual correspondences for some image pairs.
 
-ANMS assigns each corner $i$ a suppression radius:
+<Figure src="/projects/cs180/proj4/truth_hurts.png" alt="truth hurts" caption="Manual correspondences were ultimately required." />
+
+<ImageGrid>
+<Figure src="/projects/cs180/proj4/manual_correspondences1.png" alt="manual correspondences 1" />
+<Figure src="/projects/cs180/proj4/manual_correspondences2.png" alt="manual correspondences 2" />
+<Figure src="/projects/cs180/proj4/manual_correspondences3.png" alt="manual correspondences 3" />
+</ImageGrid>
+
+<ImageGrid>
+<Figure src="/projects/cs180/proj4/manual_mosaic1.png" alt="manual mosaic 1" />
+<Figure src="/projects/cs180/proj4/manual_mosaic2.png" alt="manual mosaic 2" />
+<Figure src="/projects/cs180/proj4/manual_mosaic3.png" alt="manual mosaic 3" />
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="corners" />
+## Part 6: Detecting Corner Features
+
+I used the Harris corner detector and applied Adaptive Non-Maximal Suppression (ANMS) to select a spatially well-distributed subset. ANMS assigns each corner $i$ a suppression radius:
 
 $$
 r_i = \min_{j} \| \mathbf{x}_i - \mathbf{x}_j \| \quad \text{s.t.} \quad h(\mathbf{x}_j) > c_{\text{robust}} \cdot h(\mathbf{x}_i)
 $$
 
-where $h(\mathbf{x})$ is the Harris response at point $\mathbf{x}$ and $c_{\text{robust}} = 0.9$. We sort corners by $r_i$ in decreasing order and keep the top $n$ (here, 500). This guarantees the selected corners are spread across the image. K-D Trees were helpful for the nearest-neighbor queries.
+where $h(\mathbf{x})$ is the Harris response and $c_{\text{robust}} = 0.9$. Corners are sorted by $r_i$ in decreasing order and the top 500 are kept. K-D Trees accelerated the nearest-neighbor queries.
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj4/corners1a.png" alt="corners1a" caption="Top 500 Harris corners after ANMS (image 1a)." />
-<Figure src="/projects/cs180/proj4/corners1b.png" alt="corners1b" caption="Top 500 Harris corners after ANMS (image 1b)." />
+<Figure src="/projects/cs180/proj4/corners1a.png" alt="corners 1a" caption="Top 500 Harris corners after ANMS (image 1a)." />
+<Figure src="/projects/cs180/proj4/corners1b.png" alt="corners 1b" caption="Top 500 Harris corners after ANMS (image 1b)." />
 </ImageGrid>
 
 <ImageGrid>
-<Figure src="/projects/cs180/proj4/corners2a.png" alt="corners2a" caption="Top 500 Harris corners after ANMS (image 2a)." />
-<Figure src="/projects/cs180/proj4/corners2b.png" alt="corners2b" caption="Top 500 Harris corners after ANMS (image 2b)." />
+<Figure src="/projects/cs180/proj4/corners2a.png" alt="corners 2a" caption="Top 500 Harris corners after ANMS (image 2a)." />
+<Figure src="/projects/cs180/proj4/corners2b.png" alt="corners 2b" caption="Top 500 Harris corners after ANMS (image 2b)." />
 </ImageGrid>
 
----
+<SectionDivider />
 
-<a id="part-7" />
+<a id="descriptors" />
 ## Part 7: Extracting Feature Descriptors
 
-We take $(8s)\,\text{px} \times (8s)\,\text{px}$ patches centered around each corner returned by ANMS.
-
-We then downsample each patch by taking every $(s)$th pixel and normalized each patch to have zero mean and unit variance.
+I extracted $(8s) \times (8s)$ pixel patches centered around each ANMS corner, downsampled each patch by taking every $s$th pixel, and normalized each to zero mean and unit variance.
 
 <Figure src="/projects/cs180/proj4/feature_descriptors.png" alt="feature descriptors" caption="Normalized feature descriptor patches." />
 
----
+<SectionDivider />
 
-<a id="part-8" />
+<a id="matching" />
 ## Part 8: Matching Features Between Images
 
-For every feature descriptor in image $x$, we find the two most similar feature descriptors in image $y$. We apply Lowe's ratio test to reject ambiguous matches:
+For every descriptor in image $x$, I found the two most similar descriptors in image $y$ and applied Lowe's ratio test:
 
 $$
 r = \frac{\| d_x - d_{y,1} \|}{\| d_x - d_{y,2} \|}
 $$
 
-where $d_{y,1}$ and $d_{y,2}$ are the nearest and second-nearest descriptors in $y$. A match is accepted only if $r < \tau$ (I used $\tau \approx 0.4$). A low ratio means the best match is much better than the second-best, indicating a distinctive correspondence.
-
-We cross-validate by checking how many of the best matches from $y$ are also the best matches for each feature descriptor in $x$.
+A match is accepted only if $r < \tau$ ($\tau \approx 0.4$). A low ratio indicates a distinctive correspondence. I cross-validated by checking symmetry of matches.
 
 <ImageGrid>
-![fm1](/projects/cs180/proj4/fm1.png)
-![fm2](/projects/cs180/proj4/fm2.png)
-![fm3](/projects/cs180/proj4/fm3.png)
+<Figure src="/projects/cs180/proj4/fm1.png" alt="feature matching 1" />
+<Figure src="/projects/cs180/proj4/fm2.png" alt="feature matching 2" />
+<Figure src="/projects/cs180/proj4/fm3.png" alt="feature matching 3" />
 </ImageGrid>
 
----
+<SectionDivider />
 
-<a id="part-9" />
+<a id="ransac" />
 ## Part 9: RANSAC
 
-Some bad correspondences are unavoidable, so we use RANSAC (Random Sample Consensus) to remove outliers. The algorithm:
+RANSAC removes outlier correspondences:
 
-1. Randomly sample 4 correspondences $\{(p_i, p_i')\}$.
+1. Randomly sample 4 correspondences.
 2. Compute the homography $H$ from these 4 point pairs.
-3. Apply $H$ to all source points and compute the reprojection error: $e_i = \| H p_i - p_i' \|$.
-4. Count inliers: points where $e_i < \epsilon$ (I used $\epsilon = 3$ px).
+3. Apply $H$ to all source points and compute reprojection error: $e_i = \| H p_i - p_i' \|$.
+4. Count inliers: points where $e_i < \epsilon$ ($\epsilon = 3$ px).
 5. Repeat for $N$ iterations and keep the largest inlier set.
 6. Recompute $H$ from all inliers using least squares.
 
-We repeat this process many times and keep the largest set of inliers as our correspondences.
-
-Here are some results of RANSAC.
-
 <ImageGrid>
-![ransac1a](/projects/cs180/proj4/ransac1a.png)
-![ransac1b](/projects/cs180/proj4/ransac1b.png)
+<Figure src="/projects/cs180/proj4/ransac1a.png" alt="RANSAC 1a" />
+<Figure src="/projects/cs180/proj4/ransac1b.png" alt="RANSAC 1b" />
 </ImageGrid>
 
----
+<SectionDivider />
 
-<a id="part-10" />
+<a id="more-mosaics" />
 ## Part 10: More Mosaics
 
-Here are all of the outfits I took pictures of, stitched together.
-
-
-<ImageGrid>
-![mosaic1](/projects/cs180/proj4/mosaic1.png)
-![mosaic2](/projects/cs180/proj4/mosaic2.png)
-![mosaic3](/projects/cs180/proj4/mosaic3.png)
-![mosaic4](/projects/cs180/proj4/mosaic4.png)
-![mosaic6](/projects/cs180/proj4/mosaic6.png)
-![blend final again](/projects/cs180/proj4/blend_final.png)
-</ImageGrid>
-
-
-Here is a comparison of the mosaics from manual and automatic correspondences:
-
+All stitched mosaics:
 
 <ImageGrid>
-![automatic mosaic1 labeled](/projects/cs180/proj4/automatic_mosaic1_labeled.png)
-![manual mosaic1 labeled](/projects/cs180/proj4/manual_mosaic1_labeled.png)
+<Figure src="/projects/cs180/proj4/mosaic1.png" alt="mosaic 1" />
+<Figure src="/projects/cs180/proj4/mosaic2.png" alt="mosaic 2" />
+<Figure src="/projects/cs180/proj4/mosaic3.png" alt="mosaic 3" />
+<Figure src="/projects/cs180/proj4/mosaic4.png" alt="mosaic 4" />
+<Figure src="/projects/cs180/proj4/mosaic6.png" alt="mosaic 6" />
+<Figure src="/projects/cs180/proj4/blend_final.png" alt="blend final" />
 </ImageGrid>
 
-
+Comparison of automatic vs. manual correspondences:
 
 <ImageGrid>
-![automatic mosaic2 labeled](/projects/cs180/proj4/automatic_mosaic2_labeled.png)
-![manual mosaic2 labeled](/projects/cs180/proj4/manual_mosaic2_labeled.png)
+<Figure src="/projects/cs180/proj4/automatic_mosaic1_labeled.png" alt="automatic mosaic 1" />
+<Figure src="/projects/cs180/proj4/manual_mosaic1_labeled.png" alt="manual mosaic 1" />
 </ImageGrid>
-
 
 <ImageGrid>
-![automatic mosaic3 labeled](/projects/cs180/proj4/automatic_mosaic3_labeled.png)
-![manual mosaic3 labeled](/projects/cs180/proj4/manual_mosaic3_labeled.png)
+<Figure src="/projects/cs180/proj4/automatic_mosaic2_labeled.png" alt="automatic mosaic 2" />
+<Figure src="/projects/cs180/proj4/manual_mosaic2_labeled.png" alt="manual mosaic 2" />
 </ImageGrid>
+
+<ImageGrid>
+<Figure src="/projects/cs180/proj4/automatic_mosaic3_labeled.png" alt="automatic mosaic 3" />
+<Figure src="/projects/cs180/proj4/manual_mosaic3_labeled.png" alt="manual mosaic 3" />
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="reflections" />
+## Reflections
+
+The math underlying perspective warps is simple given how drastically the image changes after warping. The hardest part was the blending step: calculating the bounding box of the stitched image, the offset to avoid negative indices, and creating the blending mask.
 
 ---
 
-<a id="part-11" />
-## What have I learned?
+### Extra: Panorama Viewer
 
-I though it was interesting how the math underlying perspective warps is so simple. Considering how drastically the image changes after warping, I thought the whole procedure would be much more complicated.
-
-Ironically, the hardest part of this project was the blending step, which I had expected to be easy since I had done it for project 2. I did not expect to be so challenged by calculating the bounding box of the stitched image, the offset to avoid negative indices, and creating the blending mask.
-
-The most important things I learned are:
-
-1. to not underestimate the simplicity of things that seem complex
-2. to not underestimate the complexity of things that seem simple
-
-Also, now that I look at the submission requirements, I realize that I should have manually labeled correspondences between images. Another key takeaway is that I should always fully understand the task I have been given before I begin.
-
----
-
-### Extra: Ozan does not reinvent the wheel
-
-The `cv2.stitcher` class is a wrapper for OpenCV's stitching functions. I thought it would be fun to use this existing code, along with an HTML scipt I found online, to create a [360° panorama viewer](/projects/cs180/proj4/room_viewer.html).
+I used `cv2.Stitcher` and an HTML viewer to create a [360° panorama viewer](/projects/cs180/proj4/room_viewer.html).
 
 <Figure src="/projects/cs180/proj4/room_panorama.jpg" alt="room panorama" caption="Stitched 360° panorama used by the viewer." />
-
-

@@ -1,0 +1,270 @@
+CS 184: Computer Graphics and Imaging, Homework 1, Spring 2026
+
+<SectionDivider />
+
+<a id="overview" />
+## Overview
+
+In this project I built a software triangle rasterizer that progresses from bare-metal pixel filling to fully anti-aliased, texture-mapped rendering with mipmap level selection. The unifying theme across every task is *sampling*: where we sample, how many samples we take, and what resolution of data we sample from collectively determine the quality-cost tradeoff of the final image. Supersampling reduces geometric aliasing by evaluating more points per pixel. Bilinear interpolation smooths texture magnification artifacts by blending neighboring texels. Mipmaps handle minification aliasing by pre-filtering the texture at multiple resolutions. Implementing each of these from scratch gave me an appreciation for how simple ideas (bounding-box iteration, weighted averages, logarithmic level selection) compose into a capable rendering pipeline.
+
+<SectionDivider />
+
+<a id="task-1" />
+## Task 1: Drawing Single-Color Triangles
+
+My triangle rasterization algorithm works in three steps:
+
+1. **Bounding box.** Compute the axis-aligned bounding box of the three vertices: `x_min`, `x_max`, `y_min`, `y_max`. Clamp to the framebuffer so we never access out-of-bounds memory.
+
+2. **Edge function evaluation.** For each pixel center in the bounding box, evaluate three edge functions. For edge $i$ connecting vertex $i$ to vertex $i{+}1$:
+
+$$
+e_i(\mathbf{p}) = (x_{i+1} - x_i)(p_y - y_i) - (y_{i+1} - y_i)(p_x - x_i)
+$$
+
+3. **Inside test.** A point is inside the triangle if all three edge functions share the same sign. Testing `(e0 >= 0 && e1 >= 0 && e2 >= 0) || (e0 <= 0 && e1 <= 0 && e2 <= 0)` handles both clockwise and counterclockwise winding without needing to check or flip orientation.
+
+This algorithm is *exactly* the bounding-box approach: it iterates over every sample within the smallest axis-aligned rectangle enclosing the triangle, and never visits any sample outside it. It is therefore no worse than checking each sample within the bounding box. It *is* that algorithm.
+
+<Figure src="/projects/cs184-hw1/task1_test4.png" alt="test4.svg with pixel inspector on thin triangle corner" caption="basic/test4.svg, pixel inspector centered on the thin triangle corner, showing aliasing at 1 sample per pixel." />
+
+---
+
+### Extra Credit: Rasterization Optimizations
+
+On the `main` branch, I implemented five optimizations that can be toggled independently at runtime, along with a benchmarking framework to measure their impact. Each optimization targets a different bottleneck:
+
+| Optimization | Idea |
+| --- | --- |
+| Incremental edge evaluation | Advance $e_i$ by adding precomputed coefficients $A_i$ (horizontal step) and $B_i$ (vertical step), avoiding per-pixel recomputation. |
+| Precomputed winding | Determine the triangle's orientation once and flip coefficients if needed, so the inner loop only tests $e \ge 0$ (one branch). |
+| Scanline early exit | Because triangles are convex, once we enter and then exit the triangle on a scanline, no further pixels on that row can be inside. Break early. |
+| Coarse accept / reject | Precompute min/max subsample offsets. If the worst-case subsample is outside, skip the entire pixel (reject). If the best-case is inside, fill all subsamples without individual tests (accept). |
+| ARM NEON SIMD | Process 4 subsamples in parallel using 128-bit NEON vector instructions for the edge test and conditional store. |
+
+<SectionDivider />
+
+<a id="task-2" />
+## Task 2: Antialiasing by Supersampling
+
+### Algorithm and Data Structures
+
+The supersample buffer, `sample_buffer`, stores `width × height × sample_rate` color entries. For a pixel at $(x, y)$, its $N$ subsamples are contiguous at indices `N · (y · width + x) + s` for $s \in [0, N)$.
+
+Within each pixel, the $N$ subsamples are arranged on a uniform $\sqrt{N} \times \sqrt{N}$ grid. The $s$-th subsample sits at offset:
+
+$$
+\left(\frac{s \bmod \sqrt{N} + 0.5}{\sqrt{N}},\;\; \frac{\lfloor s / \sqrt{N} \rfloor + 0.5}{\sqrt{N}}\right)
+$$
+
+Each subsample is tested independently against the triangle's edge functions and receives its own color. At resolve time, `resolve_to_framebuffer()` averages all $N$ subsamples per pixel to produce the output.
+
+---
+
+### Pipeline Modifications
+
+- `set_sample_rate()` and `set_framebuffer_target()` resize the sample buffer to `width × height × sample_rate`.
+- `fill_pixel()` (used by point/line rasterization) writes the same color to all $N$ subsamples of a pixel, so points and lines remain sharp regardless of sample rate.
+- `clear_buffers()` fills the entire supersample buffer with white.
+
+---
+
+### Why Supersampling Is Useful
+
+A single sample per pixel creates a binary decision: either the pixel center is inside the triangle (fully colored) or it isn't (fully white). Supersampling approximates the true area coverage by testing $N$ points within the pixel. With $N$ subsamples, we can represent $N{+}1$ distinct coverage levels, producing smoother transitions at edges and thin features.
+
+---
+
+### Results
+
+<ImageGrid>
+<ImageTile src="/projects/cs184-hw1/task2_sr1.png" alt="1 sample per pixel">
+
+1 sample/pixel
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task2_sr4.png" alt="4 samples per pixel">
+
+4 samples/pixel
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task2_sr16.png" alt="16 samples per pixel">
+
+16 samples/pixel
+
+</ImageTile>
+</ImageGrid>
+
+At 1×, the narrow triangle tip staircase-steps. Individual pixels are either fully magenta or fully white. At 4×, the edges soften: pixels along the boundary receive partial coverage (1/4, 2/4, or 3/4), producing intermediate pink shades. At 16×, the gradient is smoother still, with 17 possible coverage levels per pixel.
+
+---
+
+### Extra Credit: Alternative Sample Patterns
+
+On the `main` branch, I implemented three alternative subsample patterns beyond the standard uniform grid:
+
+- **RGSS** (Rotated Grid Super-Sampling): four samples arranged on a rotated grid that captures near-horizontal and near-vertical edges more effectively.
+- **Halton sequence**: a low-discrepancy quasi-random sequence (bases 2, 3) that distributes samples more uniformly than a grid at any count.
+- **Correlated Multi-Jittered** (CMJ): Kensler's stratified pattern from Pixar's 2013 paper, providing both stratification and low discrepancy.
+
+<SectionDivider />
+
+<a id="task-3" />
+## Task 3: Transforms
+
+I modified the cubeman to wave. The right arm is raised with a bent forearm, and the legs are mid-stride. Each body part has a distinct color (teal head, coral torso, blue arms, purple legs) to make the pose easier to read. The key transforms are:
+
+- `rotate(-70)` on the right arm to swing it upward
+- `rotate(40)` on the right forearm for the wave gesture
+- `rotate(-20)` on the left leg to step forward, with a compensating `rotate(20)` on the lower leg to keep the foot roughly level
+
+<Figure src="/projects/cs184-hw1/task3_robot.png" alt="Cubeman waving" caption="Cubeman waving, rendered from my_robot.svg." />
+
+<SectionDivider />
+
+<a id="task-4" />
+## Task 4: Barycentric Coordinates
+
+Barycentric coordinates express a point $\mathbf{p}$ inside a triangle as a weighted sum of the three vertices:
+
+$$
+\mathbf{p} = \alpha \, \mathbf{V}_0 + \beta \, \mathbf{V}_1 + \gamma \, \mathbf{V}_2, \quad \alpha + \beta + \gamma = 1
+$$
+
+Geometrically, $\alpha$ equals the ratio of the area of the sub-triangle $(\mathbf{p}, \mathbf{V}_1, \mathbf{V}_2)$ to the full triangle area. It measures how close $\mathbf{p}$ is to $\mathbf{V}_0$. At $\mathbf{V}_0$ itself, $\alpha{=}1, \beta{=}\gamma{=}0$; at the centroid, $\alpha{=}\beta{=}\gamma{=}\tfrac{1}{3}$. The point is inside the triangle exactly when all three coordinates are non-negative.
+
+Any per-vertex attribute (color, texture coordinates, normals) can be smoothly interpolated across the triangle by the same weighted sum. The image below illustrates this with color: vertex 0 is pure red ($\alpha{=}1$), vertex 1 is pure green ($\beta{=}1$), and vertex 2 is pure blue ($\gamma{=}1$). Interior points blend all three proportionally.
+
+<ImageGrid>
+<ImageTile src="/projects/cs184-hw1/task4_bary_rgb.png" alt="Barycentric color interpolation on a single triangle">
+
+Barycentric color interpolation on a single triangle.
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task4_test7.png" alt="Color wheel via barycentric interpolation">
+
+`basic/test7.svg`, color wheel via barycentric interpolation.
+
+</ImageTile>
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="task-5" />
+## Task 5: Pixel Sampling for Texture Mapping
+
+Pixel sampling determines how we look up a color from the texture given continuous $(u, v)$ coordinates. After mapping a screen-space sample point to texture space via barycentric interpolation, the resulting $(u, v)$ generally falls between texel centers, and we need a strategy to pick a color.
+
+- **Nearest** (`P_NEAREST`): snap to the closest texel by flooring the continuous coordinates to integer texel indices. Fast, with blocky, pixelated artifacts when the texture is magnified.
+- **Bilinear** (`P_LINEAR`): locate the four surrounding texel centers, compute fractional offsets $s$ and $t$, and blend:
+
+$$
+C = (1{-}s)(1{-}t)\,C_{00} + s(1{-}t)\,C_{10} + (1{-}s)\,t\,C_{01} + s\,t\,C_{11}
+$$
+
+Produces smoother results, at the cost of 4 texel fetches and 3 lerps per sample.
+
+<ImageGrid>
+<ImageTile src="/projects/cs184-hw1/task5_nearest_1x.png" alt="Nearest, 1 sample per pixel">
+
+Nearest, 1 sample/pixel
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task5_bilinear_1x.png" alt="Bilinear, 1 sample per pixel">
+
+Bilinear, 1 sample/pixel
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task5_nearest_16x.png" alt="Nearest, 16 samples per pixel">
+
+Nearest, 16 samples/pixel
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task5_bilinear_16x.png" alt="Bilinear, 16 samples per pixel">
+
+Bilinear, 16 samples/pixel
+
+</ImageTile>
+</ImageGrid>
+
+The difference between nearest and bilinear is most visible at 1× supersampling in regions where the texture is magnified. Nearest shows hard texel boundaries; bilinear produces smooth gradients. The gap shrinks at 16× because supersampling itself acts as a smoothing filter over the pixel footprint. Bilinear matters most when the screen pixel footprint is comparable to (or smaller than) the texel spacing, i.e., magnification or near-1:1 mapping.
+
+<SectionDivider />
+
+<a id="task-6" />
+## Task 6: Level Sampling with Mipmaps
+
+### Implementation
+
+Level sampling addresses the *minification* problem: when a single screen pixel covers many texels, sampling one texel from level 0 aliases. Mipmaps pre-filter the texture into a pyramid of halved resolutions. The key is selecting the right level.
+
+To compute the continuous mip level, I measure how fast the texture coordinates change per screen pixel. At each sample point $(px, py)$, I compute barycentric coordinates at the neighboring points $(px{+}1, py)$ and $(px, py{+}1)$ to get the UV derivatives $\partial(u,v)/\partial x$ and $\partial(u,v)/\partial y$. The level is:
+
+$$
+D = \log_2 \max\!\left(\left\lVert \frac{\partial(u,v)}{\partial x} \cdot (w, h) \right\rVert,\;\; \left\lVert \frac{\partial(u,v)}{\partial y} \cdot (w, h) \right\rVert\right)
+$$
+
+where $(w, h)$ are the full-resolution texture dimensions. Then:
+
+- **`L_ZERO`**: Always sample from level 0. No minification handling, so it aliases when zoomed out. Fastest option.
+- **`L_NEAREST`**: Round $D$ to the nearest integer and sample from that mip level. Reduces aliasing; can produce visible seams at level transitions.
+- **`L_LINEAR`**: Trilinear filtering. Sample from both $\lfloor D \rfloor$ and $\lceil D \rceil$, then linearly interpolate. Produces smooth transitions between levels at the cost of two texture lookups.
+
+---
+
+### Tradeoffs
+
+| Technique | Speed | Memory | Anti-aliasing power |
+| --- | --- | --- | --- |
+| Supersampling ($N\times$) | Slow ($\times N$ work) | Large ($\times N$ buffer) | Effective for all edge types |
+| Bilinear pixel sampling | Moderate (~4 texel fetches) | None extra | Smooths magnification only |
+| Mip-level sampling | Fast (constant overhead) | +33% (mip pyramid) | Smooths minification |
+
+Supersampling is the brute-force option: uniformly effective, with cost linear in $N$. Bilinear sampling is essentially free in memory and handles magnification gracefully. It has no effect on minification. Mip-level sampling targets minification specifically, adding only a 1/3 memory overhead for the pyramid and negligible computation to select the level.
+
+---
+
+### Results with Custom Texture
+
+<ImageGrid>
+<ImageTile src="/projects/cs184-hw1/task6_l0_pn.png" alt="L_ZERO + P_NEAREST">
+
+`L_ZERO` + `P_NEAREST`
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task6_l0_pl.png" alt="L_ZERO + P_LINEAR">
+
+`L_ZERO` + `P_LINEAR`
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task6_ln_pn.png" alt="L_NEAREST + P_NEAREST">
+
+`L_NEAREST` + `P_NEAREST`
+
+</ImageTile>
+<ImageTile src="/projects/cs184-hw1/task6_ln_pl.png" alt="L_NEAREST + P_LINEAR">
+
+`L_NEAREST` + `P_LINEAR`
+
+</ImageTile>
+</ImageGrid>
+
+---
+
+### Extra Credit: Anisotropic Filtering
+
+On the `main` branch, I implemented anisotropic filtering. Standard isotropic mipmaps select a single level based on the larger derivative, which over-blurs along the shorter axis when the screen-space footprint is elongated (e.g., a floor stretching toward the horizon).
+
+Anisotropic filtering addresses this by walking multiple bilinear probes along the major (longer) axis of the footprint, using the mip level determined by the minor (shorter) axis. The anisotropy ratio (clamped to a maximum of 8) controls how many probes are taken.
+
+<SectionDivider />
+
+<a id="gallery" />
+## Extra Credit: 3D Gallery Mode
+
+I built a 3D gallery mode (toggled with `G`) that places each loaded SVG as a texture-mapped canvas in a circular gallery room. The implementation includes:
+
+- FPS camera with WASD movement and mouse look
+- Both an OpenGL and a software rasterizer path (toggle with `V`), allowing side-by-side comparison of the texture sampling pipeline
+- Near-plane triangle clipping for correct rendering as the camera approaches canvases
+- Painter's algorithm (back-to-front sorting) for the software path

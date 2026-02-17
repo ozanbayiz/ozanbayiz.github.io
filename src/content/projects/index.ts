@@ -9,6 +9,14 @@ type MdxModule = {
 
 export const projectsMdxLoaders: Record<string, () => Promise<MdxModule>> = {
   // Canonical keys: "{collection}/{slug}"
+  // CS184
+  'cs184/hw1': () => import('./cs184/hw1.mdx'),
+  // CS185
+  'cs185/hw1': () => import('./cs185/hw1.mdx'),
+  'cs185/hw2': () => import('./cs185/hw2.mdx'),
+  // CS280
+  'cs280/hw1': () => import('./cs280/hw1.mdx'),
+  'cs280/hw2': () => import('./cs280/hw2.mdx'),
   // Misc academic
   'misc-academic/idarve': () => import('./misc-academic/idarve.mdx'),
   // Personal
@@ -24,6 +32,11 @@ export const projectsMdxLoaders: Record<string, () => Promise<MdxModule>> = {
   'cs180/proj6': () => import('./cs180/proj6.mdx'),
 
   // Legacy aliases (slug-only or old cs180-proj* keys)
+  'cs184-hw1': () => import('./cs184/hw1.mdx'),
+  'cs185-hw1': () => import('./cs185/hw1.mdx'),
+  'cs185-hw2': () => import('./cs185/hw2.mdx'),
+  'cs280-hw1': () => import('./cs280/hw1.mdx'),
+  'cs280-hw2': () => import('./cs280/hw2.mdx'),
   idarve: () => import('./misc-academic/idarve.mdx'),
   'dit-rf': () => import('./personal/dit-rf.mdx'),
   'personal-website': () => import('./personal/personal-website.mdx'),

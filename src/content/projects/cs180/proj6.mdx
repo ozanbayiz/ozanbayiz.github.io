@@ -1,24 +1,27 @@
+CS 180: Intro to Computer Vision and Computational Photography, Project 6, Fall 2024
 
-Neural Radiance Fields (NeRF) represent a method for synthesizing novel views of complex 3D scenes by optimizing an underlying continuous volumetric scene function. This project implements a NeRF from scratch, starting with fitting a 2D neural field to an image and progressing to a full 3D neural radiance field trained on multi-view data.
+<SectionDivider />
 
-### What are NeRFs?
+Neural Radiance Fields (NeRF) synthesize novel views of 3D scenes by optimizing a continuous volumetric scene function. This project implements a NeRF from scratch, starting with fitting a 2D neural field to an image and progressing to a full 3D NeRF trained on multi-view data.
 
-A NeRF represents a scene as a continuous volumetric function, parameterized by a fully-connected neural network (MLP). The network takes a 5D coordinate input (spatial location $(x, y, z)$ and viewing direction $(\theta, \phi)$) and outputs the volume density ($\sigma$) and view-dependent emitted radiance (color, $c$) at that spatial location.
+A NeRF represents a scene as a continuous volumetric function parameterized by an MLP. The network takes a 5D input (spatial location $(x, y, z)$ and viewing direction $(\theta, \phi)$) and outputs the volume density $\sigma$ and view-dependent emitted color $c$ at that location.
 
 To render a view:
-1.  **Ray Casting**: Rays are marched from the camera center through each pixel of the image plane into the scene.
-2.  **Sampling**: Points are sampled along each ray.
-3.  **Querying**: The MLP predicts density and color for each sampled point.
-4.  **Volume Rendering**: These values are composited using differentiable volume rendering techniques to compute the final color of the pixel.
+1. **Ray Casting**: Rays are marched from the camera center through each pixel into the scene.
+2. **Sampling**: Points are sampled along each ray.
+3. **Querying**: The MLP predicts density and color for each sampled point.
+4. **Volume Rendering**: These values are composited using differentiable volume rendering to compute the final pixel color.
 
-By minimizing the error between the rendered pixels and the ground truth pixels from the input images, the network learns a high-fidelity 3D representation of the scene.
+The network learns a 3D representation by minimizing the error between rendered pixels and ground truth pixels from input images.
 
----
+<SectionDivider />
 
-<a id="part-1" />
+<a id="2d-neural-field" />
 ## Part 1: Fit a Neural Field to a 2D Image
 
-Before tackling 3D scenes, I first implemented a neural field to represent a 2D image. In this context, the network learns a mapping from 2D pixel coordinates $(x, y)$ to RGB colors $(r, g, b)$.
+I first implemented a neural field to represent a 2D image, where the network learns a mapping from pixel coordinates $(x, y)$ to RGB colors $(r, g, b)$.
+
+---
 
 ### Positional Encoding
 
@@ -28,18 +31,17 @@ $$
 \gamma(p) = \left[\sin(2^0 \pi p),\, \cos(2^0 \pi p),\, \ldots,\, \sin(2^{L-1} \pi p),\, \cos(2^{L-1} \pi p)\right]
 $$
 
-This enables the network to learn high-frequency functions that it would otherwise struggle to represent.
+This enables the network to learn high-frequency functions.
+
+---
 
 ### Implementation
 
-For the initial implementation, I adopted the architecture recommended in the project description:
-- 4 hidden layers
-- 256 hidden dimensions
-- $L = 10$ frequency bands for positional encoding
+I adopted the recommended architecture: 4 hidden layers, 256 hidden dimensions, and $L = 10$ frequency bands for positional encoding.
+
+---
 
 ### Results
-
-Using these parameters, the neural field reconstructed the target image.
 
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256.png" alt="NeF fox 10 256" caption="Neural field reconstruction (Fox, 10 bands, 256 dims)." />
 <Figure src="/projects/cs180/proj6/NeF_fox_10_256_psnr.png" alt="NeF fox 10 256 psnr" caption="PSNR over training (Fox, 10 bands, 256 dims)." />
@@ -49,6 +51,8 @@ I also trained the neural field on a custom image of my cat.
 <Figure src="/projects/cs180/proj6/NeF_cat.png" alt="NeF cat" caption="Neural field reconstruction (Cat)." />
 <Figure src="/projects/cs180/proj6/NeF_cat_psnr.png" alt="NeF cat psnr" caption="PSNR over training (Cat)." />
 
+---
+
 ### Hyperparameter Tuning
 
 I experimented with varying the number of frequency bands and the hidden dimension size.
@@ -56,69 +60,75 @@ I experimented with varying the number of frequency bands and the hidden dimensi
 Using too few or too many frequency bands degraded reconstruction quality. Using 15 frequency bands produced high-frequency grid-like artifacts.
 
 <ImageGrid>
-![NeF fox 4 256](/projects/cs180/proj6/NeF_fox_4_256.png)
-![NeF fox 15 256](/projects/cs180/proj6/NeF_fox_15_256.png)
+<Figure src="/projects/cs180/proj6/NeF_fox_4_256.png" alt="NeF fox 4 bands 256 dims" />
+<Figure src="/projects/cs180/proj6/NeF_fox_15_256.png" alt="NeF fox 15 bands 256 dims" />
 </ImageGrid>
 
 <ImageGrid>
-![NeF fox 4 256 psnr](/projects/cs180/proj6/NeF_fox_4_256_psnr.png)
-![NeF fox 15 256 psnr](/projects/cs180/proj6/NeF_fox_15_256_psnr.png)
+<Figure src="/projects/cs180/proj6/NeF_fox_4_256_psnr.png" alt="NeF fox 4 bands 256 dims PSNR" />
+<Figure src="/projects/cs180/proj6/NeF_fox_15_256_psnr.png" alt="NeF fox 15 bands 256 dims PSNR" />
 </ImageGrid>
 
 Changing the hidden dimension size had minimal effect on the qualitative results for this 2D task.
 
 <ImageGrid>
-![NeF fox 10 128](/projects/cs180/proj6/NeF_fox_10_128.png)
-![NeF fox 10 384](/projects/cs180/proj6/NeF_fox_10_384.png)
+<Figure src="/projects/cs180/proj6/NeF_fox_10_128.png" alt="NeF fox 10 bands 128 dims" />
+<Figure src="/projects/cs180/proj6/NeF_fox_10_384.png" alt="NeF fox 10 bands 384 dims" />
 </ImageGrid>
 
 <ImageGrid>
-![NeF fox 10 128 psnr](/projects/cs180/proj6/NeF_fox_10_128_psnr.png)
-![NeF fox 10 384 psnr](/projects/cs180/proj6/NeF_fox_10_384_psnr.png)
+<Figure src="/projects/cs180/proj6/NeF_fox_10_128_psnr.png" alt="NeF fox 10 bands 128 dims PSNR" />
+<Figure src="/projects/cs180/proj6/NeF_fox_10_384_psnr.png" alt="NeF fox 10 bands 384 dims PSNR" />
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="nerf" />
+## Part 2: Fit a Neural Radiance Field from Multi-view Images
+
+---
+
+<a id="rays" />
+### 2.1 Create Rays from Cameras
+
+To train the NeRF, I generated rays corresponding to pixels in the training images using `transform`, `pixel_to_camera`, and `pixel_to_ray` functions with standard coordinate transformations.
+
+---
+
+<a id="sampling-rays" />
+### 2.2 Sampling Rays
+
+The `sample_rays` function computes how many rays to sample from each image, selects random pixel coordinates, and generates the corresponding rays ($r_o$, $r_d$) along with their ground truth pixel colors.
+
+---
+
+<a id="dataloading" />
+### 2.3 Dataloading
+
+Visualizing the generated rays confirms correct camera geometry and ray generation.
+
+<ImageGrid>
+<Figure src="/projects/cs180/proj6/all_rays.png" alt="all rays visualization" />
+<Figure src="/projects/cs180/proj6/1_img_rays.png" alt="single image rays" />
+<Figure src="/projects/cs180/proj6/top_left_rays.png" alt="top left rays" />
 </ImageGrid>
 
 ---
 
-<a id="part-2" />
-## Part 2: Fit a Neural Radiance Field from Multi-view Images
-
-<a id="part-2-1" />
-### 2.1 Create Rays from Cameras
-
-To train the NeRF, we need to generate rays corresponding to pixels in the training images. I implemented `transform`, `pixel_to_camera`, and `pixel_to_ray` functions using standard coordinate transformations. I used `einops` to simplify tensor rearrangements and ensure operations were broadcast correctly.
-
-<a id="part-2-2" />
-### 2.2 Sampling Rays
-
-The `sample_rays` function handles the data sampling strategy. It computes how many rays to sample from each image, selects random pixel coordinates, and generates the corresponding rays ($r_o, r_d$) along with their ground truth pixel colors.
-
-When the `RaysDataset` is initialized, it precomputes pixel coordinates and corresponding rays for the first image to support the visualization code and debugging.
-
-<a id="part-2-3" />
-### 2.3 Putting the Dataloading All Together
-
-Visualizing the generated rays confirms that the camera geometry and ray generation are correct.
-
-<ImageGrid>
-![all rays](/projects/cs180/proj6/all_rays.png)
-![1 img rays](/projects/cs180/proj6/1_img_rays.png)
-![top left rays](/projects/cs180/proj6/top_left_rays.png)
-</ImageGrid>
-
-<a id="part-2-4" />
+<a id="nerf-arch" />
 ### 2.4 Implementing the NeRF
 
-I initially implemented the NeRF architecture following the project guidelines. I later refactored using `nn.ModuleList` for easier hyperparameter tuning and modularity.
-
-My final architecture parameters were:
+My final architecture:
 - 10-layer MLP + 1 density layer + 3-layer color MLP
 - 384 hidden dimensions
 - 10-band positional encoding
 
-<a id="part-2-5" />
+---
+
+<a id="volume-rendering" />
 ### 2.5 Volume Rendering
 
-The core of the NeRF is the volume rendering equation. For a ray $\mathbf{r}(t) = \mathbf{o} + t\mathbf{d}$ with $N$ sample points at distances $t_1, \ldots, t_N$, the rendered color is:
+For a ray $\mathbf{r}(t) = \mathbf{o} + t\mathbf{d}$ with $N$ sample points at distances $t_1, \ldots, t_N$, the rendered color is:
 
 $$
 \hat{C}(\mathbf{r}) = \sum_{i=1}^{N} T_i \, \alpha_i \, c_i
@@ -134,15 +144,11 @@ $$
 T_i = \prod_{j=1}^{i-1}(1 - \alpha_j)
 $$
 
-$\sigma_i$ and $c_i$ are the density and color predicted by the MLP at sample point $i$, $\delta_i$ is the distance between adjacent samples, $\alpha_i$ is the opacity of sample $i$, and $T_i$ is the transmittance (probability that the ray travels from $t_1$ to $t_i$ without hitting anything).
+$\sigma_i$ and $c_i$ are the density and color predicted by the MLP at sample point $i$, $\delta_i$ is the distance between adjacent samples, $\alpha_i$ is the opacity of sample $i$, and $T_i$ is the transmittance (the probability that the ray travels from $t_1$ to $t_i$ without hitting anything).
 
-In code:
-1.  Compute opacity: $\alpha_i = 1 - \exp(-\sigma_i \delta_i)$ for all sample points $i$.
-2.  Compute transmittance: $T_i$ using `torch.cumprod` over $(1 - \alpha_j)$.
-3.  Weight each color contribution: $w_i = T_i \alpha_i$.
-4.  Compute the final pixel color: $\hat{C} = \sum_i w_i c_i$.
+---
 
-<a id="part-2-6" />
+<a id="nerf-results" />
 ### 2.6 Results
 
 Training configuration:
@@ -153,17 +159,19 @@ Training configuration:
 
 <Figure src="/projects/cs180/proj6/NeRF_training.png" alt="NeRF training" caption="NeRF training curve and sample renders." />
 
-The model reached ~30 PSNR on the validation set.
+The model reached approximately 30 PSNR on the validation set.
 
 <ImageGrid>
 <Figure src="/projects/cs180/proj6/formation.mp4" alt="formation" />
 <Figure src="/projects/cs180/proj6/spherical_render.mp4" alt="spherical render" />
 </ImageGrid>
 
-<a id="bw" />
-# Bells and Whistles: New Background Color
+<SectionDivider />
 
-To render the scene against a different background, I modified the volume rendering equation. I composited the final color with a background color $c_{\text{bg}}$ weighted by the remaining transmittance:
+<a id="bells-and-whistles" />
+## Bells and Whistles: New Background Color
+
+To render the scene against a different background, I modified the volume rendering equation, compositing the final color with a background color $c_{\text{bg}}$ weighted by the remaining transmittance:
 
 $$ \hat{C}(r) = \sum_i T_i \alpha_i c_i + T_i( 1- \alpha_i) c_{\text{bg}} $$
 

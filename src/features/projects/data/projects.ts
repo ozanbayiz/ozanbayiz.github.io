@@ -1,5 +1,5 @@
 export type Project = {
-    collection: 'cs180' | 'cs185' | 'cs280' | 'personal' | 'misc-academic'
+    collection: 'cs180' | 'cs184' | 'cs185' | 'cs280' | 'personal' | 'misc-academic'
     slug?: string
     title: string
     shortTitle?: string
@@ -52,6 +52,18 @@ const baseProjects: Project[] = [
         featured: true
     },
     {
+        collection: 'cs184',
+        slug: 'cs184-hw1',
+        title: 'Rasterizer',
+        shortTitle: 'Rasterizer',
+        description:
+            'Software triangle rasterizer with supersampling, barycentric interpolation, texture mapping with bilinear filtering, and trilinear mipmap level sampling.',
+        imageUrl: '/projects/cs184-hw1/task4_test7.png',
+        heroImageSrc: '/projects/cs184-hw1/task4_test7.png',
+        gitUrl: 'https://github.com/ozanbayiz/hw1-rasterizer-i-see-things-1',
+        date: '2026-02-14'
+    },
+    {
         collection: 'cs185',
         slug: 'cs185-hw1',
         title: 'Imitation Learning',
@@ -64,6 +76,18 @@ const baseProjects: Project[] = [
         date: '2026-02-11'
     },
     {
+        collection: 'cs185',
+        slug: 'cs185-hw2',
+        title: 'Policy Gradients',
+        shortTitle: 'Policy Gradients',
+        description:
+            'REINFORCE with reward-to-go, advantage normalization, neural network baselines, and GAE across CartPole, HalfCheetah, LunarLander, and InvertedPendulum.',
+        imageUrl: '/projects/cs185hw2/lunarlander_gae.png',
+        heroImageSrc: '/projects/cs185hw2/lunarlander_gae.png',
+        gitUrl: 'https://github.com/ozanbayiz/cs185hw2',
+        date: '2026-02-12'
+    },
+    {
         collection: 'cs280',
         slug: 'cs280-hw1',
         title: 'Poor Man\'s AR & Homographies',
@@ -73,6 +97,18 @@ const baseProjects: Project[] = [
         imageUrl: '/projects/cs280-hw1/provided_homography.jpg',
         heroImageSrc: '/projects/cs280-hw1/provided_homography.jpg',
         gitUrl: 'https://github.com/ozanbayiz/cs280-hw1',
+        date: '2026-02-12'
+    },
+    {
+        collection: 'cs280',
+        slug: 'cs280-hw2',
+        title: 'Facial Keypoint Detection',
+        shortTitle: 'Facial Keypoints',
+        description:
+            'Direct CNN regression, ResNet-18 and DINOv3 transfer learning, and U-Net heatmap prediction with soft-argmax for 68-point facial keypoint detection.',
+        imageUrl: '/projects/cs280-hw2/part3_predictions.png',
+        heroImageSrc: '/projects/cs280-hw2/part3_predictions.png',
+        gitUrl: 'https://github.com/ozanbayiz/cs280hw2',
         date: '2026-02-12'
     }
 ]

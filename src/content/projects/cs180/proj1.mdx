@@ -1,71 +1,51 @@
-## Introduction
+CS 180: Intro to Computer Vision and Computational Photography, Project 1, Fall 2024
 
-The first thing I did was search for metrics for image alignment that are invariant to difference in brightness levels between channels. 
-CS 170 gave me some insights into the wide applications of working in the frequency domain. 
-This got me thinking about a sentence on the website mentioning how 
-"""
-you might have to use a cleverer metric, or different features than the raw pixels.
-"""
+<SectionDivider />
 
-Ok..
-
----
-
+<a id="phase-correlation" />
 ## Phase Correlation
 
-I found [phase correlation](https://sthoduka.github.io/imreg_fmt/docs/phase-correlation/), which recovers the translation between two images from their frequency-domain representations. Given images $a$ and $b$, the cross-power spectrum is:
+I used [phase correlation](https://sthoduka.github.io/imreg_fmt/docs/phase-correlation/) to recover the translation between two images from their frequency-domain representations. Given images $a$ and $b$, the cross-power spectrum is:
 
 $$
 R = \frac{F(a) \cdot \overline{F(b)}}{|F(a) \cdot \overline{F(b)}|}
 $$
 
-where $F$ denotes the 2D DFT and $\overline{\cdot}$ is the complex conjugate. Taking the inverse DFT of $R$ yields a matrix whose maximum index $(i, j)$ corresponds to the optimal shift. I implemented it and tried it out:
+where $F$ denotes the 2D DFT and $\overline{\cdot}$ is the complex conjugate. Taking the inverse DFT of $R$ yields a matrix whose maximum index $(i, j)$ corresponds to the optimal shift.
 
-<Figure src="/projects/cs180/proj1/lady_channels_raw.png" alt="Lady Raw Channels" caption="Raw RGB channels for the ‘Lady’ image before alignment." />
+<Figure src="/projects/cs180/proj1/lady_channels_raw.png" alt="Lady Raw Channels" caption="Raw RGB channels for the 'Lady' image before alignment." />
 
-<Figure src="/projects/cs180/proj1/lady_channels_shifted.png" alt="Lady Shifted Channels" caption="‘Lady’ channels after alignment via phase correlation." />
+<Figure src="/projects/cs180/proj1/lady_channels_shifted.png" alt="Lady Shifted Channels" caption="'Lady' channels after alignment via phase correlation." />
 
-sweet. done? I still had to implement the image pyramid.
+<SectionDivider />
 
----
-
+<a id="image-pyramid" />
 ## Image Pyramid
 
 <Figure src="/projects/cs180/proj1/onion_church_pyramid.png" alt="Onion Church Pyramid" caption="Image pyramid illustration for Onion Church across scales." />
 
-An image pyramid enables coarse-to-fine alignment. The algorithm:
+An image pyramid enables coarse-to-fine alignment:
 
 1. Build a pyramid by downsampling the image by factors of $2^0, 2^1, \ldots, 2^L$.
 2. At the coarsest level $L$, exhaustively search over small displacements and pick the shift that maximizes the alignment metric.
 3. At each finer level $l$, double the shift from level $l+1$ and refine by searching a small neighborhood ($\pm 1$ px in each direction).
 
-Each iteration displaces the query image 1 px up, down, left, and right, then picks the shift that yields the highest metric.
-
-Getting the metric involved:
-
-- applying the shift with `np.roll`
-- cropping the image to the inner 0.8W x 0.8H px, since the border was interfering with the metric function's results
-- applying the metric function
-
-At first I tried MSE & NCC as metric functions. These didn't work, so I tried NGD, which also didn't work well. Eventually I found the [Structural Similarity Index Measure (SSIM)](https://en.wikipedia.org/wiki/Structural_similarity_index_measure) [(and its scikit-image documentation)](https://scikit-image.org/docs/stable/auto_examples/transform/plot_ssim.html). SSIM compares luminance, contrast, and structure between two image patches:
+I tried MSE, NCC, and NGD as alignment metrics. The [Structural Similarity Index Measure (SSIM)](https://en.wikipedia.org/wiki/Structural_similarity_index_measure) gave the best results. SSIM compares luminance, contrast, and structure between two image patches:
 
 $$
 \text{SSIM}(x, y) = \frac{(2\mu_x \mu_y + c_1)(2\sigma_{xy} + c_2)}{(\mu_x^2 + \mu_y^2 + c_1)(\sigma_x^2 + \sigma_y^2 + c_2)}
 $$
 
-where $\mu$ and $\sigma$ denote the patch mean and variance, $\sigma_{xy}$ is the cross-covariance, and $c_1, c_2$ are stabilization constants. This gave me good results.
+where $\mu$ and $\sigma$ denote the patch mean and variance, $\sigma_{xy}$ is the cross-covariance, and $c_1, c_2$ are stabilization constants. I cropped images to the inner $0.8W \times 0.8H$ pixels before computing the metric to avoid border artifacts.
 
 <Figure src="/projects/cs180/proj1/pyramid_code.png" alt="Pyramid Code" caption="Image pyramid implementation (code excerpt)." />
 
-This worked fine (~15sec/TIF), still a lot slower than the phase correlation approach. I'm not super patient, so the result images are those I got using phase correlation.
+The pyramid approach ran in approximately 15 seconds per TIF image. The result images below were produced using phase correlation.
 
+<SectionDivider />
 
-
----
-
+<a id="results" />
 ## Results
-
-here are all the images:
 
 <ImageGrid>
 
@@ -213,4 +193,3 @@ Green shift: (49, 24)
 </ImageTile>
 
 </ImageGrid>
-

@@ -1,20 +1,21 @@
-<a id="part-1" />
+CS 180: Intro to Computer Vision and Computational Photography, Project 3, Fall 2024
+
+<SectionDivider />
+
+<a id="correspondences" />
 ## Part 1: Defining Correspondences
 
-I did not really want to manually label correspondences. 
-After doing some research, I found dlib's `shape_predictor_68_face_landmarks.dat` which is a face landmark detector that labels 68 points on the face.
+I used dlib's `shape_predictor_68_face_landmarks.dat` to automatically detect 68 facial landmarks, providing consistent correspondences between faces. I added 8 additional landmarks (the 4 corners of the image and the midpoints of the 4 edges) to cover the full frame.
 
 <Figure src="/projects/cs180/proj3/face_landmarks.png" alt="face landmarks" caption="68-point facial landmarks detected by dlib." />
 
-I was able to define correspondences pretty easily since landmarks are consistent between faces. The landmarks did not cover the entire face, so I added 8 additional landmarks: the 4 corners of the image and the midpoints of the 4 edges.
-
-I computed the midpoints between corresponding landmarks, and created the triangulation using `scipy.spatial.Delauney` (shoutout scipy as usual), which gave me the following:
+I computed the midpoints between corresponding landmarks and created the Delaunay triangulation using `scipy.spatial.Delaunay`.
 
 <Figure src="/projects/cs180/proj3/efros_stoica_triangulations.png" alt="efros stoica triangulations" caption="Delaunay triangulations from midpoint correspondences." />
 
----
+<SectionDivider />
 
-<a id="part-2" />
+<a id="midface" />
 ## Part 2: Computing the "Mid-way Face"
 
 I represented each triangle composed of points $(x_1, y_1), (x_2, y_2), (x_3, y_3)$ as a 3 x 3 matrix:
@@ -27,96 +28,66 @@ y_1 & y_2 & y_3 \\
 \end{bmatrix}
 $$
 
-the goal was to find a transformation matrix $T$ such that:
-
-$$t_d = T t_s$$
-
-$$ \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\  y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} = T\begin{bmatrix} x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\  1 & 1 & 1 \end{bmatrix} $$
-
-so I let
+The goal is to find a transformation matrix $T$ such that $t_d = T t_s$:
 
 $$ T = \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\ y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} \begin{bmatrix}x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\1 & 1 & 1\end{bmatrix}^{-1}$$
 
-which yielded
+This gives an efficient affine transformation between corresponding triangles. Using the inverse transformation for each triangle, I computed the source pixel corresponding to each destination pixel. I interpolated colors from the source image using `scipy.interpolate.RectBivariateSpline`.
 
-$$t_d = T t_s$$
-
-$$ \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\  y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} = \left( \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\ y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} \begin{bmatrix}x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\ 1 & 1 & 1\end{bmatrix}^{-1} \right) \begin{bmatrix} x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\  1 & 1 & 1 \end{bmatrix} $$
-
-$$ \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\  y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} = \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\ y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} \left( \begin{bmatrix}x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\ 1 & 1 & 1\end{bmatrix}^{-1} \begin{bmatrix} x_{s,1} & x_{s,2} & x_{s,3} \\  y_{s,1} & y_{s,2} & y_{s,3} \\  1 & 1 & 1 \end{bmatrix} \right) $$
-
-$$ \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\  y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} = \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\ y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix}  I $$
-
-$$ \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\  y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} = \begin{bmatrix} x_{d,1} & x_{d,2} & x_{d,3} \\ y_{d,1} & y_{d,2} & y_{d,3} \\ 1 & 1 & 1 \end{bmatrix} $$
-
-$$ t_d = t_d $$
-
-as desired.
-
-This gave me an efficient way to get the affine transformation between corresponding triangles. By getting the inverse transformation for each triangle, I was able to compute the pixel in the source image correspoinding to each pixel in the destination image. To get the color for each pixel, I interpolated from the source image by using `scipy.interpolate.RectBivariateSpline`.
-
-Here was the result I got from warping both images to the midpoint landmarks and performing a simple linear interpolation:
+The result of warping both images to the midpoint landmarks and performing a linear cross-dissolve:
 
 <Figure src="/projects/cs180/proj3/efros_stoica_midface.png" alt="midface" caption="Mid-way face via warping and cross-dissolve." />
 
----
+<SectionDivider />
 
-<a id="part-3" />
+<a id="morph-sequence" />
 ## Part 3: The Morph Sequence
 
 <Figure src="/projects/cs180/proj3/morph_sequence.mp4" alt="morph sequence" caption="Morph sequence animation between two faces." />
 
----
+<SectionDivider />
 
-<a id="part-4" />
-## Part 4: The "Mean face" of a population
+<a id="mean-face" />
+## Part 4: The "Mean Face" of a Population
 
-As my population, I used two sets of manually aligned frontal images from the FEI Face Database.
-
-
-<ImageGrid>
-![fei face raw](/projects/cs180/proj3/fei_face_raw.png)
-![fei face tri](/projects/cs180/proj3/fei_face_tri.png)
-![fei face morphed](/projects/cs180/proj3/fei_face_morphed.png)
-</ImageGrid>
-
-
+I used two sets of manually aligned frontal images from the FEI Face Database as the population.
 
 <ImageGrid>
-![fei face mean](/projects/cs180/proj3/fei_face_mean.png)
-![ozan](/projects/cs180/proj3/ozan.png)
-![fei mean morphed](/projects/cs180/proj3/fei_mean_morphed.png)
-![ozan morphed](/projects/cs180/proj3/ozan_morphed.png)
+<Figure src="/projects/cs180/proj3/fei_face_raw.png" alt="FEI face raw" />
+<Figure src="/projects/cs180/proj3/fei_face_tri.png" alt="FEI face triangulation" />
+<Figure src="/projects/cs180/proj3/fei_face_morphed.png" alt="FEI face morphed" />
 </ImageGrid>
 
+<ImageGrid>
+<Figure src="/projects/cs180/proj3/fei_face_mean.png" alt="FEI face mean" />
+<Figure src="/projects/cs180/proj3/ozan.png" alt="ozan" />
+<Figure src="/projects/cs180/proj3/fei_mean_morphed.png" alt="FEI mean morphed" />
+<Figure src="/projects/cs180/proj3/ozan_morphed.png" alt="ozan morphed" />
+</ImageGrid>
 
----
+<SectionDivider />
 
-<a id="part-5" />
-## Part 5: Caricatures: Extrapolating from the mean
+<a id="caricatures" />
+## Part 5: Caricatures: Extrapolating from the Mean
 
-Using the mean landmarks of the FEI Dataset, I extrapolated a new set of landmarks: 1.8 * (My Landmarks) - 0.8 * (Mean Landmarks).
+Using the mean landmarks of the FEI Dataset, I extrapolated a new set of landmarks: $1.8 \times (\text{my landmarks}) - 0.8 \times (\text{mean landmarks})$.
 
-Here is the result of warping my face to these extrapolated landmarks:
+The result of warping my face to these extrapolated landmarks:
 
 <Figure src="/projects/cs180/proj3/caricature.png" alt="caricature" caption="Caricature generated by extrapolating landmarks." />
 
----
+<SectionDivider />
 
-<a id="part-6" />
+<a id="bells-and-whistles" />
 ## Part 6: Bells and Whistles
 
-I am Turkish. But could I look more Turkish? I wanted to see what it would look like if I morphed myself to the average Turkish man and woman.
+I morphed my face toward the average Turkish man and woman to see the effect.
 
 <Figure src="/projects/cs180/proj3/ozan_average_turk.png" alt="ozan average turk" caption="Self morphed toward average Turkish faces." />
 
-I noticed my jaw tends to get distorted when I morph my face, so I tried it again, this time morphing the average faces to me.
-
+I noticed jaw distortion when morphing my face, so I tried the reverse: morphing the average faces toward me.
 
 <ImageGrid>
-![turks morphed to ozan](/projects/cs180/proj3/turks_morphed_to_ozan.png)
-![ozan cross dissolved with turks](/projects/cs180/proj3/ozan_cross_dissolved_with_turks.png)
+<Figure src="/projects/cs180/proj3/turks_morphed_to_ozan.png" alt="turks morphed to ozan" />
+<Figure src="/projects/cs180/proj3/ozan_cross_dissolved_with_turks.png" alt="ozan cross dissolved with turks" />
 </ImageGrid>
-
-
-

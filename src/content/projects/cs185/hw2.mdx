@@ -1,0 +1,106 @@
+CS 185: Deep Reinforcement Learning, Decision Making, and Control, Assignment 2, Spring 2026
+
+<SectionDivider />
+
+<a id="background" />
+## REINFORCE and Variance Reduction
+
+The policy gradient objective maximizes expected return by differentiating through the trajectory distribution. The REINFORCE estimator computes:
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(a_t \mid s_t) \, \hat{A}_t \right]
+$$
+
+where $\hat{A}_t$ is an advantage estimate. The choice of $\hat{A}_t$ controls the bias-variance tradeoff of the gradient estimate. This assignment explores four techniques for reducing variance:
+
+1. **Reward-to-go**: replace the full trajectory return with $\hat{Q}_t = \sum_{t'=t}^{T} \gamma^{t'-t} r_{t'}$, removing credit for rewards before timestep $t$.
+2. **Advantage normalization**: standardize $\hat{A}_t$ to zero mean and unit variance across the batch.
+3. **Neural network baseline**: train a value function $V_\phi(s)$ and set $\hat{A}_t = \hat{Q}_t - V_\phi(s_t)$.
+4. **Generalized Advantage Estimation (GAE)**: interpolate between one-step TD and Monte Carlo advantage via a parameter $\lambda \in [0, 1]$:
+
+$$
+\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^{T-t} (\gamma \lambda)^l \, \delta_{t+l}, \quad \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)
+$$
+
+---
+
+<a id="cartpole" />
+## Experiment 1: CartPole (Vanilla Policy Gradients)
+
+Eight configurations were evaluated on CartPole-v0, varying three binary factors: reward-to-go, advantage normalization, and batch size ($b = 1000$ vs. $b = 4000$).
+
+### Small Batch ($b = 1000$)
+
+<Figure src="/projects/cs185hw2/cartpole_small_batch.png" alt="CartPole small batch learning curves" caption="Small batch (b=1000): eval average return vs. environment steps for all four estimator configurations." />
+
+### Large Batch ($b = 4000$)
+
+<Figure src="/projects/cs185hw2/cartpole_large_batch.png" alt="CartPole large batch learning curves" caption="Large batch (b=4000): eval average return vs. environment steps for all four estimator configurations." />
+
+### Analysis
+
+**Reward-to-go vs. trajectory-centric.** Reward-to-go performs better across both batch sizes. The trajectory-centric estimator assigns the same total discounted return to every timestep in a trajectory, crediting early actions for rewards that occurred before them. This introduces unnecessary variance. Reward-to-go removes this noise by only summing future rewards from each timestep, producing faster and more stable convergence.
+
+**Advantage normalization.** Runs with advantage normalization converge faster and maintain higher returns with less oscillation. The effect is visible in the vanilla estimator: normalization stabilizes learning. The combination of reward-to-go and normalization yields the fastest, most stable convergence.
+
+**Batch size.** The large-batch runs exhibit lower variance across iterations. Learning curves are smoother, and all configurations eventually converge to the maximum return of 200. In the small-batch setting, the trajectory-centric estimator without normalization never stably reaches 200. Larger batches produce lower-variance gradient estimates, compensating for noisier value estimators.
+
+---
+
+<a id="halfcheetah" />
+## Experiment 2: HalfCheetah (Neural Network Baseline)
+
+Three configurations were evaluated on HalfCheetah-v4: no baseline, baseline with 5 gradient steps per update (`-bgs 5`), and baseline with 1 gradient step (`-bgs 1`).
+
+<ImageGrid>
+<Figure src="/projects/cs185hw2/cheetah_baseline_loss.png" alt="HalfCheetah baseline loss" caption="Baseline (value function) loss: -bgs 5 vs. -bgs 1." />
+<Figure src="/projects/cs185hw2/cheetah_eval_return.png" alt="HalfCheetah eval return" caption="Eval average return: no baseline, -bgs 5, and -bgs 1." />
+</ImageGrid>
+
+### Effect of Reduced Baseline Training
+
+With `-bgs 1`, the baseline loss starts higher (peaking around 370) and decreases more slowly than the `-bgs 5` run. The value function receives fewer gradient updates per batch of data, so it underfits the return targets during early training. By 300K steps the two curves converge to similar loss values.
+
+The reduced baseline run reaches a final eval return around $-50$, better than the no-baseline run ($\approx -400$) but substantially worse than the `-bgs 5` baseline ($\approx 200$ to $325$). A poorly fit value function provides a noisy baseline, which reduces its variance-reduction benefit for the policy gradient.
+
+---
+
+<a id="lunarlander" />
+## Experiment 3: LunarLander (Generalized Advantage Estimation)
+
+Five values of $\lambda$ were evaluated on LunarLander-v2: $\{0, 0.95, 0.98, 0.99, 1\}$.
+
+<Figure src="/projects/cs185hw2/lunarlander_gae.png" alt="LunarLander GAE learning curves" caption="Eval average return vs. environment steps for five values of lambda." />
+
+### Analysis
+
+Intermediate values of $\lambda$ (0.98 and 0.99) achieved the highest returns, peaking at 241 and 216 respectively. The extreme values ($\lambda = 0$ and $\lambda = 1$) performed worse. $\lambda = 0$ was the weakest, remaining negative for much of training and peaking at only 148. $\lambda = 0.95$ and $\lambda = 1$ reached moderate performance (peaks around 155).
+
+**$\lambda = 0$** uses only the one-step TD residual $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ as the advantage estimate. This has low variance but high bias, since it relies entirely on the learned value function, which is inaccurate early in training.
+
+**$\lambda = 1$** recovers the full Monte Carlo advantage estimate $\sum_{t'=t}^{T} \gamma^{t'-t} r_{t'} - V(s_t)$. This is unbiased but has high variance.
+
+The best performance occurs at $\lambda \in [0.98, 0.99]$, which balances bias and variance effectively. $\lambda = 0$ learns slowly because its biased advantage estimates mislead the policy gradient. $\lambda = 1$ learns faster than $\lambda = 0$ but suffers from noisy gradient updates.
+
+---
+
+<a id="pendulum" />
+## Experiment 4: InvertedPendulum (Hyperparameter Tuning)
+
+The goal was to find hyperparameters that reach a return of 1000 within 100 iterations on InvertedPendulum-v4.
+
+<Figure src="/projects/cs185hw2/pendulum_comparison.png" alt="InvertedPendulum default vs tuned" caption="Eval average return: default hyperparameters vs. tuned configuration." />
+
+### Tuned Configuration
+
+The tuned configuration reaches a return of 1000 at approximately 32K environment steps. The default configuration requires over 280K steps. The key changes:
+
+| Hyperparameter | Default | Tuned |
+|---|---|---|
+| Batch size | 5000 | 1000 |
+| Reward-to-go | off | on |
+| Advantage normalization | off | on |
+| Discount factor | 1.0 | 0.99 |
+| Learning rate | 0.005 | 0.02 |
+
+**Batch size** is the single largest contributor to sample efficiency. Smaller batches allow more frequent policy updates per environment step. **Reward-to-go** and **advantage normalization** reduce gradient variance, enabling learning with the smaller batch size. Setting $\gamma = 0.99$ downweights distant future rewards, reducing variance. The higher learning rate accelerates convergence when combined with these variance-reduction techniques.

@@ -1,10 +1,16 @@
-<a id="part-1" />
-## Part 1: "Fun" with Filters
+CS 180: Intro to Computer Vision and Computational Photography, Project 2, Fall 2024
 
-<a id="part-1-1" />
+<SectionDivider />
+
+<a id="filters" />
+## Part 1: Filters
+
+---
+
+<a id="finite-diff" />
 ### 1.1 Finite Difference Operator
 
-To calculate the gradient magnitude, I convolved the base image with derivative filters, stacked the two convolved layers, and took the norm of the resultant vector.
+To compute the gradient magnitude, I convolved the image with derivative filters, stacked the two convolved layers, and took the norm of the resultant vector.
 
 $$
 \text{img}_{D_x}  = \text{img} * D_x
@@ -20,43 +26,47 @@ $$
 \left\lVert \begin{bmatrix} (\text{img}_{D_x})_{ij} \\ (\text{img}_{D_y})_{ij} \end{bmatrix} \right\rVert _2^2 
 $$
 
-<Figure src="/projects/cs180/proj2/figures/camerman_raw_edges.png" alt="cameraman raw and edges" caption="Figure 1. Gradient magnitude and edges of Cameraman (finite differences)." />
+<Figure src="/projects/cs180/proj2/figures/camerman_raw_edges.png" alt="cameraman raw and edges" caption="Gradient magnitude and edges of Cameraman (finite differences)." />
 
-To find the threshold I plotted the histogram of pixel intensity levels and found that most of them were below 0.1. I found 0.14 to be the best threshold.
+I plotted the histogram of pixel intensity levels and found that most were below 0.1. A threshold of 0.14 gave the best edge map.
 
-<Figure src="/projects/cs180/proj2/figures/hist_and_edges.png" alt="hist and edges" caption="Figure 2. Intensity histogram and edge map (threshold 0.14)." />
+<Figure src="/projects/cs180/proj2/figures/hist_and_edges.png" alt="hist and edges" caption="Intensity histogram and edge map (threshold 0.14)." />
 
-<a id="part-1-2" />
+---
+
+<a id="dog" />
 ### 1.2 Derivative of Gaussian
 
-I created a gaussian kernel using `cv2.GetGaussianKernel()`.
+I created a Gaussian kernel using `cv2.GetGaussianKernel()`.
 
-<Figure src="/projects/cs180/proj2/figures/blurred_cameraman.png" alt="blurred cameraman" caption="Figure 3. Cameraman, Gaussian Kernel, and Cameraman after Gaussian blur." />
+<Figure src="/projects/cs180/proj2/figures/blurred_cameraman.png" alt="blurred cameraman" caption="Cameraman, Gaussian kernel, and Cameraman after Gaussian blur." />
 
-After blurring, the gradient magnitude matrix was much less noisy, and the edges were better defined.
+After blurring, the gradient magnitude was much less noisy, and the edges were better defined.
 
 <Figure src="/projects/cs180/proj2/figures/blurred_hist_and_edges.png" alt="blurred hist and edges" caption="Histogram and edges after Gaussian blur." />
 
-Then I created the Derivative of Gaussian (DoG) filters. The key insight is that convolution is associative, so blurring first and then differentiating is equivalent to convolving with the derivative of the Gaussian directly:
+Convolution is associative, so blurring first and then differentiating is equivalent to convolving with the derivative of the Gaussian directly:
 
 $$
 \frac{\partial}{\partial x}(G * \text{img}) = \left(\frac{\partial G}{\partial x}\right) * \text{img}
 $$
 
-This means we can precompute $D_x G$ and $D_y G$ and apply them in a single convolution pass.
+This means $D_x G$ and $D_y G$ can be precomputed and applied in a single convolution pass.
 
 <Figure src="/projects/cs180/proj2/figures/DoG_filters.png" alt="DoG filters" caption="Derivative-of-Gaussian filters (Dx, Dy)." />
 
-I got almost the same result. The DoG-convolved images had slightly more texture, possibly due to zero-padding differences.
+The DoG-convolved images were nearly identical. The DoG results had slightly more texture, possibly due to zero-padding differences.
 
 <Figure src="/projects/cs180/proj2/figures/DoG_hist_edges.png" alt="DoG hist edges" caption="DoG-based histogram and edge map." />
 
+<SectionDivider />
+
+<a id="frequencies" />
+## Part 2: Frequencies
+
 ---
 
-<a id="part-2" />
-## Part 2: "Fun" with Frequencies
-
-<a id="part-2-1" />
+<a id="unsharp" />
 ### 2.1 Unsharp Masking
 
 Unsharp masking sharpens an image by amplifying its high-frequency content. Given a Gaussian low-pass filter $G$, the sharpened image is:
@@ -69,31 +79,14 @@ where $\alpha$ controls the sharpening strength. In filter form, the unsharp mas
 
 <Figure src="/projects/cs180/proj2/figures/hp_lp_um_filters.png" alt="hp lp um filters" caption="High-pass, low-pass, and unsharp masking filters." />
 
-Here is the Taj Mahal convolved with this unsharp masking filter
-
 <Figure src="/projects/cs180/proj2/figures/taj_sharpened.png" alt="taj sharpened" caption="Taj Mahal sharpened with unsharp masking." />
 
-Here is my cat, de noot, after being sharpened, blurred, and sharpened again.
+<Figure src="/projects/cs180/proj2/figures/noot_sharpening.png" alt="noot sharpening" caption="De Noot: sharpen, blur, sharpen sequence." />
 
-<Figure src="/projects/cs180/proj2/figures/noot_sharpening.png" alt="noot sharpening" caption="De Noot: sharpen → blur → sharpen sequence." />
+---
 
-<a id="part-2-2" />
+<a id="hybrid-images" />
 ### 2.2 Hybrid Images
-
-Prof. Efros once mentioned in lecture that 
-his efforts to grow berries were undermined 
-by a hummingbird which which was able to identify all the ripe berries.
-I present to you:
-
-
-<ImageGrid>
-
-<Figure src="/projects/cs180/proj2/hybrids/efrostrawberry.png" caption="Efrostawberry" />
-<Figure src="/projects/cs180/proj2/hybrids/hummingfros.png" caption="Hummingfros" />
-<Figure src="/projects/cs180/proj2/hybrids/strawbird.png" caption="Strawbird" />
-
-</ImageGrid>
-
 
 A hybrid image combines the low frequencies of one image with the high frequencies of another. Given images $a$ and $b$:
 
@@ -103,35 +96,22 @@ $$
 
 where $G_\sigma$ is a Gaussian blur with cutoff controlled by $\sigma$. From far away, only the low-frequency component (from $a$) is visible; up close, the high-frequency component (from $b$) dominates.
 
-My steps to separate an image into high and low frequencies were to:
+<ImageGrid>
+<Figure src="/projects/cs180/proj2/hybrids/efrostrawberry.png" alt="efrostrawberry" caption="Efrostrawberry" />
+<Figure src="/projects/cs180/proj2/hybrids/hummingfros.png" alt="hummingfros" caption="Hummingfros" />
+<Figure src="/projects/cs180/proj2/hybrids/strawbird.png" alt="strawbird" caption="Strawbird" />
+</ImageGrid>
 
-- convert the image into frequencies with `np.fft.fft2()`
-- apply a Gaussian mask to the frequency spectrum to get the low frequencies
-- subtract the low frequencies from the frequency spectrum to get the high frequencies
-- convert the high and low frequency ranges back into images using `np.fft.ifft2()`
+I separated images into high and low frequencies by computing the 2D DFT, applying a Gaussian mask to isolate the low frequencies, subtracting to obtain the high frequencies, and converting back with the inverse DFT.
 
-<Figure src="/projects/cs180/proj2/figures/efrostrawberry_spectra.png" alt="efrostrawberry spectra" caption="Frequency spectra for the ‘efrostrawberry’ hybrid." />
+<Figure src="/projects/cs180/proj2/figures/efrostrawberry_spectra.png" alt="efrostrawberry spectra" caption="Frequency spectra for the 'efrostrawberry' hybrid." />
 
-of course, it was not always so simple. here's a flop (i forgot to pick $ \alpha \in [0,1] $ for blending)
+<Figure src="/projects/cs180/proj2/hybrids/efrostrawberry_flop.png" alt="efrostrawberry flop" caption="Failed hybrid due to incorrect blend weight." />
 
-<Figure src="/projects/cs180/proj2/hybrids/efrostrawberry_flop.png" alt="efrostrawberry flop" caption="Failed hybrid due to missing blend weight selection." />
+---
 
-<a id="part-2-3" />
+<a id="stacks" />
 ### 2.3 Gaussian and Laplacian Stacks
-
-my intuition: at each level of the stack, we only want a subset of the frequencies. this could be done by converting the image into frequencies, isolating the desired frequencies through some kind of mask, then converting those isolated frequencies back into an image.
-
-At first I created ring masks with $r_{i1} = 2^i, r_{i2}=2^{i-1}$, $ \forall i \in \{0, 1, ..., \log_2(\min(h,w)) \} $. This way I could isolate each octave band of frequencies, and convert these bands to images directly get the Laplacian stack. It did not really work.
-
-<Figure src="/projects/cs180/proj2/figures/ring_mask.png" alt="ring mask" caption="Octave ring masks for band-pass filtering." />
-
-Then I created circle masks with $r_i = 2^i$, $ \forall i \in \{0, 1, ..., \log_2(\min(h,w)) \} $. This way I could isolate each group of frequencies, and convert these bands to images directly get the gaussian stack stack. It did not really work.
-
-<Figure src="/projects/cs180/proj2/figures/circle_mask.png" alt="circle mask" caption="Circular masks for Gaussian stack construction." />
-
-I thought it was all getting too complicated. I created a series of Gaussian masks with $\sigma_i = \min(h,w) \times 2^{-i}$. Each gaussian was then scaled so that the maximum value was 1. This seemed to work fine. 
-
-<Figure src="/projects/cs180/proj2/figures/gauss_mask.png" alt="gauss mask" caption="Gaussian masks across scales." />
 
 The Laplacian stack captures band-pass details at each level. Given a Gaussian stack $G_0, G_1, \ldots, G_n$:
 
@@ -145,41 +125,29 @@ $$
 
 Each $L_i$ contains the frequencies present at scale $i$ that are absent at scale $i+1$. The last level $L_n$ is the residual low-frequency content.
 
+I constructed the Gaussian stack using a series of Gaussian masks with $\sigma_i = \min(h,w) \times 2^{-i}$, each scaled so that the maximum value was 1.
+
+<Figure src="/projects/cs180/proj2/figures/gauss_mask.png" alt="gauss mask" caption="Gaussian masks across scales." />
+
 <Figure src="/projects/cs180/proj2/figures/apple_orange_gl_stacks.png" alt="apple orange gl stacks" caption="Gaussian and Laplacian stacks for the apple/orange example." />
 
-<a id="part-2-4" />
+---
+
+<a id="blending" />
 ### 2.4 Multiresolution Blending
 
-After abstracting away the process to get the Gaussian and Laplacian pyramids, all I had to do was:
+Using the Gaussian and Laplacian stacks:
 
-- Get the Laplacian stack for both images, $ L_{im_1}, L_{im_2}$
-- Create a mask for the blending
-- Get the Gaussian stack for the mask, $G_m$
-- Iteratively compute: 
+1. Compute the Laplacian stack for both images, $L_{im_1}, L_{im_2}$.
+2. Create a mask and compute its Gaussian stack, $G_m$.
+3. Blend:
 $$
 \text{img}_{\text{blended}} = \sum_{i=0}^{n} (L_{im_1})_i \times (G_m)_i + (L_{im_2})_i \times (1-(G_m)_i)
 $$
 
-chillllllll
-
-#### Le Oraple ... . .. . .. .
-
-<Figure src="/projects/cs180/proj2/blends/oraple.png" alt="oraple" caption="Multiresolution blend result: the ‘Oraple’." />
-
-here are my other images:
-
+<Figure src="/projects/cs180/proj2/blends/oraple.png" alt="oraple" caption="Multiresolution blend: the 'Oraple'." />
 
 <ImageGrid>
-
-#### Noot with Hat
-
-![noot with hat](/projects/cs180/proj2/blends/noot_with_hat.png)
-
-#### haha
-
-![ozan lecture](/projects/cs180/proj2/blends/ozan_lecture.png)
-
+<Figure src="/projects/cs180/proj2/blends/noot_with_hat.png" alt="noot with hat" caption="Noot with Hat" />
+<Figure src="/projects/cs180/proj2/blends/ozan_lecture.png" alt="ozan lecture" caption="Ozan in lecture" />
 </ImageGrid>
-
-
-

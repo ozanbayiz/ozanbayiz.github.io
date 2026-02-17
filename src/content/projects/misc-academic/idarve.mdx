@@ -1,3 +1,8 @@
+UC Berkeley, Spring 2025
+
+<SectionDivider />
+
+<a id="abstract" />
 ## Abstract
 
 Machine learning systems can exhibit misaligned behavior when inputs include sensitive attributes such as race, age, or gender. 
@@ -7,8 +12,9 @@ We use Microsoft's Florence-2-base model and perform the following analyses: fir
 We then train sparse autoencoders (SAEs) to decompose these activations into interpretable latent features. 
 Finally, we identify sparse dictionary features (SDFs) correlated with particular demographic attributes, providing insights into how these attributes are represented.
 
----
+<SectionDivider />
 
+<a id="motivation" />
 ## Motivation
 
 Vision Language Models (VLMs) like 
@@ -27,8 +33,9 @@ Understanding how visually observable demographic attributes are represented
 within the activation space of a VLM will provide useful insights into aligning ML behaviors
 to constructive human preferences.
 
----
+<SectionDivider />
 
+<a id="fairface" />
 ## FairFace Dataset
 
 The 
@@ -46,8 +53,9 @@ We chose FairFace due to this explicit balancing,
 enabling us to overcome entanglement of attributes
 and control for specific attributes using stratified sampling.
 
----
+<SectionDivider />
 
+<a id="methodology" />
 ## Methodology
 
 ### Linear Probing
@@ -61,7 +69,7 @@ $$
 
 Due to compute constraints,
 we could not train linear probes directly on flattened image features.
-Instead, we computed the mean across the patch dimension, yielding a single vector for each image:
+We computed the mean across the patch dimension, yielding a single vector for each image:
 
 $$
 \text{mean}(Z_{\text{img}}) = \overline{z_{\text{img}}} \in \mathbb{R}^{D_{\text{patch}}}
@@ -69,25 +77,29 @@ $$
 
 We then train simple linear probes to predict the race, age, and gender labels of the face in the encoded image.
 
-<Figure src="/projects/idarve/LP_training.png" alt="Linear probing pipeline" caption="Figure 1: Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction." />
+<Figure src="/projects/idarve/LP_training.png" alt="Linear probing pipeline" caption="Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction." />
 
 After training, we evaluated the performance of linear probes on a validation dataset. 
 
-<Figure src="/projects/idarve/LP_performance.png" alt="Linear probe validation results" caption="Figure 2: Linear probe performance on validation set." />
+<Figure src="/projects/idarve/LP_performance.png" alt="Linear probe validation results" caption="Linear probe performance on validation set." />
 
 Even after averaging across patches and losing spatial information,
 the trained probes predicted demographic attribute labels with accuracy considerably higher than random chance.
 This indicated that the patch-level features in Florence-2's VE encode demographic information,
 motivating the next stage of analysis.
 
+---
+
 ### Decomposing Activations with Sparse Autoencoders (SAEs)
 
 We trained a SAE on patch-level activations.
 
-<Figure src="/projects/idarve/SAE_training.png" alt="SAE training pipeline" caption="Figure 3: Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature." />
+<Figure src="/projects/idarve/SAE_training.png" alt="SAE training pipeline" caption="Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature." />
 
 The SAE learns a dictionary of sparse, interpretable features (Sparse Dictionary Features, SDFs)
 that can be analyzed to identify correlations between demographic labels and particular patterns in the activation space.
+
+---
 
 ### Identifying Relevant SDFs
 
@@ -150,8 +162,9 @@ High entropy means the feature is broadly active across many groups.
 We retain the top $k_3$ SDFs per label with the lowest label entropy, 
 yielding the final set of candidate SDFs most specific to each label.
 
----
+<SectionDivider />
 
+<a id="findings" />
 ## Findings: VEs "See" Cultural Markers
 
 Due to time constraints, we were only able to perform the SDF identification process for 
@@ -161,19 +174,20 @@ The analysis revealed a mixture of signals.
 Some features align strongly with demographic labels, 
 while others are entangled with unrelated concepts.
 
-<Figure src="/projects/idarve/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="Figure 4. We found a feature associated with images of people wearing sunglasses."/>
+<Figure src="/projects/idarve/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="A feature associated with images of people wearing sunglasses."/>
 
 We also found features aligned to cultural markers such as headscarves and beards.
 
 <ImageGrid>
-<Figure src="/projects/idarve/stereotype_feature1.png" alt="Headscarves activate a race-associated feature" caption="Figure 5a: A feature strongly activates on headscarves, acting as a demographic proxy." />
-<Figure src="/projects/idarve/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="Figure 5b: Another feature activates on beards, also acting as a demographic proxy." />
+<Figure src="/projects/idarve/stereotype_feature1.png" alt="Headscarves activate a race-associated feature" caption="A feature strongly activates on headscarves, acting as a demographic proxy." />
+<Figure src="/projects/idarve/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="A feature activates on beards, also acting as a demographic proxy." />
 </ImageGrid>
 
 Training datasets for contemporary VLMs will contain correlations between certain visual features and demographic attributes.
 
----
+<SectionDivider />
 
+<a id="limitations" />
 ## Limitations & Future Directions
 
 - Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific.

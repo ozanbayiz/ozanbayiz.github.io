@@ -1,22 +1,26 @@
-<a id="part-0" />
+CS 180: Intro to Computer Vision and Computational Photography, Project 5A, Fall 2024
+
+<SectionDivider />
+
+<a id="setup" />
 ## Part 0: Setup
 
-The seed I chose is 80808. Here are the images I generated for this part with 20 inference steps:
+The seed I chose is 80808. Here are the images I generated with 20 inference steps:
 
 <Figure src="/projects/cs180/proj5a/original_generated_imgs.png" alt="original generated imgs" caption="Samples with 20 inference steps (seed 80808)." />
 
 The image quality is consistent across different text prompts.
 
-Here is the result of picking different numbers of inference steps:
-
 <Figure src="/projects/cs180/proj5a/comparing_different_num_inference_steps.png" alt="comparing steps" caption="Comparison across different numbers of inference steps." />
+
+<SectionDivider />
+
+<a id="sampling" />
+## Part 1: Sampling Loops
 
 ---
 
-<a id="part-1" />
-## Part 1: Sampling Loops
-
-<a id="part-1-1" />
+<a id="forward" />
 ### 1.1 Implementing the Forward Process
 
 The forward process adds Gaussian noise to a clean image $x_0$ according to a variance schedule $\bar{\alpha}_t$:
@@ -29,14 +33,18 @@ As $t$ increases, $\bar{\alpha}_t \to 0$ and the image becomes pure noise.
 
 <Figure src="/projects/cs180/proj5a/forward_noising_camp.png" alt="forward noising camp" caption="Forward noising at increasing time steps." />
 
-<a id="part-1-2" />
+---
+
+<a id="classical" />
 ### 1.2 Classical Denoising
 
-I tried to denoise the noised image with gaussian filtering. This worked about as well as expected.
+Gaussian filtering produces predictably poor denoising results.
 
 <Figure src="/projects/cs180/proj5a/filtered_noise_levels.png" alt="filtered noise levels" caption="Gaussian denoising across noise levels." />
 
-<a id="part-1-3" />
+---
+
+<a id="one-step" />
 ### 1.3 One-Step Denoising
 
 Given $x_t$, a pretrained U-Net estimates the noise $\hat{\epsilon}$, and we recover an estimate of the clean image in one step:
@@ -45,11 +53,13 @@ $$
 \hat{x}_0 = \frac{x_t - \sqrt{1 - \bar{\alpha}_t}\, \hat{\epsilon}}{\sqrt{\bar{\alpha}_t}}
 $$
 
-Single-step denoising on heavily noised images changes the content of the image, since the model fills in details from its prior.
+Single-step denoising on heavily noised images changes the content, since the model fills in details from its prior.
 
 <Figure src="/projects/cs180/proj5a/single_step_denoising.png" alt="single step denoising" caption="One-step denoising results." />
 
-<a id="part-1-4" />
+---
+
+<a id="iterative" />
 ### 1.4 Iterative Denoising
 
 Iterative denoising walks backward through the diffusion process one step at a time. At each step, the model estimates $\hat{x}_0$ from $x_t$, then re-noises to $x_{t'}$ for a slightly earlier timestep $t' < t$:
@@ -58,28 +68,28 @@ $$
 x_{t'} = \frac{\sqrt{\bar{\alpha}_{t'}}\, \beta_t}{1 - \bar{\alpha}_t}\, \hat{x}_0 + \frac{\sqrt{\alpha_t}\,(1 - \bar{\alpha}_{t'})}{1 - \bar{\alpha}_t}\, x_t + \sqrt{\beta_t}\, z, \quad z \sim \mathcal{N}(0, I)
 $$
 
-Here's a gif of every frame of the denoising process.
-
 <Figure src="/projects/cs180/proj5a/iterative_denoise.gif" alt="iterative denoise gif" caption="Iterative denoising process (animation)." />
-
-And here's a comparison of the iterative denoising and other denoising methods:
 
 <Figure src="/projects/cs180/proj5a/iter_denoise_comparisons.png" alt="iter denoise comparisons" caption="Iterative vs single-step vs Gaussian denoising comparison." />
 
-<a id="part-1-5" />
+---
+
+<a id="sampling-pure-noise" />
 ### 1.5 Diffusion Model Sampling
 
-By applying the iterative denoising steps that I defined in part 1.4 to pure noise, I was able to generate new images.
+Applying the iterative denoising loop from Part 1.4 to pure noise generates new images.
 
 <ImageGrid>
-![gen 1](/projects/cs180/proj5a/generated_imgs/1.png)
-![gen 2](/projects/cs180/proj5a/generated_imgs/2.png)
-![gen 3](/projects/cs180/proj5a/generated_imgs/3.png)
-![gen 4](/projects/cs180/proj5a/generated_imgs/4.png)
-![gen 5](/projects/cs180/proj5a/generated_imgs/5.png)
+<Figure src="/projects/cs180/proj5a/generated_imgs/1.png" alt="generated sample 1" />
+<Figure src="/projects/cs180/proj5a/generated_imgs/2.png" alt="generated sample 2" />
+<Figure src="/projects/cs180/proj5a/generated_imgs/3.png" alt="generated sample 3" />
+<Figure src="/projects/cs180/proj5a/generated_imgs/4.png" alt="generated sample 4" />
+<Figure src="/projects/cs180/proj5a/generated_imgs/5.png" alt="generated sample 5" />
 </ImageGrid>
 
-<a id="part-1-6" />
+---
+
+<a id="cfg" />
 ### 1.6 Classifier-Free Guidance (CFG)
 
 Classifier-free guidance improves sample quality by amplifying the effect of the text prompt. At each denoising step, the model computes both a conditional noise estimate $\epsilon_c$ (with the prompt) and an unconditional estimate $\epsilon_u$ (with an empty prompt). The guided estimate is:
@@ -91,66 +101,53 @@ $$
 where $\gamma > 1$ is the guidance scale. Higher $\gamma$ produces images that more closely match the prompt at the cost of diversity.
 
 <ImageGrid>
-![cfg 0](/projects/cs180/proj5a/generated_cfg/0.png)
-![cfg 1](/projects/cs180/proj5a/generated_cfg/1.png)
-![cfg 2](/projects/cs180/proj5a/generated_cfg/2.png)
-![cfg 3](/projects/cs180/proj5a/generated_cfg/3.png)
-![cfg 4](/projects/cs180/proj5a/generated_cfg/4.png)
+<Figure src="/projects/cs180/proj5a/generated_cfg/0.png" alt="CFG sample 0" />
+<Figure src="/projects/cs180/proj5a/generated_cfg/1.png" alt="CFG sample 1" />
+<Figure src="/projects/cs180/proj5a/generated_cfg/2.png" alt="CFG sample 2" />
+<Figure src="/projects/cs180/proj5a/generated_cfg/3.png" alt="CFG sample 3" />
+<Figure src="/projects/cs180/proj5a/generated_cfg/4.png" alt="CFG sample 4" />
 </ImageGrid>
 
-<a id="part-1-7" />
+---
+
+<a id="i2i" />
 ### 1.7 Image-to-image Translation
 
-I applied various amounts of noise to the test image to get the following results.
+I applied various amounts of noise to the test image:
 
 <Figure src="/projects/cs180/proj5a/1.7.0/test_img_altogether.png" alt="i2i altogether" caption="Image-to-image results vs noise strength (test image)." />
 
-Here is the result of applying different amounts of noise to cheems.
+Results on other images:
 
 <Figure src="/projects/cs180/proj5a/1.7.0/cheems_altogether.png" alt="cheems altogether" caption="Image-to-image results vs noise strength (cheems)." />
 
-And here are the results for a picture I found on the [wikipedia page about ecdysis](https://en.wikipedia.org/wiki/Ecdysis).
-
 <Figure src="/projects/cs180/proj5a/1.7.0/spider_altogether.png" alt="spider altogether" caption="Image-to-image results vs noise strength (spider)." />
 
-<a id="part-1-7-1" />
 #### 1.7.1 Editing Hand-Drawn and Web Images
 
-The image I chose from the web is nyan cat.
-
 <Figure src="/projects/cs180/proj5a/1.7.1/nyan_cat.png" alt="nyan cat" caption="Web image used for editing (Nyan Cat)." />
-
-Here are the results of editing two images I drew.
 
 <Figure src="/projects/cs180/proj5a/1.7.1/moon_sketch.png" alt="moon sketch" caption="Hand-drawn sketch: moon." />
 
 <Figure src="/projects/cs180/proj5a/1.7.1/drawn_cat.png" alt="drawn cat" caption="Hand-drawn sketch: cat." />
 
-<a id="part-1-7-2" />
 #### 1.7.2 Inpainting
-
-Here is the inpainted image of the Campanile.
 
 <Figure src="/projects/cs180/proj5a/1.7.2/camp_inpainted.png" alt="camp inpainted" caption="Inpainting result: Campanile." />
 
-I wondered how the diffusion model would fill in nyan cat's rainbow trail. I was sort of disappointed.
-
 <Figure src="/projects/cs180/proj5a/1.7.2/nyan_cat_inpainted.png" alt="nyan cat inpainted" caption="Inpainting result: Nyan Cat." />
-
-I also wondered how the diffusion model would fill in Aphex Twin's face; I was similarly disappointed.
 
 <Figure src="/projects/cs180/proj5a/1.7.2/aphex_inpainted.png" alt="aphex inpainted" caption="Inpainting result: Aphex Twin." />
 
-<a id="part-1-7-3" />
 #### 1.7.3 Text-Conditional Image-to-image Translation
-
-I just turned everything into a rocket.
 
 <Figure src="/projects/cs180/proj5a/1.7.3/rocket_camp.png" alt="rocket camp" caption="Text-conditional translation: campfire to rocket." />
 <Figure src="/projects/cs180/proj5a/1.7.3/rocket_nyan_cat.png" alt="rocket nyan" caption="Text-conditional translation: Nyan Cat to rocket." />
 <Figure src="/projects/cs180/proj5a/1.7.3/rocket_cheems.png" alt="rocket cheems" caption="Text-conditional translation: cheems to rocket." />
 
-<a id="part-1-8" />
+---
+
+<a id="anagrams" />
 ### 1.8 Visual Anagrams
 
 Visual anagrams produce images that look like one thing right-side-up and another when flipped. At each denoising step, the noise estimate is computed for both orientations and averaged:
@@ -159,17 +156,14 @@ $$
 \epsilon = \frac{1}{2}\left(\epsilon_\theta(x_t, t, p_1) + \text{flip}\!\left(\epsilon_\theta(\text{flip}(x_t), t, p_2)\right)\right)
 $$
 
-Here is my result for 
-<i>A visual anagram where on one orientation "an oil painting of people around a campfire" is displayed and, when flipped, "an oil painting of an old man" is displayed.</i>
-
 <Figure src="/projects/cs180/proj5a/1.8/old_man_campfire.png" alt="old man campfire" caption="Visual anagram: campfire vs old man." />
 
-Here are my other results:
+<Figure src="/projects/cs180/proj5a/1.8/skull_coast.png" alt="skull coast" caption="Visual anagram: skull vs coast." />
+<Figure src="/projects/cs180/proj5a/1.8/dog_man_hhat.png" alt="dog man hhat" caption="Visual anagram: dog vs man in hat." />
 
-<Figure src="/projects/cs180/proj5a/1.8/skull_coast.png" alt="skull coast" caption="Visual anagram result: skull/coast." />
-<Figure src="/projects/cs180/proj5a/1.8/dog_man_hhat.png" alt="dog man hhat" caption="Visual anagram result." />
+---
 
-<a id="part-1-9" />
+<a id="hybrid" />
 ### 1.9 Hybrid Images
 
 Hybrid images combine the low frequencies of one prompt with the high frequencies of another. At each denoising step:
@@ -178,28 +172,18 @@ $$
 \epsilon_{\text{hybrid}} = f_{\text{low}}(\epsilon_1) + \left(\epsilon_2 - f_{\text{low}}(\epsilon_2)\right)
 $$
 
-where $f_{\text{low}}$ denotes Gaussian filtering (I used $k=33$, $\sigma = 2$). The result looks like prompt $p_1$ from far away and prompt $p_2$ up close.
+where $f_{\text{low}}$ denotes Gaussian filtering ($k=33$, $\sigma = 2$). The result looks like prompt $p_1$ from far away and prompt $p_2$ up close.
 
-I got odd results for this part. To verify my implementation, I'll walk through the steps.
+The procedure at each denoising step:
 
-1. Given two prompts $p_1$ and $p_2$, I compute noise estimates $\epsilon_1 = \epsilon_\theta(x_t, t, p_1)$ and $\epsilon_2 = \epsilon_\theta(x_t, t, p_2)$.
-2. I convolve $\epsilon_1$ and $\epsilon_2$ with a Gaussian kernel to get the low-frequency components $\epsilon_1^{(\text{LF})}$ and $\epsilon_2^{(\text{LF})}$.
-3. I compute the high-frequency component $\epsilon_2^{(\text{HF})} = \epsilon_2 - \epsilon_2^{(\text{LF})}$.
-4. I add $\epsilon_1^{(\text{LF})}$ and $\epsilon_2^{(\text{HF})}$ together to get $\epsilon_{\text{hybrid}}$.
-5. I use $\epsilon_{\text{hybrid}}$ to denoise the image at time $t$.
+1. Given two prompts $p_1$ and $p_2$, compute noise estimates $\epsilon_1 = \epsilon_\theta(x_t, t, p_1)$ and $\epsilon_2 = \epsilon_\theta(x_t, t, p_2)$.
+2. Convolve $\epsilon_1$ and $\epsilon_2$ with a Gaussian kernel to get the low-frequency components $\epsilon_1^{(\text{LF})}$ and $\epsilon_2^{(\text{LF})}$.
+3. Compute the high-frequency component $\epsilon_2^{(\text{HF})} = \epsilon_2 - \epsilon_2^{(\text{LF})}$.
+4. Add $\epsilon_1^{(\text{LF})}$ and $\epsilon_2^{(\text{HF})}$ together to get $\epsilon_{\text{hybrid}}$.
+5. Use $\epsilon_{\text{hybrid}}$ to denoise the image at time $t$.
 
-here is the result I got for the skull and waterfall:
+<Figure src="/projects/cs180/proj5a/1.9/skull_waterfall.png" alt="skull waterfall" caption="Hybrid image: skull and waterfall." />
 
-<Figure src="/projects/cs180/proj5a/1.9/skull_waterfall.png" alt="skull waterfall" caption="Hybrid images: skull/waterfall." />
-
-here are the other results I got:
-
-
-<Figure src="/projects/cs180/proj5a/1.9/rocket_man_hat.png" alt="rocket man hat" caption="Hybrid images: rocket/man hat." />
-<Figure src="/projects/cs180/proj5a/1.9/hipster_barista_dog.png" alt="hipster barista dog" caption="Hybrid images: hipster barista dog." />
-<Figure src="/projects/cs180/proj5a/1.9/old_man_snow.png" alt="old man snow" caption="Hybrid images: old man in snow." />
-
-
----
-
-
+<Figure src="/projects/cs180/proj5a/1.9/rocket_man_hat.png" alt="rocket man hat" caption="Hybrid image: rocket and man in hat." />
+<Figure src="/projects/cs180/proj5a/1.9/hipster_barista_dog.png" alt="hipster barista dog" caption="Hybrid image: hipster barista and dog." />
+<Figure src="/projects/cs180/proj5a/1.9/old_man_snow.png" alt="old man snow" caption="Hybrid image: old man and snow." />

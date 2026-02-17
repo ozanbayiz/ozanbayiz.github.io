@@ -1,0 +1,188 @@
+CS C280: Computer Vision, Homework 2, Spring 2026
+
+<SectionDivider />
+
+<a id="part1" />
+## Part 1: Direct Coordinate Regression
+
+---
+
+<a id="part1-arch" />
+### Architecture
+
+A five-block CNN maps a $1 \times 224 \times 224$ grayscale image to 68 keypoint coordinates. Each block applies a convolution, batch normalization, ELU activation, and $2 \times 2$ max-pooling. The feature map progresses as:
+
+$$
+1\!\times\!224^2 \;\to\; 32\!\times\!112^2 \;\to\; 64\!\times\!56^2 \;\to\; 128\!\times\!28^2 \;\to\; 256\!\times\!14^2 \;\to\; 512\!\times\!7^2
+$$
+
+A three-layer MLP ($1024 \to 512 \to 136$) with dropout ($p = 0.2$) maps the flattened features to 136 outputs passed through a sigmoid, constraining predictions to $[0, 1]$.
+
+---
+
+<a id="part1-training" />
+### Training
+
+| | |
+|---|---|
+| Loss | Smooth $L_1$ (Huber) |
+| Optimizer | Adam, $\text{lr} = 10^{-3}$, weight decay $10^{-4}$ |
+| Scheduler | StepLR (step 15, $\gamma = 0.5$) |
+| Augmentation | Random horizontal flip, color jitter, $\pm 10°$ rotation |
+| Epochs | 35, batch size 32 |
+
+Horizontal flip augmentation requires remapping the 68-point landmark indices (e.g. left eye $\leftrightarrow$ right eye) and reflecting coordinates as $w - 1 - x$ to avoid a systematic 1-pixel bias.
+
+---
+
+<a id="part1-results" />
+### Results
+
+<Figure src="/projects/cs280-hw2/part1_loss_curve.png" alt="Part 1 training and validation loss" caption="Training and validation loss over 35 epochs." />
+
+<Figure src="/projects/cs280-hw2/part1_predictions.png" alt="Part 1 predicted keypoints vs ground truth" caption="Predicted keypoints (cyan) vs. ground truth (red)." />
+
+| Metric | Value |
+|---|---|
+| MSE (px²) | 54.15 |
+| NME | 0.1671 |
+
+The model captures the overall face shape well (jawline, eyes, nose) but struggles with fine details like mouth corners and eyebrow endpoints. Direct regression collapses all spatial information into a single global feature vector, which limits precision.
+
+<SectionDivider />
+
+<a id="part2" />
+## Part 2: Transfer Learning
+
+---
+
+<a id="part2-resnet" />
+### Part 2a: ResNet-18
+
+A pretrained ResNet-18 backbone with a regression head ($512 \to 256 \to 136$) and sigmoid output. The first convolutional layer is modified to accept 1-channel grayscale input by averaging the pretrained RGB weights. ImageNet mean/std normalization is applied to match the pretrained distribution.
+
+Training uses a two-stage protocol:
+
+1. **Stage 1** (5 epochs): freeze all ResNet layers, train only the regression head at $\text{lr} = 10^{-3}$.
+2. **Stage 2** (25 epochs): unfreeze the entire model, fine-tune at $\text{lr} = 10^{-4}$ with cosine annealing.
+
+<Figure src="/projects/cs280-hw2/part2_resnet_loss_curve.png" alt="ResNet-18 loss curve" caption="ResNet-18 loss curve. The backbone unfreezes at epoch 6, causing a sharp drop." />
+
+<Figure src="/projects/cs280-hw2/part2_resnet_predictions.png" alt="ResNet-18 predictions vs ground truth" caption="ResNet-18 predictions vs. ground truth." />
+
+During the first 5 frozen epochs the loss decreases only modestly (MSE $\approx 122$ px²), since the randomly initialized head has limited capacity to exploit the fixed features. Once the backbone unfreezes at epoch 6, the loss drops sharply, reaching an MSE of 9.23 px² (NME = 0.0668) by epoch 30.
+
+---
+
+<a id="part2-dino" />
+### Part 2b (Bonus): DINOv3 ViT-S/16
+
+DINOv3 is Meta's latest self-supervised vision foundation model, trained with Gram anchoring to produce high-quality dense features. The ViT-S/16 variant (21.6M backbone parameters, distilled from a 7B-parameter teacher) produces 196 patch tokens, which are reshaped into a $14 \times 14$ spatial feature map (384 channels). An upsampling decoder progressively reconstructs spatial resolution:
+
+$$
+384\!\times\!14^2 \;\xrightarrow{\text{deconv+conv}}\; 256\!\times\!28^2 \;\xrightarrow{\text{deconv+conv}}\; 128\!\times\!56^2 \;\xrightarrow{\text{interp}}\; 128\!\times\!64^2 \;\xrightarrow{1\times1}\; 68\!\times\!64^2
+$$
+
+Each deconvolution-convolution stage uses batch normalization and ReLU. The final $1 \times 1$ convolution with sigmoid produces 68 heatmaps at $64 \times 64$, from which coordinates are extracted via soft-argmax (the same method used in Part 3). No global pooling is used; spatial information flows uninterrupted from backbone to output.
+
+Training uses a two-stage protocol with differential learning rates and linear warmup:
+
+1. **Stage 1** (10 epochs): freeze the DINOv3 backbone, train only the decoder at $\text{lr} = 5 \times 10^{-4}$ with heatmap MSE loss.
+2. **Stage 2** (30 epochs): unfreeze the entire model with differential LRs: $5 \times 10^{-6}$ for the backbone, $2 \times 10^{-4}$ for the decoder. A 3-epoch linear warmup ramps LRs from zero to their targets, followed by cosine annealing.
+
+The warmup prevents fine-tuning instability observed in earlier coordinate-regression experiments, where the backbone LR jumping from zero caused transient MSE spikes.
+
+<Figure src="/projects/cs280-hw2/part2_dino_loss_curve.png" alt="DINOv3 heatmap loss curve" caption="DINOv3 heatmap loss curve (frozen decoder, then fine-tuned)." />
+
+<Figure src="/projects/cs280-hw2/part2_dino_predictions.png" alt="DINOv3 predictions vs ground truth" caption="DINOv3 predictions vs. ground truth." />
+
+DINOv3 achieves an MSE of **6.28** px² (NME = 0.0570), the best result of any model in this report. The frozen decoder alone reaches MSE 10.42 at epoch 6, nearly matching ResNet-18 without any backbone adaptation. Fine-tuning then drops the MSE to 6.28 at epoch 26, with no instability. Two architectural choices drive the improvement over coordinate regression: (1) the upsampling decoder preserves spatial information from the $14 \times 14$ patch grid to the $64 \times 64$ output, eliminating the pooling bottleneck; and (2) per-keypoint heatmaps let the network make spatially distributed predictions, with soft-argmax providing sub-pixel coordinate extraction.
+
+---
+
+<a id="part2-comparison" />
+### Comparison
+
+| Model | MSE (px²) | NME | Epochs |
+|---|---|---|---|
+| Simple CNN (Part 1) | 54.15 | 0.1671 | 35 |
+| ResNet-18 (Part 2a) | 9.23 | 0.0668 | 5+25 |
+| DINOv3 (Part 2b) | **6.28** | **0.0570** | 10+30 |
+
+Transfer learning yields large improvements over the SimpleCNN baseline. DINOv3 with its heatmap decoder achieves an $8.6\times$ reduction in MSE (54.15 $\to$ 6.28), surpassing ResNet-18's $5.9\times$ (54.15 $\to$ 9.23).
+
+The key difference is architectural: ResNet-18 collapses its features to a single 512-d vector via global average pooling before regression, while DINOv3 preserves full spatial resolution through its upsampling decoder. DINOv3's self-supervised features, combined with heatmap prediction and soft-argmax, outperform ResNet-18's supervised features with coordinate regression. The output formulation (heatmaps vs. direct regression) can matter more than the pretraining strategy (supervised vs. self-supervised).
+
+<SectionDivider />
+
+<a id="part3" />
+## Part 3: Heatmap-Based Detection (U-Net)
+
+---
+
+<a id="part3-heatmaps" />
+### Heatmap Generation
+
+For each keypoint $k$, a $64 \times 64$ Gaussian heatmap is generated:
+
+$$
+H_k(x, y) = \exp\!\left(-\frac{(x - \mu_{k,x})^2 + (y - \mu_{k,y})^2}{2\sigma^2}\right), \quad \sigma = 3.5
+$$
+
+Pixel index $j$ maps to normalized coordinate $(j + 0.5) / \text{size}$, and the inverse mapping $\mu \cdot \text{size} - 0.5$ positions the Gaussian peak. This convention centers each pixel and avoids off-by-one errors between generation and extraction.
+
+---
+
+<a id="part3-arch" />
+### Architecture
+
+The encoder has four downsampling blocks ($64 \to 128 \to 256 \to 512 \to 1024$), each consisting of two $3 \times 3$ convolutions with batch normalization and ReLU, followed by $2 \times 2$ max-pooling. The decoder mirrors this with transposed convolutions and skip connections, followed by a $1 \times 1$ convolution producing 68 output channels. The output is resized to $64 \times 64$ and passed through sigmoid.
+
+Coordinates are extracted via soft-argmax: the heatmap is normalized with a temperature-scaled softmax ($T = 100$), then multiplied by coordinate grids and summed, producing differentiable sub-pixel estimates.
+
+---
+
+<a id="part3-training" />
+### Training
+
+| | |
+|---|---|
+| Loss | MSE between predicted and ground-truth heatmaps |
+| Optimizer | Adam, $\text{lr} = 5 \times 10^{-4}$, weight decay $10^{-4}$ |
+| Scheduler | StepLR (step 25, $\gamma = 0.5$) |
+| Augmentation | Same as Part 1 |
+| Epochs | 50, batch size 16 |
+
+---
+
+<a id="part3-results" />
+### Results
+
+<Figure src="/projects/cs280-hw2/part3_loss_curve.png" alt="U-Net heatmap loss curve" caption="U-Net heatmap loss over 50 epochs." />
+
+<Figure src="/projects/cs280-hw2/part3_heatmaps.png" alt="Predicted vs ground-truth heatmaps" caption="Predicted vs. ground-truth heatmaps for selected keypoints (nose tip, eye corners, mouth corners)." />
+
+<Figure src="/projects/cs280-hw2/part3_predictions.png" alt="U-Net keypoint predictions vs ground truth" caption="U-Net keypoint predictions vs. ground truth." />
+
+| Metric | Value |
+|---|---|
+| MSE (px²) | 9.05 |
+| NME | 0.0660 |
+
+The loss curve shows rapid initial convergence, with the best model selected at epoch 40. Some validation volatility appears in later epochs (MSE spikes to 51 px² at epoch 50), likely due to the sensitivity of soft-argmax to small changes in heatmap shape. Checkpointing the best model mitigates this. The predicted heatmaps closely match the ground truth with sharp, well-localized Gaussian peaks.
+
+<SectionDivider />
+
+<a id="overall" />
+## Overall Comparison
+
+| Model | MSE (px²) | NME | Parameters | Epochs |
+|---|---|---|---|---|
+| Simple CNN (Part 1) | 54.15 | 0.1671 | 27.9M | 35 |
+| ResNet-18 (Part 2a) | 9.23 | 0.0668 | 11.3M | 5+25 |
+| DINOv3 (Part 2b) | **6.28** | **0.0570** | 22.9M | 10+30 |
+| U-Net Heatmap (Part 3) | 9.05 | 0.0660 | 31.0M | 50 |
+
+DINOv3 with its heatmap decoder achieves the best overall result (MSE 6.28 px², NME 0.0570), outperforming both ResNet-18 (9.23 px²) and the U-Net trained from scratch (9.05 px²) by roughly 30%. The combination of pretrained self-supervised features with a spatial heatmap decoder proves more effective than either approach alone. ResNet-18 remains the most parameter-efficient model (11.3M), while DINOv3 (22.9M) achieves its result with fewer parameters than the U-Net (31.0M).
+
+Three key takeaways emerge. First, combining pretrained features with a spatial heatmap decoder yields the best results: DINOv3's self-supervised features, decoded into per-keypoint heatmaps, outperform both supervised transfer learning with coordinate regression and heatmap prediction trained from scratch. Second, the output formulation matters as much as the backbone: heatmap prediction with soft-argmax preserves spatial information and enables sub-pixel localization, while global pooling followed by coordinate regression discards this information. Third, careful attention to fine-tuning dynamics (differential learning rates, warmup schedules, two-stage training) is essential for adapting large pretrained models to small downstream datasets.
