@@ -115,6 +115,13 @@ body {
     }
 }
 
+/* Ensure display math ($$...$$) is centered in prose content */
+.prose .katex-display {
+    display: block;
+    text-align: center;
+    margin: 1em 0;
+}
+
 @layer base {
     * {
         @apply border-border;

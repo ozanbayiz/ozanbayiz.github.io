@@ -13,7 +13,8 @@ date: "2026-02-14"
 
 I built a software triangle rasterizer from scratch. The pipeline starts with single-color pixels, then adds supersampling for antialiasing, barycentric interpolation for per-vertex attributes, and texture mapping with both pixel and level sampling. By the end it supports full bilinear and trilinear mipmap filtering.
 
-The core idea is sampling: where we sample, how many samples per pixel, and at what resolution. Each choice trades quality for cost. Aliasing appears at every stage of the pipeline (jagged edges, blocky textures, Moiré patterns when zoomed out). Each fix is a form of low-pass filtering: we blur or average before we sample, so high frequencies that would alias are reduced.
+The core idea is sampling: where we sample, how many samples per pixel, and at what resolution. Each choice trades quality for cost. Aliasing appears at every stage of the pipeline, and each fix is a form of low-pass filtering.
+What I found most interesting is how simple primitives compose; bounding-box iteration, weighted averages, and logarithmic level selection each solve a narrow problem, but together they form a coherent rendering pipeline. It's pretty neat to see how such an expressive system is built from such simple pieces.
 
 <SectionDivider />
 
@@ -38,9 +39,12 @@ $$
 bool in_i = (e_i > 0) || (e_i == 0 && is_top_left(edge_i));
 ```
 
-**Why the bounding box is enough.** We iterate only over pixel centers inside the axis-aligned bounding box of the triangle. Any algorithm must at least check every such sample to know if it is inside. We do exactly that, and no more.
 
-<Figure src="/projects/cs184/hw1/task1_test4.png" alt="test4.svg with pixel inspector on thin triangle corner" caption="1 sample/pixel: flickering at thin triangle edge (test4.svg)." />
+### Why the bounding box is enough
+We iterate only over pixel centers inside the axis-aligned bounding box of the triangle. Any algorithm must at least check every such sample to know if it is inside. We do exactly that, and no more.
+
+### Results
+<Figure src="/projects/cs184/hw1/task1_test4.png" alt="test4.svg with pixel inspector on thin triangle corner" caption="1 sample/pixel." />
 
 ### Extra Credit: Rasterization Optimizations
 
@@ -269,92 +273,6 @@ When the footprint is nearly square, $N{=}1$ and we get a single trilinear sampl
 
 <Figure src="/projects/cs184/hw1/competition.png" alt="Sandwich" caption="Sandwich" />
 
-I generated this 800×800 image with a single Python script (`src/gen_competition.py`) seeded with `random.seed(8)`. The script emits 24,965 `colortri` elements that the rasterizer draws at 16× supersampling. The origin is at $(404, 404)$.
+I generated this 800×800 image with a Python script (`src/gen_competition.py`) seeded with `random.seed(8)`. The script emits procedural SVG as a stream of `colortri` elements that the rasterizer draws at 16× supersampling.
 
-### Color system
-
-All layers share a cyclic palette $P = [\text{indigo}, \text{fuchsia}, \text{lime}, \text{white}, \text{silver}, \text{fuchsia}, \text{indigo}]$. For a parameter $t \in [0, 1)$, I compute the palette index as $t \cdot (|P| - 1)$ and linearly interpolate between the two bracketing colors. Each vertex color gets additive Gaussian noise $\mathcal{N}(0, \sigma^2)$ per RGBA channel; $\sigma$ varies by layer to give texture without overwhelming the palette.
-
-### Layer order
-
-I draw the layers back-to-front so that structure builds up gradually. Below I describe each layer in that order.
-
-### Background
-
-Two black triangles tile the canvas. On top, 20 faint polygons (5–8 sides, $\alpha \in [0.02, 0.06]$) are placed at uniform random positions and fan-triangulated from their centers. These act as a ghost layer: barely visible, but they add subtle variation to the dark base.
-
-### Spider web
-
-32 radial threads run from $r = 8$ to $r \approx 395$, each as a single elongated triangle with Gaussian endpoint jitter so they don’t look perfectly straight. 20 logarithmic spiral catch-thread rings connect adjacent radials. Each catch segment sags inward by a random amount proportional to $0.01 \cdot r_{\text{base}}$, and each segment has a 12% independent chance of being omitted to simulate breakage. This web gives a radial scaffold that later layers can play against.
-
-### Interference web
-
-32 concentric rings from $r = 20$ to $r \approx 398$. Ring $k$ has $12 + 4k$ segments (each a quad split into 2 triangles). I phase-shift each ring by $0.13k + \mathcal{N}(0, 0.05)$ radians so they don’t all line up. Alpha decays with radius: $\alpha = 0.1 + 0.35(1 - t_r) \cdot U(0.5, 1.5)$ where $t_r = k/32$, so the outer rings fade. The result reads like ripples or interference fringes overlaying the spider web.
-
-### Aurora veils
-
-20 arc-shaped bands at random radii in $[60, 390]$. Each arc spans a random angle in $[0.3, 1.2]$ radians and is subdivided into 8–20 segments of random width in $[8, 30]$ px. Alpha follows a $\sin(\pi t)$ envelope over the arc length so bands fade in and out along their span. These add soft, curtain-like motion.
-
-### Octagram tiling
-
-Five concentric rings of 8-pointed stars at radii $r \in \{90, 160, 240, 320, 385\}$. Ring $i$ places $8 + 8i$ stars. Each star has 16 vertices alternating between outer radius $r_o$ and inner radius $r_i \approx r_o \cdot U(0.38, 0.52)$; I fan-triangulate from the center into 16 gradient triangles. I add positional noise $\mathcal{N}(0, \sigma)$ with $\sigma = 1.5 + 0.5i$ so outer rings feel looser. Kite-shaped girih fills connect adjacent stars at the angular midpoint. This layer brings in geometric structure inspired by Islamic tiling.
-
-### Shattered rings
-
-An outer ring (100 shards, $r \in [310, 400]$) and an inner ring (32 shards, $r \in [60, 130]$). For each ring, I draw $n$ random angles and sort them. Each shard is a triangle connecting two consecutive angles at independently randomized radii, with a third vertex at the angular midpoint at a jittered radius. The effect is of cracked or fractured circles.
-
-### Spiral particle field
-
-12 arms, 808 particles total. In arm $a$, particle $p$ is placed at:
-
-$$r = 12 + 383 \cdot t^{0.65}, \quad \theta = \frac{2\pi a}{12} + 3.2t + \mathcal{N}(0,\; 0.12 + 0.08t)$$
-
-where $t = p / \lfloor 808/12 \rfloor$. The $t^{0.65}$ compresses particles toward the center; the $\theta$ term creates a spiral. Each particle is a random 3–6 sided polygon (weights 5:3:2:1) fan-triangulated from its center, with size $(0.8 + 5.5(1 - t)) \cdot U(0.3, 1.8)$ so inner particles are larger. The result reads like a dense spiral galaxy.
-
-### Diffusion random walks
-
-16 walks: 8 primary (32 steps, step length 12, decay 0.94, wander 0.35) and 8 secondary (20 steps, 8 px, decay 0.92, wander 0.6), offset by $\pi/8$. At each step:
-
-$$\theta_{n+1} = \theta_n + \mathcal{N}(0, w) + 0.1\sin(0.2n)$$
-
-Step length is $\ell \cdot d^n \cdot U(0.7, 1.3)$. Each step is a triangle perpendicular to travel, width tapering as $(1 - 0.7t)$. After step 3, each step has a 15% chance to spawn a recursive child walk with $\lfloor n/3 \rfloor$ steps, 0.6× length, 0.5× thickness, 1.3× wander. These produce organic, branching tendrils.
-
-### Fractal branches
-
-8 branches start at $r = 25$, base length 100, max depth 6. At each node, I draw the number of children from $\{1, 2, 3\}$ with weights 2:5:3. Each child’s direction is rotated by $U(0.25, 0.7) \cdot \pm 1 + \mathcal{N}(0, 0.1)$, length scaled by $U(0.55, 0.72)$, thickness by 0.65 per level. Each segment is a tapered triangle. This adds tree-like growth from near the center.
-
-### Sierpinski mandala
-
-8 vertices on a circle of $r = 280$, offset by $\pi/8$. Each wedge (triangle from center to two adjacent vertices) is recursively subdivided to depth 5 with a jittered Sierpinski construction. At each level, edge midpoints are displaced by $\mathcal{N}(0, \sigma)$ where $\sigma = 0.032 \cdot (\text{max depth} - \text{depth}) \cdot \lVert \overrightarrow{AB} \rVert$. The three outer sub-triangles recurse; the central void stays near-black. Leaf triangles get per-vertex color noise $\sigma = 0.048$. This is the main structural motif: a fractal mandala in the mid-radii.
-
-### Secondary rosettes
-
-8 smaller mandalas on a circle of $r = 195$, each radius $\approx 38$, depth 3, jitter 0.5. These echo the main Sierpinski mandala at a smaller scale.
-
-### Dust field
-
-2003 equilateral micro-triangles. Radial positions follow $r \sim \text{Exp}(3/r_{\max})$, clamped to $1.05 \cdot r_{\max}$, so particles cluster toward the rim. Size is $U(0.3, 2.5) \cdot (1 - 0.6 \cdot r/r_{\max})$, discarded below 0.2. This fills the gaps with fine grain.
-
-### Radial accent lines
-
-32 thin elongated triangles from $r_{\text{in}} \in [8, 40]$ to $r_{\text{out}} \in [350, 400]$, width $[0.3, 2.2]$ px. Colors transition from white-to-palette at the base to silver-black at the tips. These reinforce the radial structure without overwhelming it.
-
-### Spider legs
-
-8 four-segment articulated legs. Base angles spaced by $\pi/4$, offset by $\pi/8$. Segment lengths decrease ($\approx 37, 60, 50, 27$ px) and thickness tapers ($\approx 4.5, 3.2, 2.0, 1.0$ px). Joints are pentagonal. Angular splay at the second joint, plus random wander at deeper joints. These tie the composition to the spider-web motif.
-
-### Pulse rings
-
-8 concentric rings at $r = 30 + 45k$. Intensity decays as $e^{-0.15k}$. Each ring has $40 + 8k$ arc segments (quads → 2 triangles each). Segments are dropped independently with probability $0.08k$, so inner rings are nearly complete and outer rings become sparse. This gives a fading pulse effect.
-
-### Voids
-
-12 solid-black polygons (5–8 sides, $r \in [8, 22]$) placed at random positions in the annulus $r \in [80, 300]$. They overwrite whatever is beneath them, creating negative space that breaks the density.
-
-### Corner fills
-
-At each corner: 5 diffusion walks aimed toward center (25 steps, decay 0.93, wander 0.45); 80 micro-polygons (3–5 sides) scattered with $\sigma = 110$ px; one octagram star 80 px inward along the diagonal. These pull the corners into the radial narrative.
-
-### Center jewel
-
-An 8-pointed fan at $r = 18$, vertices in a fuchsia-lime cycle. A pure white octagonal core at $r = 6$ sits at the center. This is the focal point everything radiates from.
+The script draws ~25k triangles across 17 layers. All layers share a cyclic palette (indigo, fuchsia, lime, white, silver) with per-vertex Gaussian noise for texture. The script builds the composition from many procedural primitives: radial spider-web threads and catch rings, concentric interference rings, arc-shaped aurora bands, octagram stars with girih fills, shattered ring shards, spiral particle fields, diffusion random walks with recursive branching, fractal tree branches, a jittered Sierpinski mandala, dust micro-triangles, and articulated spider legs. Each primitive uses polar coordinates and controlled randomness to create radial structure radiating from the center.
