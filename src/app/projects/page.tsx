@@ -14,7 +14,7 @@ const byDateDesc = (a?: string, b?: string) => {
 
 function Section({ items }: { items: Project[] }) {
     return (
-        <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 xl:grid-cols-3'>
+        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
             {items.map(p => (
                 <ProjectCard
                     key={`${p.collection}:${p.slug ?? p.title}`}
@@ -34,6 +34,7 @@ function Section({ items }: { items: Project[] }) {
 export default function ProjectsListPage() {
     const all = [...projectsData].sort((a, b) => byDateDesc(a.date, b.date))
     const cs180 = all.filter(p => p.collection === 'cs180')
+    const cs184 = all.filter(p => p.collection === 'cs184')
     const cs280 = all.filter(p => p.collection === 'cs280')
     const cs185 = all.filter(p => p.collection === 'cs185')
     const research = all.filter(p => p.collection === 'misc-academic')
@@ -59,16 +60,26 @@ export default function ProjectsListPage() {
                 <h1 className='h1'>Projects</h1>
                 <div className='flex flex-col gap-14'>
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS180 Projects</h2>
+                        <h2 className='h2'>CS185 Projects</h2>
                         <p className='body-text text-foreground'>
-                            Fall 2024 I took{' '}
-                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='italic hover:text-accent' aria-label='CS 180/280A' newTab={false}>
-                                CS180/280A: Intro to Computer Vision and Computational Photography
-                            </ExternalLink>
-                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent' aria-label='Prof. Alexei Efros' newTab={false}>Prof. Alexei Efros</ExternalLink>.
-                            I got to work on some pretty neat projects which you can check out below.
+                            Spring 2026 I&apos;m taking{' '}
+                            <ExternalLink href='https://rail.eecs.berkeley.edu/deeprlcourse/' className='italic hover:text-accent' aria-label='CS 185' newTab={false}>
+                                CS 185/285: Deep Reinforcement Learning, Decision Making, and Control
+                            </ExternalLink>.
                         </p>
-                        <Section items={cs180} />
+                        <Section items={cs185} />
+                    </div>
+                    <Separator />
+                    <div className='space-y-4'>
+                        <h2 className='h2'>CS184 Projects</h2>
+                        <p className='body-text text-foreground'>
+                            Spring 2026 I&apos;m taking{' '}
+                            <ExternalLink href='https://cs184.eecs.berkeley.edu/sp26' className='italic hover:text-accent' aria-label='CS 184' newTab={false}>
+                                CS 184/284A: Computer Graphics and Imaging
+                            </ExternalLink>
+                            , taught by <ExternalLink href='https://ren-ng.com/' className='font-bold hover:text-accent' aria-label='Prof. Ren Ng' newTab={false}>Prof. Ren Ng</ExternalLink>.
+                        </p>
+                        <Section items={cs184} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
@@ -84,14 +95,16 @@ export default function ProjectsListPage() {
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS185 Projects</h2>
+                        <h2 className='h2'>CS180 Projects</h2>
                         <p className='body-text text-foreground'>
-                            Spring 2026 I&apos;m taking{' '}
-                            <ExternalLink href='https://rail.eecs.berkeley.edu/deeprlcourse/' className='italic hover:text-accent' aria-label='CS 185' newTab={false}>
-                                CS 185/285: Deep Reinforcement Learning, Decision Making, and Control
-                            </ExternalLink>.
+                            Fall 2024 I took{' '}
+                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='italic hover:text-accent' aria-label='CS 180/280A' newTab={false}>
+                                CS180/280A: Intro to Computer Vision and Computational Photography
+                            </ExternalLink>
+                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent' aria-label='Prof. Alexei Efros' newTab={false}>Prof. Alexei Efros</ExternalLink>.
+                            I got to work on some pretty neat projects which you can check out below.
                         </p>
-                        <Section items={cs185} />
+                        <Section items={cs180} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>

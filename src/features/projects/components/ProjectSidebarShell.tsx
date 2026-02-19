@@ -107,7 +107,7 @@ export default function ProjectSidebarShell({
                 </header>
 
                 <div ref={contentRef} className='flex flex-1 flex-col gap-6 px-4 py-6 md:px-8 md:py-10 lg:px-12 lg:py-12'>
-                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-prose w-full mx-auto [&_figure]:max-w-none [&_.grid]:max-w-none [&_img]:max-w-none [&_video]:max-w-none'>
+                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-none w-full mx-auto [&_figure]:max-w-none [&_.grid]:max-w-none [&_video]:max-w-none [&_pre]:text-[1em] [&_code]:text-[1em] [&_table]:text-[1em]'>
                         {children}
                     </div>
                 </div>

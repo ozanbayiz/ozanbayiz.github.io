@@ -1,3 +1,13 @@
+---
+title: "Policy Gradients"
+shortTitle: "Policy Gradients"
+description: "REINFORCE with reward-to-go, advantage normalization, neural network baselines, and GAE across CartPole, HalfCheetah, LunarLander, and InvertedPendulum."
+thumbnail: "/projects/cs185/hw2/lunarlander_gae.png"
+heroImage: "/projects/cs185/hw2/lunarlander_gae.png"
+gitUrl: "https://github.com/ozanbayiz/cs185hw2"
+date: "2026-02-12"
+---
+
 CS 185: Deep Reinforcement Learning, Decision Making, and Control, Assignment 2, Spring 2026
 
 <SectionDivider />
@@ -31,11 +41,11 @@ Eight configurations were evaluated on CartPole-v0, varying three binary factors
 
 ### Small Batch ($b = 1000$)
 
-<Figure src="/projects/cs185hw2/cartpole_small_batch.png" alt="CartPole small batch learning curves" caption="Small batch (b=1000): eval average return vs. environment steps for all four estimator configurations." />
+<Figure src="/projects/cs185/hw2/cartpole_small_batch.png" alt="CartPole small batch learning curves" caption="Small batch (b=1000): eval average return vs. environment steps for all four estimator configurations." />
 
 ### Large Batch ($b = 4000$)
 
-<Figure src="/projects/cs185hw2/cartpole_large_batch.png" alt="CartPole large batch learning curves" caption="Large batch (b=4000): eval average return vs. environment steps for all four estimator configurations." />
+<Figure src="/projects/cs185/hw2/cartpole_large_batch.png" alt="CartPole large batch learning curves" caption="Large batch (b=4000): eval average return vs. environment steps for all four estimator configurations." />
 
 ### Analysis
 
@@ -53,8 +63,8 @@ Eight configurations were evaluated on CartPole-v0, varying three binary factors
 Three configurations were evaluated on HalfCheetah-v4: no baseline, baseline with 5 gradient steps per update (`-bgs 5`), and baseline with 1 gradient step (`-bgs 1`).
 
 <ImageGrid>
-<Figure src="/projects/cs185hw2/cheetah_baseline_loss.png" alt="HalfCheetah baseline loss" caption="Baseline (value function) loss: -bgs 5 vs. -bgs 1." />
-<Figure src="/projects/cs185hw2/cheetah_eval_return.png" alt="HalfCheetah eval return" caption="Eval average return: no baseline, -bgs 5, and -bgs 1." />
+<Figure src="/projects/cs185/hw2/cheetah_baseline_loss.png" alt="HalfCheetah baseline loss" caption="Baseline (value function) loss: -bgs 5 vs. -bgs 1." />
+<Figure src="/projects/cs185/hw2/cheetah_eval_return.png" alt="HalfCheetah eval return" caption="Eval average return: no baseline, -bgs 5, and -bgs 1." />
 </ImageGrid>
 
 ### Effect of Reduced Baseline Training
@@ -70,7 +80,7 @@ The reduced baseline run reaches a final eval return around $-50$, better than t
 
 Five values of $\lambda$ were evaluated on LunarLander-v2: $\{0, 0.95, 0.98, 0.99, 1\}$.
 
-<Figure src="/projects/cs185hw2/lunarlander_gae.png" alt="LunarLander GAE learning curves" caption="Eval average return vs. environment steps for five values of lambda." />
+<Figure src="/projects/cs185/hw2/lunarlander_gae.png" alt="LunarLander GAE learning curves" caption="Eval average return vs. environment steps for five values of lambda." />
 
 ### Analysis
 
@@ -89,7 +99,7 @@ The best performance occurs at $\lambda \in [0.98, 0.99]$, which balances bias a
 
 The goal was to find hyperparameters that reach a return of 1000 within 100 iterations on InvertedPendulum-v4.
 
-<Figure src="/projects/cs185hw2/pendulum_comparison.png" alt="InvertedPendulum default vs tuned" caption="Eval average return: default hyperparameters vs. tuned configuration." />
+<Figure src="/projects/cs185/hw2/pendulum_comparison.png" alt="InvertedPendulum default vs tuned" caption="Eval average return: default hyperparameters vs. tuned configuration." />
 
 ### Tuned Configuration
 

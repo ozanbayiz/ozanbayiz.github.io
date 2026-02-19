@@ -10,15 +10,13 @@ import type { ComponentType } from 'react'
 type MdxComponents = Record<string, ComponentType<unknown>>
 
 export function useMDXComponents(components: MdxComponents): MdxComponents {
-  return {
-    ImageGrid: ImageGrid as ComponentType<unknown>,
-    ImageTile: ImageTile as ComponentType<unknown>,
-    img: MdxImg as unknown as ComponentType<unknown>,
-    Figure: Figure as ComponentType<unknown>,
-    SectionDivider: SectionDivider as unknown as ComponentType<unknown>,
-    ExternalLink: ExternalLink as ComponentType<unknown>,
-    ...components
-  }
+    return {
+        ImageGrid: ImageGrid as ComponentType<unknown>,
+        ImageTile: ImageTile as ComponentType<unknown>,
+        img: MdxImg as unknown as ComponentType<unknown>,
+        Figure: Figure as ComponentType<unknown>,
+        SectionDivider: SectionDivider as unknown as ComponentType<unknown>,
+        ExternalLink: ExternalLink as ComponentType<unknown>,
+        ...components
+    }
 }
-
-

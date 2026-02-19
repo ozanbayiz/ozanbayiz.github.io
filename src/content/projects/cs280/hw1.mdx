@@ -1,3 +1,13 @@
+---
+title: "Poor Man's AR & Homographies"
+shortTitle: "AR & Homographies"
+description: "Keypoint tracking, DLT camera calibration with RANSAC and bundle adjustment, 3D cube projection, and affine/homography transforms from scratch."
+thumbnail: "/projects/cs280/hw1/provided_homography.jpg"
+heroImage: "/projects/cs280/hw1/provided_homography.jpg"
+gitUrl: "https://github.com/ozanbayiz/cs280-hw1"
+date: "2026-02-12"
+---
+
 CS C280: Computer Vision, Homework 1, Spring 2026
 
 <SectionDivider />
@@ -23,7 +33,7 @@ I propagated keypoints across all frames using OpenCV's MedianFlow tracker with 
 
 To detect drift, I tracked each keyframe segment both forward and backward. If a point's round-trip error exceeded 2.0 px, I linearly interpolated its positions across the segment. After tracking, I refined all points to sub-pixel accuracy using `cv2.cornerSubPix`.
 
-<Figure src="/projects/cs280-hw1/point_tracking.mp4" alt="Keypoint tracking with bundle adjustment refinement" caption="Tracked keypoints after bundle adjustment refinement." />
+<Figure src="/projects/cs280/hw1/point_tracking.mp4" alt="Keypoint tracking with bundle adjustment refinement" caption="Tracked keypoints after bundle adjustment refinement." />
 
 ---
 
@@ -42,8 +52,8 @@ After per-frame estimation, I jointly refined all projection matrices by minimiz
 I defined a cube at a known world position on the box face, then projected it into each frame using the calibrated projection matrices. I culled edges with negative depth ($w \le 0$).
 
 <ImageGrid>
-<Figure src="/projects/cs280-hw1/cube_projection.mp4" alt="Synthetic cube projection" caption="Cube projected onto the box." />
-<Figure src="/projects/cs280-hw1/ar_result.mp4" alt="Final AR result" caption="Final AR output." />
+<Figure src="/projects/cs280/hw1/cube_projection.mp4" alt="Synthetic cube projection" caption="Cube projected onto the box." />
+<Figure src="/projects/cs280/hw1/ar_result.mp4" alt="Final AR result" caption="Final AR output." />
 </ImageGrid>
 
 <SectionDivider />
@@ -61,8 +71,8 @@ The affine transform $H$ is constrained to rotation and translation: the last ro
 I solved via least squares from $N$ point correspondences.
 
 <ImageGrid>
-<Figure src="/projects/cs280-hw1/provided_affine.jpg" alt="Provided affine result" caption="Provided source to target (affine)." />
-<Figure src="/projects/cs280-hw1/my_affine.jpg" alt="Custom affine result" caption="Custom source on custom target (affine)." />
+<Figure src="/projects/cs280/hw1/provided_affine.jpg" alt="Provided affine result" caption="Provided source to target (affine)." />
+<Figure src="/projects/cs280/hw1/my_affine.jpg" alt="Custom affine result" caption="Custom source on custom target (affine)." />
 </ImageGrid>
 
 ---
@@ -73,8 +83,8 @@ I solved via least squares from $N$ point correspondences.
 The homography has 8 degrees of freedom ($h_{33} = 1$). The free last row allows the transform to model perspective foreshortening, so parallel lines in the source may converge to a vanishing point in the target.
 
 <ImageGrid>
-<Figure src="/projects/cs280-hw1/provided_homography.jpg" alt="Provided homography result" caption="Provided source to target (homography)." />
-<Figure src="/projects/cs280-hw1/my_homography.jpg" alt="Custom homography result" caption="Custom source on custom target (homography)." />
+<Figure src="/projects/cs280/hw1/provided_homography.jpg" alt="Provided homography result" caption="Provided source to target (homography)." />
+<Figure src="/projects/cs280/hw1/my_homography.jpg" alt="Custom homography result" caption="Custom source on custom target (homography)." />
 </ImageGrid>
 
 ---

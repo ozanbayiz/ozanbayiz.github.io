@@ -3,7 +3,7 @@
 import AutoScroll from 'embla-carousel-auto-scroll'
 import useEmblaCarousel from 'embla-carousel-react'
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
-import Image from 'next/image'
+import ExportedImage from 'next-image-export-optimizer'
 import { useState } from 'react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -123,7 +123,7 @@ function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean 
                         'border-border/0 hover:border-accent'
                     )}
                 >
-                    <Image
+                    <ExportedImage
                         src={item.cover}
                         alt={item.title}
                         fill

@@ -8,7 +8,7 @@ import SectionDivider from '@/shared/ui/section-divider'
 
 export default function Home() {
     return (
-        <div className='container mx-auto flex flex-col items-center justify-center px-6 py-8 md:px-8 md:py-12' style={{ ['--inset-x' as unknown as string]: '1rem' }}>
+        <div className='container mx-auto flex max-w-screen-lg flex-col items-center justify-center px-6 py-8 md:px-8 md:py-12' style={{ ['--inset-x' as unknown as string]: '1rem' }}>
             {/* ascii art*/}
             <TopAscii />
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { projectsMdxLoaders } from '@/content/projects'
+import { projectsMdxLoaders } from '@/content/projects/registry.generated'
 import MdxClient from '@/shared/mdx/mdx-client'
 
 export default function ProjectsMdx({ slug }: { slug: string }) {

@@ -1,10 +1,11 @@
 'use client'
 
-import Image from 'next/image'
+import ExportedImage from 'next-image-export-optimizer'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
 
+import { useMounted } from '@/hooks/useMounted'
 import { Section } from '@/shared/ui/section'
+
 const THEME_CONTENT = {
     dark: {
         src: '/ozan_noot.jpeg',
@@ -18,11 +19,7 @@ const THEME_CONTENT = {
 
 const OzanSection = () => {
     const { resolvedTheme } = useTheme()
-    const [mounted, setMounted] = useState(false)
-
-    useEffect(() => {
-        setMounted(true)
-    }, [])
+    const mounted = useMounted()
 
     const isDark = mounted && resolvedTheme === 'dark'
     const { src: imageSrc, caption } = isDark
@@ -31,37 +28,45 @@ const OzanSection = () => {
 
     return (
         <Section>
-            <div className='grid grid-cols-1 gap-8 md:grid-cols-12'>
-                <div className='col-span-1 flex flex-col justify-center text-left md:col-span-7'>
-                    <h1 className='mb-4 text-center h1 sm:text-left'>
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+                <div className="col-span-1 flex flex-col justify-center text-left md:col-span-7">
+                    <h1 className="mb-4 text-center h1 sm:text-left">
                         Ozan Bayiz
                     </h1>
-                    <p className='body-text'>
-                        I&apos;m a fourth-year Regents&apos; and Chancellor&apos;s Scholar at
-                        UC Berkeley studying Computer Science. I&apos;m interested in
-                        exploring ways to augment video models to support AI-enhanced learning.
+                    <p className="body-text">
+                        I&apos;m a fourth-year Regents&apos; and
+                        Chancellor&apos;s Scholar at UC Berkeley studying
+                        Computer Science. I&apos;m interested in exploring
+                        ways to augment video models to support AI-enhanced
+                        learning.
                         <br />
                         <br />
                         I&apos;m extremely grateful for
-                        <a href="https://people.eecs.berkeley.edu/~vongani_maluleke/" className='font-bold hover:text-accent'> Vongani Maluleke</a>,
-                        who has been an amazing mentor to me as I navigate my odd research journey.
+                        <a
+                            href="https://people.eecs.berkeley.edu/~vongani_maluleke/"
+                            className="font-bold hover:text-accent"
+                        >
+                            {' '}
+                            Vongani Maluleke
+                        </a>
+                        , who has been an amazing mentor to me as I navigate
+                        my odd research journey.
                         <br />
                         <br />
                     </p>
                 </div>
-                <div className='col-span-1 flex flex-col items-center justify-center md:col-span-5 md:mt-0'>
-                    <div className='relative mb-4 h-[250px] w-[250px] overflow-hidden rounded-full'>
-                        <Image
+                <div className="col-span-1 flex flex-col items-center justify-center md:col-span-5 md:mt-0">
+                    <div className="relative mb-4 h-[250px] w-[250px] overflow-hidden rounded-full">
+                        <ExportedImage
                             src={imageSrc}
-                            alt='Ozan Bayiz'
+                            alt="Ozan Bayiz"
                             fill
-                            className='object-cover'
+                            className="object-cover"
                             priority
-                            sizes='(max-width: 768px) 250px, 250px'
+                            sizes="(max-width: 768px) 250px, 250px"
                         />
                     </div>
-                    {/* </figure> */}
-                    <p className='body-text text-center text-muted-foreground'>
+                    <p className="body-text text-center text-muted-foreground">
                         {caption}
                     </p>
                 </div>

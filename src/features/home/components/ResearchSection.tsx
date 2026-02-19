@@ -1,6 +1,6 @@
 import { ExternalLinkIcon, FileTextIcon } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
+import ExportedImage from 'next-image-export-optimizer'
 
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
@@ -34,7 +34,7 @@ export default function ResearchSection() {
                                 {/* Thumbnail (Optional) */}
                                 {item.imageUrl && (
                                     <div className="relative h-48 w-full shrink-0 overflow-hidden rounded-md border md:h-32 md:w-48">
-                                        <Image
+                                        <ExportedImage
                                             src={item.imageUrl}
                                             alt={item.title}
                                             fill

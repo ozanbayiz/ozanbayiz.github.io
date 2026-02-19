@@ -1,5 +1,4 @@
 import './globals.css'
-import 'katex/dist/katex.min.css'
 
 import { JetBrains_Mono } from 'next/font/google'
 

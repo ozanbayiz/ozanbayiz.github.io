@@ -8,50 +8,31 @@
 
 import React from 'react'
 
-import { useLightboxOptional } from '../lightbox/LightboxProvider'
+import { cn } from '@/lib/utils'
+
+import { useLightboxItem } from '../lightbox/useLightboxItem'
+import { MEDIA_BASE, MEDIA_HOVER } from '../styles'
 
 type MdxImgProps = React.ImgHTMLAttributes<HTMLImageElement>
 
 export default function MdxImg(props: MdxImgProps) {
-  const { className, ...rest } = props
-  const lightbox = useLightboxOptional()
-  const idRef = React.useRef<string | null>(null)
+    const { className, src, alt, ...rest } = props
 
-  React.useEffect(() => {
-    if (!lightbox) return
-    const args: { src: string; alt?: string; caption?: React.ReactNode } = { src: String(rest.src ?? '') }
-    if (typeof rest.alt === 'string' && rest.alt.length > 0) {
-      args.alt = rest.alt
-      args.caption = rest.alt
-    }
-    const id = lightbox.registerItem(args)
-    idRef.current = id
-    return () => {
-      lightbox.unregisterItem(id)
-      idRef.current = null
-    }
-  }, [lightbox, rest.alt, rest.src])
-  
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      {...rest}
-      alt={props.alt ?? ''}
-      className={[
-        'block h-auto max-w-full m-0 align-middle',
-        'border border-transparent hover:border-accent transition-colors',
-        className
-      ].filter(Boolean).join(' ')}
-      onClick={lightbox ? () => {
-        if (!lightbox) return
-        if (idRef.current) lightbox.openById(idRef.current)
-        else lightbox.openOrRegister({ src: String(rest.src ?? ''), alt: String(rest.alt ?? ''), caption: rest.alt })
-      } : undefined}
-      role={lightbox ? 'button' : undefined}
-      tabIndex={lightbox ? 0 : undefined}
-      onKeyDown={lightbox ? (e) => { if ((e.key === 'Enter' || e.key === ' ') && idRef.current) { e.preventDefault(); lightbox.openById(idRef.current) } } : undefined}
-    />
-  )
+    const { interactiveProps } = useLightboxItem({
+        src: String(src ?? ''),
+        alt: alt || undefined,
+        caption: alt || undefined
+    })
+
+    return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            loading="lazy"
+            {...rest}
+            src={src}
+            alt={alt ?? ''}
+            className={cn(MEDIA_BASE, MEDIA_HOVER, className)}
+            {...interactiveProps}
+        />
+    )
 }
-
-

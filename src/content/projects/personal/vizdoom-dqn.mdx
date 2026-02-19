@@ -1,0 +1,289 @@
+---
+title: "VizDoom DQN"
+shortTitle: "VizDoom DQN"
+description: "Double DQN with frozen pretrained vision encoders (AIMv2, V-JEPA 2), PCA whitening, and optional dueling architecture for VizDoom FPS environments."
+thumbnail: "/projects/vizdoom-dqn/thumbnail.png"
+heroImage: "/projects/vizdoom-dqn/thumbnail.png"
+gitUrl: "https://github.com/ozanbayiz/vizdoom-dqn"
+date: "2026-02-15"
+---
+
+Personal project, February 2026
+
+<SectionDivider />
+
+<a id="overview" />
+## Overview
+
+This project trains a Double DQN agent to play first-person shooter scenarios in
+<ExternalLink href="https://vizdoom.cs.put.edu.pl/">VizDoom</ExternalLink>,
+an RL research platform built on the Doom engine.
+The agent observes raw RGB frames, encodes them with a frozen pretrained vision transformer,
+and learns Q-values over a small discrete action space.
+
+The key idea is to decouple visual representation from policy learning.
+Large self-supervised vision models (AIMv2, V-JEPA 2) produce rich features from raw pixels.
+Freezing the encoder and learning only a lightweight MLP Q-network on top
+makes training fast, memory-efficient, and stable.
+
+<SectionDivider />
+
+<a id="encoders" />
+## Vision Encoders
+
+Two pretrained encoders are supported:
+
+| Encoder | Source | Input | Patch tokens | Hidden dim |
+|---|---|---|---|---|
+| AIMv2-Large | Apple | Single 224x224 image | 256 spatial | 1024 |
+| V-JEPA 2-Large | Meta | 8-frame 256x256 clip | Spatiotemporal | 1024 |
+
+Both are loaded from HuggingFace Transformers and kept entirely frozen.
+For AIMv2, each frame is independently encoded.
+For V-JEPA 2, a sliding window of 8 frames is maintained; spatiotemporal patch tokens
+are temporally pooled (averaged across the time axis) before spatial mean-pooling,
+yielding a single 1024-dimensional vector per observation.
+
+<SectionDivider />
+
+<a id="feature-pipeline" />
+## Feature Pipeline
+
+Raw encoder outputs are high-dimensional (1024-d) and not whitened.
+A calibration phase at the start of training collects observations from a random policy,
+encodes them in batches, and fits a PCA whitening transform.
+
+---
+
+<a id="pca-whitening" />
+### PCA Whitening
+
+Given $N$ calibration observations with mean-pooled encoder outputs $\mathbf{z}_i \in \mathbb{R}^{1024}$:
+
+1. Compute the sample mean $\boldsymbol{\mu} = \frac{1}{N}\sum_i \mathbf{z}_i$ and covariance $\mathbf{C} = \frac{1}{N-1}(\mathbf{Z} - \boldsymbol{\mu})^\top(\mathbf{Z} - \boldsymbol{\mu})$.
+
+2. Eigen-decompose $\mathbf{C}$ and retain the top $d$ eigenvectors $\mathbf{V}_d \in \mathbb{R}^{1024 \times d}$ with eigenvalues $\lambda_1, \ldots, \lambda_d$.
+
+3. The whitening transform is:
+
+$$
+\mathbf{f} = (\mathbf{z} - \boldsymbol{\mu}) \mathbf{V}_d \, \text{diag}\!\left(\frac{1}{\sqrt{\lambda_i + \epsilon}}\right)
+$$
+
+This projects from 1024 dimensions to $d = 256$, decorrelates features, and normalizes variance.
+
+---
+
+<a id="projection" />
+### Projection
+
+After PCA whitening, features pass through LayerNorm and L2 normalization:
+
+$$
+\hat{\mathbf{f}} = \frac{\text{LayerNorm}(\mathbf{f})}{\lVert \text{LayerNorm}(\mathbf{f}) \rVert_2}
+$$
+
+The resulting 256-dimensional unit vectors are what the Q-network receives as input
+and what gets stored in the replay buffer.
+Storing compact pre-encoded features (256 floats per transition) keeps memory usage low
+compared to storing raw frames.
+
+<SectionDivider />
+
+<a id="q-network" />
+## Q-Network
+
+---
+
+<a id="standard-mlp" />
+### Standard MLP
+
+The default Q-network is a 2-layer MLP:
+
+$$
+Q(s, a) = \mathbf{W}_3 \, \text{ReLU}(\mathbf{W}_2 \, \text{ReLU}(\mathbf{W}_1 \hat{\mathbf{f}} + \mathbf{b}_1) + \mathbf{b}_2) + \mathbf{b}_3
+$$
+
+with hidden size 256. The output has one value per discrete action.
+
+---
+
+<a id="dueling" />
+### Dueling Architecture
+
+An optional dueling variant separates value and advantage estimation:
+
+$$
+Q(s, a) = V(s) + A(s, a) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s, a')
+$$
+
+A shared trunk feeds two heads: a scalar value stream $V(s)$ and an advantage stream $A(s, a)$.
+Subtracting the mean advantage centers the advantages around zero,
+resolving the identifiability issue between $V$ and $A$.
+
+<SectionDivider />
+
+<a id="training" />
+## Training
+
+---
+
+<a id="double-dqn" />
+### Double DQN
+
+The agent uses Double DQN to reduce overestimation bias in Q-value targets.
+The online network selects the action; the target network evaluates it:
+
+$$
+y = r + \gamma \, Q_{\theta^-}\!\left(s', \arg\max_{a'} Q_\theta(s', a')\right) \cdot (1 - \text{done})
+$$
+
+The loss minimizes the TD error:
+
+$$
+\mathcal{L} = \frac{1}{B}\sum_{i=1}^{B} \left(Q_\theta(s_i, a_i) - y_i\right)^2
+$$
+
+The target network $\theta^-$ is updated via Polyak averaging after each gradient step:
+
+$$
+\theta^- \leftarrow \tau \, \theta + (1 - \tau) \, \theta^-
+$$
+
+---
+
+<a id="exploration" />
+### Exploration
+
+Epsilon-greedy exploration with linear annealing:
+
+$$
+\epsilon(t) = \epsilon_{\text{start}} + \frac{t}{\text{decay steps}} \cdot (\epsilon_{\text{end}} - \epsilon_{\text{start}})
+$$
+
+A warmup phase fills the replay buffer with random-policy transitions
+before Q-network updates begin.
+
+<SectionDivider />
+
+<a id="environment" />
+## Environment
+
+The agent trains on VizDoom scenarios through a Gymnasium wrapper.
+The wrapper extracts `screen` observations as (H, W, 3) uint8 RGB arrays
+and converts the native MultiBinary action space to a Discrete space
+by enumerating all button combinations.
+
+<Figure src="/projects/vizdoom-dqn/defend_the_center.png" alt="VizDoom DefendTheCenter scenario screenshot" caption="The DefendTheCenter scenario. The agent stands at the center of a circular room and must shoot approaching enemies while managing limited ammunition." />
+
+<SectionDivider />
+
+<a id="results" />
+## Results
+
+All experiments use the DefendTheCenter scenario with frame skip 4,
+a replay buffer of 100k transitions, batch size 256, and 500k total training steps.
+Evaluation runs 20 greedy episodes every 5k steps.
+
+---
+
+<a id="training-curves" />
+### Training Curves
+
+The best configuration (AIMv2-Large, $\tau = 0.001$) reaches a mean evaluation return of approximately 6.0 after 500k steps,
+with consistent performance across seeds.
+The shaded region shows one standard deviation across evaluation episodes.
+
+<Figure src="/projects/vizdoom-dqn/training_curve.png" alt="Evaluation return over 500k training steps on DefendTheCenter with AIMv2-Large encoder, two seeds" caption="Evaluation return over training for the best configuration (AIMv2-Large, $\tau = 0.001$) across two seeds." />
+
+---
+
+<a id="loss-and-exploration" />
+### Loss and Exploration Schedule
+
+TD loss stabilizes after epsilon annealing completes at 50k steps.
+The loss remains in the range 0.03-0.05 for the remainder of training,
+indicating stable Q-value learning.
+
+<Figure src="/projects/vizdoom-dqn/loss_and_epsilon.png" alt="TD loss and epsilon annealing schedule over training" caption="TD loss (left axis) and epsilon annealing schedule (right axis) over 500k training steps." />
+
+---
+
+<a id="q-value-evolution" />
+### Q-Value Evolution
+
+Mean and max Q-values grow steadily during training and plateau once
+epsilon annealing completes.
+The gap between mean and max Q remains moderate, indicating the agent
+differentiates between actions without extreme overestimation.
+
+<Figure src="/projects/vizdoom-dqn/q_values.png" alt="Mean and max Q-values over training" caption="Mean and max Q-value evolution over 500k training steps." />
+
+---
+
+<a id="target-update-ablation" />
+### Ablation: Target Update Rate
+
+Slower target network updates ($\tau = 0.001$) produce slightly higher and more stable
+evaluation returns compared to the default ($\tau = 0.005$).
+
+<Figure src="/projects/vizdoom-dqn/tau_ablation.png" alt="Evaluation return comparison between tau=0.005 and tau=0.001" caption="Target network update rate ablation. $\tau = 0.001$ (blue) achieves higher peak performance and lower variance than $\tau = 0.005$ (red)." />
+
+---
+
+<a id="dueling-comparison" />
+### Standard vs Dueling Q-Network
+
+The dueling architecture runs did not complete 500k steps during the experiment window.
+Over the steps that completed, the standard Q-network with $\tau = 0.005$
+outperformed both dueling variants,
+though the dueling runs were still improving at termination.
+
+<Figure src="/projects/vizdoom-dqn/dueling_comparison.png" alt="Train return comparison between standard and dueling Q-networks" caption="Standard vs dueling Q-network train return (smoothed). Dueling runs were terminated early and had not converged." />
+
+---
+
+<a id="encoder-comparison" />
+### Encoder Comparison: AIMv2 vs V-JEPA 2
+
+AIMv2-Large significantly outperforms V-JEPA 2-Large on this task.
+The V-JEPA 2 runs exhibit diverging Q-values (mean Q exceeding 60, max Q exceeding 400)
+and near-zero returns after 80k steps.
+This divergence likely stems from the mismatch between V-JEPA 2's video-oriented pretraining
+and VizDoom's low frame rate (frame skip 4 produces temporally sparse clips).
+
+<Figure src="/projects/vizdoom-dqn/encoder_comparison.png" alt="Train return comparison between AIMv2-Large and V-JEPA 2-Large" caption="AIMv2-Large (blue) learns effectively while V-JEPA 2-Large (red, yellow) fails to learn on DefendTheCenter." />
+
+---
+
+<a id="gameplay" />
+### Trained Agent Gameplay
+
+<ImageGrid>
+<Figure src="/projects/vizdoom-dqn/gameplay_trained.gif" alt="Trained agent gameplay, return 5" caption="Trained agent (500k steps). Return: 5." />
+<Figure src="/projects/vizdoom-dqn/gameplay_best.gif" alt="Best episode gameplay, return 9" caption="Best recorded episode. Return: 9." />
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="hyperparameters" />
+## Hyperparameters
+
+Default configuration for the DefendTheCenter scenario:
+
+| Parameter | Value |
+|---|---|
+| Encoder | AIMv2-Large |
+| Feature dim (after PCA) | 256 |
+| Q-network hidden size | 256 |
+| Q-network layers | 2 |
+| Learning rate | $1 \times 10^{-4}$ |
+| Discount $\gamma$ | 0.99 |
+| Replay capacity | 100,000 |
+| Batch size | 256 |
+| Target update $\tau$ | 0.001 |
+| $\epsilon$ schedule | 1.0 $\to$ 0.05 over 50k steps |
+| Warmup steps | 1,000 |
+| PCA calibration steps | 2,000 |
+| Frame skip | 4 |
+| Total training steps | 500,000 |

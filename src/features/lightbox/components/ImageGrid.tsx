@@ -15,7 +15,7 @@ export default function ImageGrid({
         <div
             className={cn(
                 // Container-based responsive columns (not viewport-based)
-                'grid gap-6 grid-cols-[repeat(auto-fit,minmax(220px,1fr))]',
+                'grid gap-6 grid-cols-[repeat(auto-fit,minmax(220px,1fr))] [&>*]:min-w-0',
                 // Normalize markdown images inside grids
                 '[&>p]:m-0 [&>p]:contents [&>p>img]:m-0 [&>p>img]:border [&>p>img]:border-transparent [&>p>img:hover]:border-accent',
                 className

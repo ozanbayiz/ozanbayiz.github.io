@@ -7,6 +7,7 @@ export type HeaderProps = {
     date?: string | undefined
     authors?: string[] | undefined
     pdfUrl?: string | undefined
+    demoUrl?: string | undefined
 }
 
 export default function ProjectHeader({
@@ -14,13 +15,21 @@ export default function ProjectHeader({
     repoUrl,
     date,
     authors,
-    pdfUrl
+    pdfUrl,
+    demoUrl
 }: HeaderProps) {
     return (
         <div className='space-y-4'>
             <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
                 <h1 className='h1 leading-tight'>{title}</h1>
                 <div className='flex shrink-0 items-center gap-2'>
+                    {demoUrl ? (
+                        <ExternalLink href={demoUrl} aria-label='View demo'>
+                            <Button variant='outlineAccent' size='sm'>
+                                Demo
+                            </Button>
+                        </ExternalLink>
+                    ) : null}
                     {pdfUrl ? (
                         <ExternalLink href={pdfUrl} aria-label='View PDF'>
                             <Button variant='outlineAccent' size='sm'>

@@ -1,18 +1,13 @@
 'use client'
 
 import { FileText, Github } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
+import ExportedImage from 'next-image-export-optimizer'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardTitle } from '@/shared/ui/card'
 
-/**
- * ProjectCard
- * A reusable card for project teasers. Supports both general projects and CS180 projects
- * by accepting either description/imageUrl or summary/heroImageSrc and a basePath for slug links.
- */
 type ProjectCardProps = {
     // Link building
     href?: string
@@ -22,10 +17,10 @@ type ProjectCardProps = {
 
     // Display
     title: string
-    description?: string // general projects
-    summary?: string // cs180
-    imageUrl?: string // general projects
-    heroImageSrc?: string // cs180
+    description?: string
+    summary?: string
+    imageUrl?: string
+    heroImageSrc?: string
     tags?: string[] | undefined
     date?: string | undefined
     className?: string
@@ -42,7 +37,6 @@ export default function ProjectCard(props: ProjectCardProps) {
         summary,
         imageUrl,
         heroImageSrc,
-        // date,
         className
     } = props
 
@@ -51,8 +45,7 @@ export default function ProjectCard(props: ProjectCardProps) {
     const displayImage = imageUrl ?? heroImageSrc ?? '/logo512.png'
 
     return (
-        <Card className={cn('group relative flex h-full flex-col overflow-hidden transition-colors hover:border-accent', className)}>
-            {/* Clickable overlay link to make the entire card clickable without nesting anchors */}
+        <Card className={cn('group relative flex h-full flex-row overflow-hidden rounded-lg transition-colors hover:border-accent', className)}>
             <Link
                 href={resolvedHref}
                 prefetch={false}
@@ -60,64 +53,58 @@ export default function ProjectCard(props: ProjectCardProps) {
                 className='absolute inset-0 z-10'
             />
 
-            <div className='p-4 pb-0'>
-                <div className='relative aspect-video w-full overflow-hidden rounded-md bg-muted'>
-                    <Image
-                        src={displayImage}
-                        alt={title}
-                        fill
-                        className='object-cover'
-                        sizes='(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
-                    />
-                </div>
+            {/* Thumbnail */}
+            <div className='relative w-32 shrink-0 overflow-hidden bg-muted'>
+                <ExportedImage
+                    src={displayImage}
+                    alt={title}
+                    fill
+                    className='object-cover'
+                    sizes='128px'
+                />
             </div>
 
-            <CardHeader className='space-y-2'>
-                <div className='flex items-start justify-between gap-2'>
-                    <CardTitle className='line-clamp-2 h3 leading-tight'>{title}</CardTitle>
-                </div>
-            </CardHeader>
-
-            <CardContent className='flex-1'>
-                <p className='line-clamp-3 body-text'>
+            {/* Content */}
+            <div className='flex min-w-0 flex-1 flex-col gap-1.5 p-4'>
+                <CardTitle className='line-clamp-2 h3 leading-tight'>{title}</CardTitle>
+                <p className='line-clamp-2 body-text flex-1 text-muted-foreground'>
                     {displayDescription}
                 </p>
-            </CardContent>
-
-            {(gitUrl || pdfUrl) && (
-                <CardFooter className='relative z-20 gap-2 pt-0'>
-                    {pdfUrl && (
-                        <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-8 gap-2'
-                            onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                window.open(pdfUrl, '_blank', 'noopener,noreferrer')
-                            }}
-                        >
-                            <FileText className='h-3.5 w-3.5' />
-                            <span className='text-xs'>PDF</span>
-                        </Button>
-                    )}
-                    {gitUrl && (
-                        <Button
-                            variant='outline'
-                            size='sm'
-                            className='h-8 gap-2'
-                            onClick={(e) => {
-                                e.preventDefault()
-                                e.stopPropagation()
-                                window.open(gitUrl, '_blank', 'noopener,noreferrer')
-                            }}
-                        >
-                            <Github className='h-3.5 w-3.5' />
-                            <span className='text-xs'>Code</span>
-                        </Button>
-                    )}
-                </CardFooter>
-            )}
+                {(gitUrl || pdfUrl) && (
+                    <div className='relative z-20 flex gap-2 pt-1'>
+                        {pdfUrl && (
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                className='h-7 gap-1.5'
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    window.open(pdfUrl, '_blank', 'noopener,noreferrer')
+                                }}
+                            >
+                                <FileText className='h-3 w-3' />
+                                <span className='text-xs'>PDF</span>
+                            </Button>
+                        )}
+                        {gitUrl && (
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                className='h-7 gap-1.5'
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    e.stopPropagation()
+                                    window.open(gitUrl, '_blank', 'noopener,noreferrer')
+                                }}
+                            >
+                                <Github className='h-3 w-3' />
+                                <span className='text-xs'>Code</span>
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </div>
         </Card>
     )
 }

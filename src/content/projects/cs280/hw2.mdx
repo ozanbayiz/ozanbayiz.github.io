@@ -1,3 +1,13 @@
+---
+title: "Facial Keypoint Detection"
+shortTitle: "Facial Keypoints"
+description: "Direct CNN regression, ResNet-18 and DINOv3 transfer learning, and U-Net heatmap prediction with soft-argmax for 68-point facial keypoint detection."
+thumbnail: "/projects/cs280/hw2/part3_predictions.png"
+heroImage: "/projects/cs280/hw2/part3_predictions.png"
+gitUrl: "https://github.com/ozanbayiz/cs280hw2"
+date: "2026-02-12"
+---
+
 CS C280: Computer Vision, Homework 2, Spring 2026
 
 <SectionDivider />
@@ -38,9 +48,9 @@ Horizontal flip augmentation requires remapping the 68-point landmark indices (e
 <a id="part1-results" />
 ### Results
 
-<Figure src="/projects/cs280-hw2/part1_loss_curve.png" alt="Part 1 training and validation loss" caption="Training and validation loss over 35 epochs." />
+<Figure src="/projects/cs280/hw2/part1_loss_curve.png" alt="Part 1 training and validation loss" caption="Training and validation loss over 35 epochs." />
 
-<Figure src="/projects/cs280-hw2/part1_predictions.png" alt="Part 1 predicted keypoints vs ground truth" caption="Predicted keypoints (cyan) vs. ground truth (red)." />
+<Figure src="/projects/cs280/hw2/part1_predictions.png" alt="Part 1 predicted keypoints vs ground truth" caption="Predicted keypoints (cyan) vs. ground truth (red)." />
 
 | Metric | Value |
 |---|---|
@@ -66,9 +76,9 @@ Training uses a two-stage protocol:
 1. **Stage 1** (5 epochs): freeze all ResNet layers, train only the regression head at $\text{lr} = 10^{-3}$.
 2. **Stage 2** (25 epochs): unfreeze the entire model, fine-tune at $\text{lr} = 10^{-4}$ with cosine annealing.
 
-<Figure src="/projects/cs280-hw2/part2_resnet_loss_curve.png" alt="ResNet-18 loss curve" caption="ResNet-18 loss curve. The backbone unfreezes at epoch 6, causing a sharp drop." />
+<Figure src="/projects/cs280/hw2/part2_resnet_loss_curve.png" alt="ResNet-18 loss curve" caption="ResNet-18 loss curve. The backbone unfreezes at epoch 6, causing a sharp drop." />
 
-<Figure src="/projects/cs280-hw2/part2_resnet_predictions.png" alt="ResNet-18 predictions vs ground truth" caption="ResNet-18 predictions vs. ground truth." />
+<Figure src="/projects/cs280/hw2/part2_resnet_predictions.png" alt="ResNet-18 predictions vs ground truth" caption="ResNet-18 predictions vs. ground truth." />
 
 During the first 5 frozen epochs the loss decreases only modestly (MSE $\approx 122$ px²), since the randomly initialized head has limited capacity to exploit the fixed features. Once the backbone unfreezes at epoch 6, the loss drops sharply, reaching an MSE of 9.23 px² (NME = 0.0668) by epoch 30.
 
@@ -92,9 +102,9 @@ Training uses a two-stage protocol with differential learning rates and linear w
 
 The warmup prevents fine-tuning instability observed in earlier coordinate-regression experiments, where the backbone LR jumping from zero caused transient MSE spikes.
 
-<Figure src="/projects/cs280-hw2/part2_dino_loss_curve.png" alt="DINOv3 heatmap loss curve" caption="DINOv3 heatmap loss curve (frozen decoder, then fine-tuned)." />
+<Figure src="/projects/cs280/hw2/part2_dino_loss_curve.png" alt="DINOv3 heatmap loss curve" caption="DINOv3 heatmap loss curve (frozen decoder, then fine-tuned)." />
 
-<Figure src="/projects/cs280-hw2/part2_dino_predictions.png" alt="DINOv3 predictions vs ground truth" caption="DINOv3 predictions vs. ground truth." />
+<Figure src="/projects/cs280/hw2/part2_dino_predictions.png" alt="DINOv3 predictions vs ground truth" caption="DINOv3 predictions vs. ground truth." />
 
 DINOv3 achieves an MSE of **6.28** px² (NME = 0.0570), the best result of any model in this report. The frozen decoder alone reaches MSE 10.42 at epoch 6, nearly matching ResNet-18 without any backbone adaptation. Fine-tuning then drops the MSE to 6.28 at epoch 26, with no instability. Two architectural choices drive the improvement over coordinate regression: (1) the upsampling decoder preserves spatial information from the $14 \times 14$ patch grid to the $64 \times 64$ output, eliminating the pooling bottleneck; and (2) per-keypoint heatmaps let the network make spatially distributed predictions, with soft-argmax providing sub-pixel coordinate extraction.
 
@@ -158,11 +168,11 @@ Coordinates are extracted via soft-argmax: the heatmap is normalized with a temp
 <a id="part3-results" />
 ### Results
 
-<Figure src="/projects/cs280-hw2/part3_loss_curve.png" alt="U-Net heatmap loss curve" caption="U-Net heatmap loss over 50 epochs." />
+<Figure src="/projects/cs280/hw2/part3_loss_curve.png" alt="U-Net heatmap loss curve" caption="U-Net heatmap loss over 50 epochs." />
 
-<Figure src="/projects/cs280-hw2/part3_heatmaps.png" alt="Predicted vs ground-truth heatmaps" caption="Predicted vs. ground-truth heatmaps for selected keypoints (nose tip, eye corners, mouth corners)." />
+<Figure src="/projects/cs280/hw2/part3_heatmaps.png" alt="Predicted vs ground-truth heatmaps" caption="Predicted vs. ground-truth heatmaps for selected keypoints (nose tip, eye corners, mouth corners)." />
 
-<Figure src="/projects/cs280-hw2/part3_predictions.png" alt="U-Net keypoint predictions vs ground truth" caption="U-Net keypoint predictions vs. ground truth." />
+<Figure src="/projects/cs280/hw2/part3_predictions.png" alt="U-Net keypoint predictions vs ground truth" caption="U-Net keypoint predictions vs. ground truth." />
 
 | Metric | Value |
 |---|---|

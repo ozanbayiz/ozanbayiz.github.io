@@ -1,4 +1,12 @@
-CS 185: Deep Reinforcement Learning, Decision Making, and Control, Assignment 1, Spring 2026
+---
+title: "Imitation Learning"
+shortTitle: "Imitation Learning"
+description: "Action-chunking behavioral cloning with MSE and flow matching policies for the Push-T environment."
+thumbnail: "/projects/cs185/hw1/flow_curves.png"
+heroImage: "/projects/cs185/hw1/flow_curves.png"
+gitUrl: "https://github.com/ozanbayiz/cs185hw1"
+date: "2026-02-11"
+---
 
 <SectionDivider />
 
@@ -76,11 +84,11 @@ I used the same 3-layer MLP with hidden dimensions $(256, 256, 256)$ and ReLU ac
 
 ### Training Curves
 
-<Figure src="/projects/cs185hw1/comparison.png" alt="MSE vs flow matching reward comparison" caption="Evaluation reward over training: MSE policy (left) vs. flow matching policy (right)." />
+<Figure src="/projects/cs185/hw1/comparison.png" alt="MSE vs flow matching reward comparison" caption="Evaluation reward over training: MSE policy (left) vs. flow matching policy (right)." />
 
 <ImageGrid>
-<Figure src="/projects/cs185hw1/mse_loss.png" alt="MSE policy training loss" caption="MSE policy: smoothed training loss." />
-<Figure src="/projects/cs185hw1/flow_loss.png" alt="Flow matching policy training loss" caption="Flow matching policy: smoothed training loss." />
+<Figure src="/projects/cs185/hw1/mse_loss.png" alt="MSE policy training loss" caption="MSE policy: smoothed training loss." />
+<Figure src="/projects/cs185/hw1/flow_loss.png" alt="Flow matching policy training loss" caption="Flow matching policy: smoothed training loss." />
 </ImageGrid>
 
 | Policy | Final Eval Reward | Threshold |
@@ -91,15 +99,15 @@ I used the same 3-layer MLP with hidden dimensions $(256, 256, 256)$ and ReLU ac
 ### Rollouts: Early (20k steps)
 
 <ImageGrid>
-<Figure src="/projects/cs185hw1/mse_rollout_early.mp4" alt="MSE rollout at 20k steps" caption="MSE policy at 20k steps." />
-<Figure src="/projects/cs185hw1/flow_rollout_early.mp4" alt="Flow rollout at 20k steps" caption="Flow matching policy at 20k steps." />
+<Figure src="/projects/cs185/hw1/mse_rollout_early.mp4" alt="MSE rollout at 20k steps" caption="MSE policy at 20k steps." />
+<Figure src="/projects/cs185/hw1/flow_rollout_early.mp4" alt="Flow rollout at 20k steps" caption="Flow matching policy at 20k steps." />
 </ImageGrid>
 
 ### Rollouts: Peak Performance
 
 <ImageGrid>
-<Figure src="/projects/cs185hw1/mse_rollout_0.mp4" alt="MSE rollout at 60k steps" caption="MSE policy at 60k steps (peak, reward ~0.64)." />
-<Figure src="/projects/cs185hw1/flow_rollout_0.mp4" alt="Flow rollout at 70k steps" caption="Flow matching policy at 70k steps (peak, reward ~0.86)." />
+<Figure src="/projects/cs185/hw1/mse_rollout_0.mp4" alt="MSE rollout at 60k steps" caption="MSE policy at 60k steps (peak, reward ~0.64)." />
+<Figure src="/projects/cs185/hw1/flow_rollout_0.mp4" alt="Flow rollout at 70k steps" caption="Flow matching policy at 70k steps (peak, reward ~0.86)." />
 </ImageGrid>
 
 ### Analysis

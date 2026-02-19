@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
+import { projectsData } from '@/features/projects'
 import ProjectCard from '@/features/projects/components/ProjectCard'
-import { projectsData } from '@/features/projects/data/projects'
 import { Button } from '@/shared/ui/button'
 import { Section } from '@/shared/ui/section'
 
@@ -18,7 +18,7 @@ export default function ProjectSection() {
                             </Link>
                         </Button>
                     </div>
-                    <ul className='mb-4 grid grid-cols-1 sm:grid-cols-2 gap-8'>
+                    <ul className='mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2'>
                         {[...projectsData]
                             .filter(p => p.featured)
                             .sort((a, b) => (Date.parse(b.date ?? '') || 0) - (Date.parse(a.date ?? '') || 0))
