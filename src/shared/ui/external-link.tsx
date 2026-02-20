@@ -24,7 +24,7 @@ export default function ExternalLink({
             href={href}
             target={target}
             rel={rel}
-            className={cn('transition-colors hover:text-accent', className)}
+            className={cn('transition-colors hover:text-accent1', className)}
             {...rest}
         >
             {children}

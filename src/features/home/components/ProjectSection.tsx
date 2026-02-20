@@ -3,15 +3,14 @@ import Link from 'next/link'
 import { projectsData } from '@/features/projects'
 import ProjectCard from '@/features/projects/components/ProjectCard'
 import { Button } from '@/shared/ui/button'
-import { Section } from '@/shared/ui/section'
 
 export default function ProjectSection() {
     return (
-        <Section>
+        <section className="w-full flex flex-col py-6 md:py-8">
             <div className='grid grid-cols-1 justify-stretch gap-8'>
                 <div className='text-center sm:text-left'>
                     <div className='mb-4 flex items-center justify-between gap-2'>
-                        <h1 className='h2'>Featured Projects</h1>
+                        <h1 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>Featured Projects</h1>
                         <Button variant='outline' size='sm' asChild>
                             <Link href='/projects/' prefetch={false}>
                                 all projects
@@ -38,7 +37,7 @@ export default function ProjectSection() {
                     </ul>
                 </div>
             </div>
-        </Section>
+        </section>
     )
 }
 

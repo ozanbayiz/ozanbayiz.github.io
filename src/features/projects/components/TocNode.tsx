@@ -56,7 +56,7 @@ function ExpandButton({
         <SidebarMenuAction
             aria-label={isOpen ? 'Collapse section' : 'Expand section'}
             aria-expanded={isOpen}
-            className='text-foreground ml-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent transition-transform duration-200'
+            className='text-foreground ml-1 hover:bg-transparent hover:text-accent1 focus:bg-transparent focus:text-accent1 transition-transform duration-200'
             onClick={onToggle}
         >
             <ChevronRight className={cn(
@@ -126,7 +126,7 @@ export function TocNode({
             <SidebarMenuItem
                 className={cn(
                     'relative transition-colors duration-200',
-                    isHighlighted && 'before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-accent before:rounded-full'
+                    isHighlighted && 'before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[2px] before:bg-accent2 before:rounded-full'
                 )}
             >
                 <div className='flex items-center'>
@@ -134,8 +134,8 @@ export function TocNode({
                         asChild
                         isActive={isHighlighted}
                         className={cn(
-                            'text-foreground flex-1 hover:bg-transparent hover:text-accent focus:bg-transparent focus:text-accent transition-all duration-200 border-transparent',
-                            isHighlighted && 'bg-accent/5 border-transparent'
+                            'text-foreground flex-1 hover:bg-transparent hover:text-accent1 focus:bg-transparent focus:text-accent1 transition-all duration-200 border-transparent',
+                            isHighlighted && 'border-transparent text-accent2'
                         )}
                     >
                         <a href={`#${item.id}`} onClick={handleClick}>
@@ -174,7 +174,7 @@ export function TocNode({
             <SidebarMenuSubItem
                 className={cn(
                     'relative transition-colors duration-200',
-                    isHighlighted && 'before:absolute before:-left-[11px] before:top-1 before:bottom-1 before:w-[2px] before:bg-accent before:rounded-full'
+                    isHighlighted && 'before:absolute before:-left-[11px] before:top-1 before:bottom-1 before:w-[2px] before:bg-accent2 before:rounded-full'
                 )}
             >
                 <div className='flex items-center'>
@@ -183,7 +183,7 @@ export function TocNode({
                         isActive={isHighlighted}
                         className={cn(
                             'transition-all duration-200 border-transparent',
-                            isHighlighted && 'bg-accent/5 border-transparent'
+                            isHighlighted && 'border-transparent text-accent2'
                         )}
                     >
                         <a href={`#${item.id}`} onClick={handleClick}>
@@ -197,7 +197,7 @@ export function TocNode({
 
                 {hasChildren && (
                     <CollapsibleChildren isOpen={isExpanded}>
-                        <ul className='ml-4 border-l border-accent/30 pl-2 mt-1'>
+                        <ul className='ml-4 border-l border-accent1/30 pl-2 mt-1'>
                             {item.children.map(child => (
                                 <TocNode
                                     key={child.id || child.title}
@@ -219,14 +219,13 @@ export function TocNode({
     // Third-level items (depth 2+)
     return (
         <li className={cn(
-            'my-0.5 py-1 px-1 rounded transition-all duration-200',
-            isActive && 'bg-accent/5'
+            'my-0.5 py-1 px-1 rounded transition-all duration-200'
         )}>
             <a
                 href={`#${item.id}`}
                 className={cn(
-                    'text-sm transition-colors duration-200 hover:text-accent',
-                    isActive && 'text-accent'
+                    'text-sm transition-colors duration-200 hover:text-accent1',
+                    isActive && 'text-accent2'
                 )}
                 onClick={() => onNavigate(item.id)}
             >

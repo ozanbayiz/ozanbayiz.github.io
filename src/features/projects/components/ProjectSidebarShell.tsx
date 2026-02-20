@@ -64,7 +64,7 @@ export default function ProjectSidebarShell({
                 className='[&_.container]:!max-w-none [&_.container]:!px-0 border-r-0'
             >
                 <SidebarHeader className='relative pb-2'>
-                    <div className='px-2 text-xs uppercase tracking-wider text-muted-foreground font-medium'>
+                    <div className='px-2 text-xs uppercase tracking-wider text-foreground font-medium'>
                         Contents
                     </div>
                     <ReadingProgressBar />
@@ -100,7 +100,7 @@ export default function ProjectSidebarShell({
                     'sticky top-0 z-50 md:z-[55] isolate pointer-events-auto',
                     'flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4'
                 )}>
-                    <SidebarTrigger className='hover:text-accent' />
+                    <SidebarTrigger className='hover:text-accent1' />
                     {header}
                     <div className='ml-auto' />
                     {rightActions}

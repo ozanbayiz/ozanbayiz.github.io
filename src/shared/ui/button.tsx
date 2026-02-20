@@ -9,14 +9,14 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                default: 'text-foreground border-foreground hover:text-accent hover:border-accent',
-                destructive: 'text-destructive border-foreground hover:border-accent hover:text-accent',
-                outline: 'text-foreground border-foreground hover:text-accent hover:border-accent',
+                default: 'text-foreground border-foreground hover:text-accent1 hover:border-accent1 hover:bg-transparent bg-transparent',
+                destructive: 'text-destructive border-foreground hover:border-accent1 hover:text-accent1 hover:bg-transparent bg-transparent',
+                outline: 'text-foreground border-foreground hover:text-accent1 hover:border-accent1 hover:bg-transparent bg-transparent',
                 outlineAccent:
-                    'text-foreground border-foreground hover:text-accent hover:border-accent',
-                secondary: 'text-foreground border-foreground hover:text-accent hover:border-accent',
-                ghost: 'text-foreground border-foreground hover:text-accent hover:border-accent',
-                link: 'text-foreground hover:text-accent'
+                    'text-foreground border-foreground hover:text-accent1 hover:border-accent1 hover:bg-transparent bg-transparent',
+                secondary: 'text-foreground border-foreground hover:text-accent1 hover:border-accent1 hover:bg-transparent bg-transparent',
+                ghost: 'text-foreground border-transparent hover:text-accent1 hover:border-accent1 hover:bg-transparent bg-transparent',
+                link: 'text-foreground hover:text-accent1 hover:bg-transparent bg-transparent'
             },
             size: {
                 default: 'h-9 px-4 py-2',
@@ -34,7 +34,7 @@ const buttonVariants = cva(
 
 export interface ButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-        VariantProps<typeof buttonVariants> {
+    VariantProps<typeof buttonVariants> {
     asChild?: boolean
 }
 

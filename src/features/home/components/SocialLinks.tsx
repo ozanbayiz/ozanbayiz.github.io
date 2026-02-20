@@ -1,9 +1,8 @@
 import ExternalLink from '@/shared/ui/external-link'
-import { Section } from '@/shared/ui/section'
 
 const SocialLinks = () => {
     return (
-        <Section className="flex flex-col items-center gap-4">
+        <section className="w-full flex flex-col items-center gap-4">
             <div className='flex items-center justify-center gap-2'>
                 {/* <ExternalLink
                     className='m-1'
@@ -12,7 +11,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent1'
                         xmlns='http://www.w3.org/2000/svg'
                         viewBox='0 0 24 24'
                     >
@@ -28,7 +27,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent1'
                         xmlns='http://www.w3.org/2000/svg'
                         viewBox='0 0 32 32'
                     >
@@ -44,7 +43,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent1'
                         xmlns='http://www.w3.org/2000/svg'
                         x='0px'
                         y='0px'
@@ -67,7 +66,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent1'
                         xmlns='http://www.w3.org/2000/svg'
                         viewBox='0 0 32 32'
                     >
@@ -83,7 +82,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:text-accent1'
                         xmlns='http://www.w3.org/2000/svg'
                         viewBox='0 0 32 32'
                     >
@@ -99,7 +98,7 @@ const SocialLinks = () => {
                 >
                     <svg
                         aria-hidden='true'
-                        className='h-[40px] w-[40px] fill-current text-foreground hover:fill-accent'
+                        className='h-[40px] w-[40px] fill-current text-foreground hover:fill-accent1'
                         viewBox='0 0 26 28'
                         xmlns='http://www.w3.org/2000/svg'
                         fillRule='evenodd'
@@ -111,13 +110,13 @@ const SocialLinks = () => {
             </div>
             <p className='text-center text-sm'>
                 <a
-                    className='hover:text-accent'
+                    className='hover:text-accent1'
                     href='mailto:ozanbayiz@berkeley.edu'
                 >
                     ozanbayiz [at] berkeley [dot] edu
                 </a>
             </p>
-        </Section>
+        </section>
     )
 }
 

@@ -6,7 +6,6 @@ import ExportedImage from 'next-image-export-optimizer'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/shared/ui/button'
-import { Card, CardTitle } from '@/shared/ui/card'
 
 type ProjectCardProps = {
     // Link building
@@ -45,7 +44,7 @@ export default function ProjectCard(props: ProjectCardProps) {
     const displayImage = imageUrl ?? heroImageSrc ?? '/logo512.png'
 
     return (
-        <Card className={cn('group relative flex h-full flex-row overflow-hidden rounded-lg transition-colors hover:border-accent', className)}>
+        <div className={cn('group relative flex h-full flex-col overflow-hidden rounded-lg border bg-background text-foreground transition-colors hover:border-accent1 hover:bg-transparent', className)}>
             <Link
                 href={resolvedHref}
                 prefetch={false}
@@ -54,20 +53,20 @@ export default function ProjectCard(props: ProjectCardProps) {
             />
 
             {/* Thumbnail */}
-            <div className='relative w-32 shrink-0 overflow-hidden bg-muted'>
+            <div className='relative w-full aspect-video overflow-hidden bg-muted/50 border-b'>
                 <ExportedImage
                     src={displayImage}
                     alt={title}
                     fill
-                    className='object-cover'
-                    sizes='128px'
+                    className='object-cover transition-transform duration-300 group-hover:scale-105'
+                    sizes='(max-width: 768px) 100vw, 50vw'
                 />
             </div>
 
             {/* Content */}
             <div className='flex min-w-0 flex-1 flex-col gap-1.5 p-4'>
-                <CardTitle className='line-clamp-2 h3 leading-tight'>{title}</CardTitle>
-                <p className='line-clamp-2 body-text flex-1 text-muted-foreground'>
+                <h3 className='line-clamp-2 text-lg font-semibold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
+                <p className='line-clamp-2 text-sm leading-relaxed flex-1 text-foreground'>
                     {displayDescription}
                 </p>
                 {(gitUrl || pdfUrl) && (
@@ -105,6 +104,6 @@ export default function ProjectCard(props: ProjectCardProps) {
                     </div>
                 )}
             </div>
-        </Card>
+        </div>
     )
 }

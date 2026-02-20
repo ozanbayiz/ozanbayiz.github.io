@@ -65,7 +65,7 @@ export default function LightboxModal({
             }}
         >
             {/* Top bar */}
-            <div className="flex items-center justify-between p-3 text-white/90">
+            <div className="flex items-center justify-between p-3 text-foreground">
                 <div className="text-sm">
                     {items.length > 1
                         ? `${currentIndex + 1} / ${items.length}`
@@ -75,7 +75,7 @@ export default function LightboxModal({
                     {items.length > 1 ? (
                         <button
                             aria-label="Previous"
-                            className="rounded px-3 py-1 text-white transition-colors bg-transparent hover:text-accent hover:bg-transparent focus:bg-transparent"
+                            className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
                             onClick={onPrev}
                         >
                             ←
@@ -84,7 +84,7 @@ export default function LightboxModal({
                     {items.length > 1 ? (
                         <button
                             aria-label="Next"
-                            className="rounded px-3 py-1 text-white transition-colors bg-transparent hover:text-accent hover:bg-transparent focus:bg-transparent"
+                            className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
                             onClick={onNext}
                         >
                             →
@@ -92,7 +92,7 @@ export default function LightboxModal({
                     ) : null}
                     <button
                         aria-label="Close"
-                        className="rounded px-3 py-1 text-white transition-colors bg-transparent hover:text-accent hover:bg-transparent focus:bg-transparent"
+                        className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
                         onClick={onClose}
                     >
                         ✕
@@ -134,7 +134,7 @@ export default function LightboxModal({
             {/* Caption */}
             {item.caption ? (
                 <div className="px-4 pb-5">
-                    <div className="mx-auto max-w-3xl text-center text-sm text-white">
+                    <div className="mx-auto max-w-3xl text-center text-sm text-foreground">
                         {item.caption}
                     </div>
                 </div>

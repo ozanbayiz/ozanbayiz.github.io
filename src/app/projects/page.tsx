@@ -57,69 +57,80 @@ export default function ProjectsListPage() {
                 </Breadcrumb>
             </div>
             <section className='space-y-6'>
-                <h1 className='h1'>Projects</h1>
+                <h1 className='text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight'>Projects</h1>
                 <div className='flex flex-col gap-14'>
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS185 Projects</h2>
-                        <p className='body-text text-foreground'>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>CS185 Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>
                             Spring 2026 I&apos;m taking{' '}
-                            <ExternalLink href='https://rail.eecs.berkeley.edu/deeprlcourse/' className='italic hover:text-accent' aria-label='CS 185' newTab={false}>
+                            <ExternalLink href='https://rail.eecs.berkeley.edu/deeprlcourse/' className='italic hover:text-accent1' aria-label='CS 185' newTab={false}>
                                 CS 185/285: Deep Reinforcement Learning, Decision Making, and Control
                             </ExternalLink>.
+                            {' '} with Prof. <ExternalLink href='https://people.eecs.berkeley.edu/~svlevine/' className='italic hover:text-accent1' aria-label='CS 185' newTab={false}>
+                                Prof. Sergey Levine
+                            </ExternalLink>.
                         </p>
+
                         <Section items={cs185} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS184 Projects</h2>
-                        <p className='body-text text-foreground'>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>CS184 Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>
                             Spring 2026 I&apos;m taking{' '}
-                            <ExternalLink href='https://cs184.eecs.berkeley.edu/sp26' className='italic hover:text-accent' aria-label='CS 184' newTab={false}>
+                            <ExternalLink href='https://cs184.eecs.berkeley.edu/sp26' className='italic hover:text-accent1' aria-label='CS 184' newTab={false}>
                                 CS 184/284A: Computer Graphics and Imaging
                             </ExternalLink>
-                            , taught by <ExternalLink href='https://ren-ng.com/' className='font-bold hover:text-accent' aria-label='Prof. Ren Ng' newTab={false}>Prof. Ren Ng</ExternalLink>.
+                            , taught by Professor <ExternalLink href='https://obrien.cs.berkeley.edu/' className='font-bold hover:text-accent1' aria-label="James O'Brien" newTab={false}>James O&apos;Brien</ExternalLink>.
                         </p>
                         <Section items={cs184} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS280 Projects</h2>
-                        <p className='body-text text-foreground'>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>CS280 Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>
                             Spring 2026 I&apos;m taking{' '}
-                            <ExternalLink href='https://cs280-berkeley.github.io/' className='italic hover:text-accent' aria-label='CS 280' newTab={false}>
+                            <ExternalLink href='https://cs280-berkeley.github.io/' className='italic hover:text-accent1' aria-label='CS 280' newTab={false}>
                                 CS C280: Computer Vision
                             </ExternalLink>
-                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~malik/' className='font-bold hover:text-accent' aria-label='Prof. Jitendra Malik' newTab={false}>Prof. Jitendra Malik</ExternalLink>.
+                            , taught by Professors
+                            <ExternalLink href='https://people.eecs.berkeley.edu/~kanazawa/' className='font-bold hover:text-accent1' aria-label='Angjoo Kanazawa' newTab={false}>
+                                Angjoo Kanazawa
+                            </ExternalLink>
+                            {' '}and{' '}
+                            <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent1' aria-label='Alexei Efros' newTab={false}>
+                                Alexei Efros
+                            </ExternalLink>.
                         </p>
                         <Section items={cs280} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>CS180 Projects</h2>
-                        <p className='body-text text-foreground'>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>CS180 Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>
                             Fall 2024 I took{' '}
-                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='italic hover:text-accent' aria-label='CS 180/280A' newTab={false}>
+                            <ExternalLink href='https://cal-cs180.github.io/fa24/index.html' className='italic hover:text-accent1' aria-label='CS 180/280A' newTab={false}>
                                 CS180/280A: Intro to Computer Vision and Computational Photography
                             </ExternalLink>
-                            , taught by <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent' aria-label='Prof. Alexei Efros' newTab={false}>Prof. Alexei Efros</ExternalLink>.
+                            , taught by Professor <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold hover:text-accent1' aria-label='Alexei Efros' newTab={false}>Alexei Efros</ExternalLink>.
                             I got to work on some pretty neat projects which you can check out below.
                         </p>
                         <Section items={cs180} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>Misc Academic Projects</h2>
-                        <p className='body-text text-foreground'>Projects from classes at Berkeley.</p>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>Misc Academic Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>Projects from classes at Berkeley.</p>
                         <Section items={research} />
                     </div>
                     <Separator />
                     <div className='space-y-4'>
-                        <h2 className='h2'>Personal Projects</h2>
-                        <p className='body-text text-foreground'>Smaller experiments and things I built for fun or learning.</p>
+                        <h2 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>Personal Projects</h2>
+                        <p className='text-sm leading-relaxed text-foreground'>Smaller experiments and things I built for fun or learning.</p>
                         <Section items={personal} />
                     </div>
                 </div>
-            </section>
-        </div>
+            </section >
+        </div >
     )
 }

@@ -8,8 +8,6 @@ gitUrl: "https://github.com/ozanbayiz/cs185hw1"
 date: "2026-02-11"
 ---
 
-<SectionDivider />
-
 <a id="setup" />
 ## Problem Setup
 
@@ -21,7 +19,7 @@ Both policies use action chunking: at each decision step, the policy predicts $K
 
 The training dataset $\mathcal{D} = \{(\mathbf{o}_i, \mathbf{A}_i)\}$ consists of expert demonstrations collected in the Push-T environment. States and actions are z-score normalized per feature before training.
 
----
+<SectionDivider />
 
 <a id="mse" />
 ## MSE Policy
@@ -40,9 +38,9 @@ where $f_\theta : \mathbb{R}^5 \to \mathbb{R}^{K \times 2}$ is the policy networ
 
 I implemented $f_\theta$ as a 3-layer MLP with hidden dimensions $(256, 256, 256)$ and ReLU activations. The 5-dimensional state maps to a flat vector of size $K \times 2 = 16$, which is reshaped to $K = 8$ two-dimensional actions. I trained with Adam (learning rate $3 \times 10^{-4}$, no weight decay) for 400 epochs.
 
----
+<SectionDivider />
 
-<a id="flow" />¬
+<a id="flow" />
 ## Flow Matching Policy
 
 ### Method
@@ -77,7 +75,7 @@ starting from $\mathbf{A}_0 \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ with $n = 
 
 I used the same 3-layer MLP with hidden dimensions $(256, 256, 256)$ and ReLU activations. The input is the observation concatenated with the flattened noisy action chunk and the scalar timestep $\tau$, giving an input dimension of $5 + 16 + 1 = 22$. Training used the same optimizer and schedule as the MSE policy.
 
----
+<SectionDivider />
 
 <a id="results" />
 ## Results

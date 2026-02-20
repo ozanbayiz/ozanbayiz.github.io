@@ -14,7 +14,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         return (
             <button
                 className={cn(
-                    'h-7 w-7 flex items-center justify-center hover:text-accent transition-colors',
+                    'h-7 w-7 flex items-center justify-center hover:text-accent1 transition-colors',
                     className
                 )}
                 aria-label="Toggle theme"
@@ -30,7 +30,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         <button
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
             className={cn(
-                'h-7 w-7 flex items-center justify-center hover:text-accent transition-colors',
+                'h-7 w-7 flex items-center justify-center hover:text-accent1 transition-colors',
                 className
             )}
             aria-label={

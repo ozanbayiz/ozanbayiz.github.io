@@ -4,9 +4,7 @@ export const HUE_BOOTSTRAP_IIFE = `
     // Neon-leaning palette for vivid output
     var hues = [50, 90, 120, 140, 155, 170, 185, 200, 215, 235, 255, 270, 285, 300, 315, 330, 345];
     var H = hues[Math.floor(Math.random() * hues.length)];
-    var root = document.documentElement;
-    var isDark = root.classList.contains('dark');
-    function setVar(name, h, s, l){ root.style.setProperty(name, h+" "+s+"% "+l+"%"); }
+    var S = 100;
     function srgbToLinear(c){ return c <= 0.04045 ? c/12.92 : Math.pow((c+0.055)/1.055, 2.4); }
     function hslToRgb(h,s,l){
       var C=(1-Math.abs(2*l-1))*s, Hp=h/60, X=C*(1-Math.abs((Hp%2)-1));
@@ -15,37 +13,32 @@ export const HUE_BOOTSTRAP_IIFE = `
       var m=l-C/2; return [r+m,g+m,b+m];
     }
     function relativeLuminance(h, sPct, lPct){
-      var s=sPct/100, l=lPct/100; var rgb=hslToRgb(H, s, l);
+      var s=sPct/100, l=lPct/100; var rgb=hslToRgb(h, s, l);
       var R=srgbToLinear(rgb[0]), G=srgbToLinear(rgb[1]), B=srgbToLinear(rgb[2]);
       return 0.2126*R + 0.7152*G + 0.0722*B;
     }
-    function ensureContrast(h, sPct, initialLPct, darkMode){
+    function getL(darkMode){
       var minRatio=4.5;
       var targetYAgainstWhite=(1.0+0.05)/minRatio - 0.05;
       var targetYAgainstBlack=minRatio*0.05 - 0.05;
-      var low=0, high=100, l=initialLPct;
+      var low=0, high=100, l=darkMode ? 66 : 50;
       for(var i=0;i<14;i++){
-        var y=relativeLuminance(h, sPct, l);
+        var y=relativeLuminance(H, S, l);
         if(!darkMode){ if(y <= targetYAgainstWhite){ low=l; l=(l+high)/2; } else { high=l; l=(l+low)/2; } }
         else { if(y >= targetYAgainstBlack){ high=l; l=(l+low)/2; } else { low=l; l=(l+high)/2; } }
       }
       return Math.max(0, Math.min(100, l));
     }
-    var s=100;
-    var baseL=ensureContrast(H, s, isDark ? 66 : 50, isDark);
-    var lMain=isDark ? Math.max(baseL, 64) : baseL;
-    setVar('--accent', H, s, lMain);
-    var l2=Math.max(0, lMain - (isDark ? 8 : 12));
-    var l3=Math.min(100, lMain + (isDark ? 12 : 10));
-    var l4=Math.min(100, lMain + (isDark ? 24 : 18));
-    setVar('--accent2', H, s, l2);
-    setVar('--accent3', H, s, l3);
-    setVar('--accent4', H, s, l4);
-    var y=relativeLuminance(H, s, lMain);
-    var accentFg = y > 0.5 ? '0 0% 0%' : '0 0% 100%';
-    root.style.setProperty('--accent-foreground', accentFg);
-  } catch(_){
-  }
+    var lightL = getL(false);
+    var darkL = Math.max(getL(true), 64);
+    var lightFadedL = Math.max(0, lightL - 30);
+    var darkFadedL = Math.min(100, darkL + 30);
+    
+    var style = document.createElement('style');
+    style.id = 'dynamic-accents';
+    style.innerHTML = ":root { --accent1: "+H+" "+S+"% "+lightL+"%; --accent2: "+H+" "+S+"% "+lightFadedL+"%; } .dark { --accent1: "+H+" "+S+"% "+darkL+"%; --accent2: "+H+" "+S+"% "+darkFadedL+"%; }";
+    document.head.appendChild(style);
+  } catch(e) {}
 })();
 `
 

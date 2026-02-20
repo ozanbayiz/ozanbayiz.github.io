@@ -4,7 +4,6 @@ import ExportedImage from 'next-image-export-optimizer'
 import { useTheme } from 'next-themes'
 
 import { useMounted } from '@/hooks/useMounted'
-import { Section } from '@/shared/ui/section'
 
 const THEME_CONTENT = {
     dark: {
@@ -27,13 +26,13 @@ const OzanSection = () => {
         : THEME_CONTENT.light
 
     return (
-        <Section>
+        <section className="w-full flex flex-col py-6 md:py-8">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
                 <div className="col-span-1 flex flex-col justify-center text-left md:col-span-7">
-                    <h1 className="mb-4 text-center h1 sm:text-left">
+                    <h1 className="mb-4 text-center text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight sm:text-left">
                         Ozan Bayiz
                     </h1>
-                    <p className="body-text">
+                    <p className="text-sm leading-relaxed">
                         I&apos;m a fourth-year Regents&apos; and
                         Chancellor&apos;s Scholar at UC Berkeley studying
                         Computer Science. I&apos;m interested in exploring
@@ -44,7 +43,7 @@ const OzanSection = () => {
                         I&apos;m extremely grateful for
                         <a
                             href="https://people.eecs.berkeley.edu/~vongani_maluleke/"
-                            className="font-bold hover:text-accent"
+                            className="font-bold hover:text-accent1"
                         >
                             {' '}
                             Vongani Maluleke
@@ -66,12 +65,12 @@ const OzanSection = () => {
                             sizes="(max-width: 768px) 250px, 250px"
                         />
                     </div>
-                    <p className="body-text text-center text-muted-foreground">
+                    <p className="text-sm leading-relaxed text-center text-foreground">
                         {caption}
                     </p>
                 </div>
             </div>
-        </Section>
+        </section>
     )
 }
 

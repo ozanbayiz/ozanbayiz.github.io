@@ -21,7 +21,7 @@ $$
 \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{T} \nabla_\theta \log \pi_\theta(a_t \mid s_t) \, \hat{A}_t \right]
 $$
 
-where $\hat{A}_t$ is an advantage estimate. The choice of $\hat{A}_t$ controls the bias-variance tradeoff of the gradient estimate. This assignment explores four techniques for reducing variance:
+where $\hat{A}_t$ is an advantage estimate. The choice of $\hat{A}_t$ controls the bias-variance tradeoff of the gradient estimate. This project explores four techniques for reducing variance:
 
 1. **Reward-to-go**: replace the full trajectory return with $\hat{Q}_t = \sum_{t'=t}^{T} \gamma^{t'-t} r_{t'}$, removing credit for rewards before timestep $t$.
 2. **Advantage normalization**: standardize $\hat{A}_t$ to zero mean and unit variance across the batch.
@@ -36,6 +36,9 @@ $$
 
 <a id="cartpole" />
 ## Experiment 1: CartPole (Vanilla Policy Gradients)
+
+**Environment**: The goal is to balance a pole on a moving cart for as long as possible. The agent receives a reward of +1 for every step the pole remains upright.
+**Policy**: A simple Multi-Layer Perceptron (MLP) outputs a categorical distribution over discrete actions (move left or right).
 
 Eight configurations were evaluated on CartPole-v0, varying three binary factors: reward-to-go, advantage normalization, and batch size ($b = 1000$ vs. $b = 4000$).
 
@@ -60,6 +63,9 @@ Eight configurations were evaluated on CartPole-v0, varying three binary factors
 <a id="halfcheetah" />
 ## Experiment 2: HalfCheetah (Neural Network Baseline)
 
+**Environment**: The goal is to make a 2D simulated cheetah run forward as fast as possible. The agent receives rewards proportional to its forward velocity and is penalized for large control inputs.
+**Policy**: A fully connected neural network (MLP) models the mean of a Gaussian distribution over the continuous joint torque actions. The standard deviation is a learned parameter independent of the state.
+
 Three configurations were evaluated on HalfCheetah-v4: no baseline, baseline with 5 gradient steps per update (`-bgs 5`), and baseline with 1 gradient step (`-bgs 1`).
 
 <ImageGrid>
@@ -77,6 +83,9 @@ The reduced baseline run reaches a final eval return around $-50$, better than t
 
 <a id="lunarlander" />
 ## Experiment 3: LunarLander (Generalized Advantage Estimation)
+
+**Environment**: The objective is to safely navigate a lander to a landing pad at the origin. Rewards are given for moving from the top of the screen to the pad at zero speed, and penalties are applied for using the engines and crashing.
+**Policy**: An MLP network maps state observations to a categorical probability distribution over the discrete actions (fire main engine, fire left engine, fire right engine, or do nothing).
 
 Five values of $\lambda$ were evaluated on LunarLander-v2: $\{0, 0.95, 0.98, 0.99, 1\}$.
 
@@ -96,6 +105,9 @@ The best performance occurs at $\lambda \in [0.98, 0.99]$, which balances bias a
 
 <a id="pendulum" />
 ## Experiment 4: InvertedPendulum (Hyperparameter Tuning)
+
+**Environment**: A classic control task where the agent must balance an inverted pendulum by applying forces to a cart. Like CartPole, the reward is +1 for every step the pendulum is upright. Unlike CartPole, the action space (force) is continuous.
+**Policy**: The policy is modeled as a Gaussian distribution where a neural network predicts the mean action, and the standard deviation is learned independently.
 
 The goal was to find hyperparameters that reach a return of 1000 within 100 iterations on InvertedPendulum-v4.
 

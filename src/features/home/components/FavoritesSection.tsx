@@ -8,7 +8,6 @@ import { useState } from 'react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
-import { Section } from '@/shared/ui/section'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
 
 import { favoritesData, FavoriteItem } from '../data/favorites'
@@ -20,8 +19,8 @@ export default function FavoritesSection() {
 
     return (
         <TooltipProvider delayDuration={0}>
-            <Section className="space-y-4 overflow-hidden">
-                <h1 className="relative z-10 h1 text-center sm:text-left">Things I Like</h1>
+            <section className="w-full flex flex-col py-6 md:py-8 space-y-4 overflow-hidden">
+                <h1 className="relative z-10 text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight text-center sm:text-left">Things I Like</h1>
                 {/* MOVIES SUB-SECTION */}
                 {moviesCategory && (
                     <FavoritesSubSection
@@ -37,7 +36,7 @@ export default function FavoritesSection() {
                         type="music"
                     />
                 )}
-            </Section>
+            </section>
         </TooltipProvider>
     )
 }
@@ -76,10 +75,10 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
                 "space-y-2 relative z-10",
                 isMusic ? "text-right" : ""
             )}>
-                <h2 className="h2 text-black dark:text-white">{category.title}</h2>
+                <h2 className="text-xl font-bold sm:text-2xl md:text-3xl tracking-tight text-foreground">{category.title}</h2>
                 {category.description && (
                     <p className={cn(
-                        "body-text max-w-prose leading-relaxed",
+                        "text-sm leading-relaxed max-w-prose text-foreground",
                         isMusic && "ml-auto"
                     )}>{category.description}</p>
                 )}
@@ -115,12 +114,12 @@ function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean 
                     onClick={() => setIsOpen((prev) => !prev)}
                     onMouseLeave={() => setIsOpen(false)}
                     className={cn(
-                        'relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-300 hover:border-accent hover:shadow-[0_0_0_1px_hsl(var(--accent))]',
-                        'bg-neutral-100 dark:bg-neutral-800',
+                        'relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-300 hover:border-accent1 hover:shadow-[0_0_0_1px_hsl(var(--accent1))]',
+                        'bg-background',
                         // Fixed Dimensions
                         isMusic ? 'h-48 w-48' : 'h-64 w-40',
                         // Border fix
-                        'border-border/0 hover:border-accent'
+                        'border-foreground/0 hover:border-accent1'
                     )}
                 >
                     <ExportedImage
@@ -130,15 +129,14 @@ function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean 
                         className="object-cover"
                         sizes={isMusic ? '192px' : '160px'}
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 hover:opacity-10 transition-opacity" />
                 </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[200px] text-center">
                 <p className="font-bold italic">
-                    {item.title} <span className="not-italic text-xs text-muted-foreground">({item.year})</span>
+                    {item.title} <span className="not-italic text-xs text-foreground">({item.year})</span>
                 </p>
-                <p className="text-xs text-muted-foreground">{item.creator}</p>
-                {item.note && <p className="mt-1 text-xs text-accent">{item.note}</p>}
+                <p className="text-xs text-foreground">{item.creator}</p>
+                {item.note && <p className="mt-1 text-xs text-accent1">{item.note}</p>}
             </TooltipContent>
         </Tooltip>
     )

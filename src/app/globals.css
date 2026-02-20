@@ -9,93 +9,16 @@ body {
 @layer base {
     :root {
         --background: 0 0% 100%;
-        /* white */
         --foreground: 0 0% 0%;
-        /* black */
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 0%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 0%;
-        --primary: 0 0% 0%;
-        --primary-foreground: 0 0% 100%;
-        --secondary: 0 0% 100%;
-        --secondary-foreground: 0 0% 0%;
-        --muted: 0 0% 100%;
-        --muted-foreground: 0 0% 0%;
-        /* Light theme palette */
-        /* Primary accent: Electric indigo (#6F00FF) */
-        --accent: 266 100% 50%;
-        --accent-foreground: 0 0% 100%;
-        /* Secondary accent */
+        --accent1: 266 100% 50%;
         --accent2: 266 100% 24%;
-        /* Tertiary accent */
-        --accent3: 266 100% 72%;
-        /* Quaternary accent */
-        --accent4: 266 100% 84%;
-        --destructive: 0 100% 50%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 0 0% 0%;
-        --input: 0 0% 0%;
-        --ring: 0 0% 0%;
-        --chart-1: 0 0% 0%;
-        --chart-2: 0 0% 0%;
-        --chart-3: 0 0% 0%;
-        --chart-4: 0 0% 0%;
-        --chart-5: 0 0% 0%;
-        --radius: 0.5rem;
-        --sidebar-background: var(--background);
-        --sidebar-foreground: var(--foreground);
-        --sidebar-primary: var(--primary);
-        --sidebar-primary-foreground: var(--primary-foreground);
-        --sidebar-accent: var(--accent);
-        --sidebar-accent-foreground: var(--accent-foreground);
-        --sidebar-border: var(--border);
-        --sidebar-ring: var(--ring);
     }
 
     .dark {
         --background: 0 0% 0%;
-        /* black */
         --foreground: 0 0% 100%;
-        /* white */
-        --card: 0 0% 0%;
-        --card-foreground: 0 0% 100%;
-        --popover: 0 0% 0%;
-        --popover-foreground: 0 0% 100%;
-        --primary: 0 0% 100%;
-        --primary-foreground: 0 0% 0%;
-        --secondary: 0 0% 0%;
-        --secondary-foreground: 0 0% 100%;
-        --muted: 0 0% 0%;
-        --muted-foreground: 0 0% 100%;
-        /* Dark theme palette */
-        /* Primary accent: Electric indigo (#6F00FF) */
-        --accent: 266 100% 50%;
-        --accent-foreground: 0 0% 100%;
-        /* Secondary accent */
+        --accent1: 266 100% 50%;
         --accent2: 266 100% 72%;
-        /* Tertiary accent */
-        --accent3: 266 100% 24%;
-        /* Quaternary accent */
-        --accent4: 266 100% 40%;
-        --destructive: 0 100% 50%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 0 0% 100%;
-        --input: 0 0% 100%;
-        --ring: 0 0% 100%;
-        --chart-1: 0 0% 100%;
-        --chart-2: 0 0% 100%;
-        --chart-3: 0 0% 100%;
-        --chart-4: 0 0% 100%;
-        --chart-5: 0 0% 100%;
-        --sidebar-background: var(--background);
-        --sidebar-foreground: var(--foreground);
-        --sidebar-primary: var(--primary);
-        --sidebar-primary-foreground: var(--primary-foreground);
-        --sidebar-accent: var(--accent);
-        --sidebar-accent-foreground: var(--accent-foreground);
-        --sidebar-border: var(--border);
-        --sidebar-ring: var(--ring);
     }
 }
 
@@ -147,35 +70,7 @@ body {
     }
 }
 
-@layer components {
-    .h1 {
-        @apply text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight;
-    }
-
-    .h2 {
-        @apply text-xl font-bold sm:text-2xl md:text-3xl tracking-tight;
-    }
-
-    .h3 {
-        @apply text-lg font-semibold sm:text-xl md:text-2xl tracking-tight;
-    }
-
-    .subtitle {
-        @apply text-sm font-medium text-muted-foreground sm:text-base;
-    }
-
-    /* Standard body text class with responsive scaling */
-    .body-text {
-        @apply text-sm leading-relaxed;
-    }
-
-    /* Fixed small text class (your preference) */
-    .body-sm {
-        @apply text-sm leading-relaxed;
-    }
-}
-
-/* All MDX helper classes deprecated; intentionally left blank */
+/* Deprecated components removed */
 
 /* Generic utilities */
 .clamp-2 {

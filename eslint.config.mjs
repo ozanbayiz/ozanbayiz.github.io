@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url'
 import { FlatCompat } from '@eslint/eslintrc'
 import eslintPluginImport from 'eslint-plugin-import'
 import unusedImports from 'eslint-plugin-unused-imports'
+import oxlint from 'eslint-plugin-oxlint'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -54,7 +55,8 @@ const eslintConfig = [
                 }
             ]
         }
-    }
+    },
+    ...oxlint.configs['flat/recommended']
 ]
 
 export default eslintConfig
