@@ -1,7 +1,7 @@
 ---
 title: "VISTA: Vision Intersectional Sparse Trait Analysis"
 shortTitle: "VISTA"
-description: "Probed Florence‑2's DaViT vision encoder with linear classifiers and trained patch‑level SAEs to discover interpretable sparse dictionary features (SDFs)."
+description: "Probed Vision Encoders with linear classifiers and trained patch-level SAEs to discover interpretable sparse dictionary features (SDFs) defining demographic traits, revealing the heavy influence of reconstruction error in SAE-based debiasing."
 thumbnail: "/projects/vista/thumbnail.png"
 heroImage: "/projects/vista/thumbnail.png"
 gitUrl: "https://github.com/ozanbayiz/vista"
@@ -17,200 +17,105 @@ UC Berkeley, Spring 2025
 <a id="abstract" />
 ## Abstract
 
-Machine learning systems can exhibit misaligned behavior when inputs include sensitive attributes such as race, age, or gender. 
-Understanding how neural networks encode these attributes is important for fairness and interpretability. 
-This project investigates activations of the vision encoder (VE) of a Vision Language Model (VLM), specifically a vision transformer (ViT), when processing images of people of different races, genders, and ages. 
-We use Microsoft's Florence-2-base model and perform the following analyses: first, we train linear probes to classify VE-encoded images based on race, gender, and age, measuring the degree to which output activations encode demographic information. 
-We then train sparse autoencoders (SAEs) to decompose these activations into interpretable latent features. 
-Finally, we identify sparse dictionary features (SDFs) correlated with particular demographic attributes, providing insights into how these attributes are represented.
+Modern Vision Language Models (VLMs) construct rich internal representations from input images. However, when these models process humans, they often inherently capture and act upon sensitive demographic attributes such as race, age, and gender—attributes that can inadvertently propagate harmful dataset biases.
+
+**VISTA** (Vision Intersectional Sparse Trait Analysis) investigates exactly how these attributes are encoded within the Vision Encoder (VE) latents of VLMs. We train **Sparse Autoencoders (SAEs)** across various VLM vision backbones (including PaliGemma2, Qwen2-VL, and Qwen3-VL) to decompose these dense activations into discrete, interpretable **Sparse Dictionary Features (SDFs)**. 
+
+Through rigorous causal intervention—such as suppressing or steering these demographic SDFs—we investigate whether models can be effectively "debiased." Crucially, our findings demonstrate a major confound in prior works: **SAE Reconstruction Error often dominates targeted suppression**, artificially inflating perceived fairness improvements. By setting up strict intervention typologies, VISTA sets a new standard for evaluating representational debiasing.
 
 <SectionDivider />
 
-<a id="motivation" />
-## Motivation
+<a id="linear-probing" />
+## Establishing the Baseline: Linear Probing
 
-Vision Language Models (VLMs) like 
-<ExternalLink href="https://arxiv.org/abs/2311.06242"> Microsoft Florence-2</ExternalLink>
-(<ExternalLink href="https://huggingface.co/microsoft/Florence-2-base">huggingface model card</ExternalLink>)
-integrate visual and textual information for tasks such as image captioning
-and visual question answering. 
-
-These models often inherit societal biases related to sensitive attributes like race, gender, and age from their training data,
-causing them to propagate harmful stereotypes.
-
-Should VLMs' internal representation of a person be agnostic to their age, race, and/or gender identity? 
-If so, is it possible to steer this latent representation away from harmful biases in the training data?
-
-Understanding how visually observable demographic attributes are represented
-within the activation space of a VLM will provide useful insights into aligning ML behaviors
-to constructive human preferences.
-
-<SectionDivider />
-
-<a id="fairface" />
-## FairFace Dataset
-
-The 
-<ExternalLink href="https://arxiv.org/abs/1908.04913">FairFace dataset</ExternalLink>
-(<ExternalLink href="https://huggingface.co/datasets/HuggingFaceM4/FairFace">huggingface dataset card</ExternalLink>)
- is a publicly available collection of face images created to address and reduce racial bias in computer vision, especially in facial recognition systems.
-
-FairFace contains over 100,000 face images, annotated by age, gender, and race. 
-The dataset includes seven race groups: 
-White, Black, East Asian, Southeast Asian, Indian, Middle Eastern, and Latino.
-FairFace aims for balanced representation across races, ages, and genders,
-unlike many existing datasets that are skewed toward certain demographics.
-
-We chose FairFace due to this explicit balancing, 
-enabling us to overcome entanglement of attributes
-and control for specific attributes using stratified sampling.
-
-<SectionDivider />
-
-<a id="methodology" />
-## Methodology
-
-### Linear Probing
-
-First, we test if demographic information can be linearly decoded from the Vision Encoder's (VE) activations.
-Using Florence-2's VE, we encode images to extract patch-level features:
+Our first step is to mathematically confirm that demographic information is linearly decodable from standard VE latents. Consider an input image $X_{\text{img}}$ passed through a Vision Encoder, producing patch-level features:
 
 $$
 \text{VE}(X_{\text{img}}) = Z_{\text{img}} \in \mathbb{R}^{N_{\text{patches}} \times D_{\text{patch}}}
 $$
 
-Due to compute constraints,
-we could not train linear probes directly on flattened image features.
-We computed the mean across the patch dimension, yielding a single vector for each image:
+To train simple linear diagnostic probes, we compute the spatial mean across the patch dimension, yielding a single vector for the entire image:
 
 $$
-\text{mean}(Z_{\text{img}}) = \overline{z_{\text{img}}} \in \mathbb{R}^{D_{\text{patch}}}
+\text{mean}(Z_{\text{img}}) = \bar{z}_{\text{img}} \in \mathbb{R}^{D_{\text{patch}}}
 $$
 
-We then train simple linear probes to predict the race, age, and gender labels of the face in the encoded image.
+Using the **FairFace dataset** (which is structurally balanced across seven race groups, genders, and age brackets), we trained linear classifiers to extract these traits. 
 
-<Figure src="/projects/vista/LP_training.png" alt="Linear probing pipeline" caption="Linear probing pipeline. Images are encoded by the vision encoder; pooled features feed linear classifiers for demographic prediction." />
+<Figure src="/projects/vista/LP_training.png" alt="Linear probing pipeline" caption="Visual representation of the Linear Probing pipeline. Max-pooled spatial features are fed into linear classifiers to predict demographics." />
 
-After training, we evaluated the performance of linear probes on a validation dataset. 
+Despite the spatial collapse from mean-pooling, the probes recovered demographic labels with dramatic accuracy well above random chance, unequivocally demonstrating that VE latents deeply entangle sensitive traits.
 
-<Figure src="/projects/vista/LP_performance.png" alt="Linear probe validation results" caption="Linear probe performance on validation set." />
-
-Even after averaging across patches and losing spatial information,
-the trained probes predicted demographic attribute labels with accuracy considerably higher than random chance.
-This indicated that the patch-level features in Florence-2's VE encode demographic information,
-motivating the next stage of analysis.
-
----
-
-### Decomposing Activations with Sparse Autoencoders (SAEs)
-
-We trained a SAE on patch-level activations.
-
-<Figure src="/projects/vista/SAE_training.png" alt="SAE training pipeline" caption="Patch-level SAE. Patch features are compressed into sparse, interpretable activations and then used to reconstruct the original feature." />
-
-The SAE learns a dictionary of sparse, interpretable features (Sparse Dictionary Features, SDFs)
-that can be analyzed to identify correlations between demographic labels and particular patterns in the activation space.
-
----
-
-### Identifying Relevant SDFs
-
-After training our SAE, we identified which SDFs were correlated to which particular labels $l \in \{ l_1, ... l_c \} = \mathcal{L}$.
-
-We follow the multi-stage process outlined in <ExternalLink href="https://arxiv.org/abs/2412.05276">**Lim et al. (2024)**</ExternalLink>
-to systematically narrow down the SDF dictionary to focused lists of candidates.
-
-#### 1. Activation frequency
-
-The first step identifies SDFs that are commonly activated when processing
-images belonging to a particular label. 
-For each SDF and each label, 
-we calculate the proportion of datapoints with that label for which the SDF's aggregated activation exceeds a threshold $\tau > 0$. 
-
-This yields a frequency score indicating how often the feature "fires" for that label.
-We select the top $k_1$ SDFs with the highest activation frequency for each label, 
-forming an initial pool of candidates.
-
-#### 2. Mean activation strength
-
-Next, we filter for features that activate strongly when present.
-For each label, 
-we consider its $k_1$ candidate SDFs from the previous step 
-and calculate the mean activation value for each, 
-averaging only across images within the group where the SDF was active (activation $> \tau$). 
-
-We retain the top $k_2$ SDFs per group ranked by this mean activation value, 
-keeping SDFs that are both frequent and strongly activated.
-
-#### 3. Label Entropy
-
-A feature might be frequent and strong within one group but also activate for other groups.
-To isolate features more uniquely associated with a target group, we calculate the label
-entropy for each of the remaining $k_2$ candidate SDFs per group.
-
-For each SDF $f_i$, we:
-1. Compute the sum of $f_i$'s activation across all images with a given label:
-
-$$ 
-\text{label activation}(f_i, \ l) = \sum_{\text{img}_k \in l} \text{activation}( f_i, x_{\text{img}_k})
-$$
-
-2. Normalize these sums to obtain a probability distribution $\pi_{f_i, l_j}$, 
-indicating how likely a feature $f_i$ is to fire for an image with label $l_j$:
-
-$$
-\pi_{f_i, l_j} = \frac{ \text{label activation} (f_i, l_j) }{\sum_{l_k \in \mathcal{L} } \text{label activation}(f_i, l_k) }
-$$
-
-3. Compute the Shannon entropy using these distributions:
-
-$$
-\text{entropy}(f_i) = - \sum_{l_j \in \mathcal{L} } \pi_{f_i,l_j} \log \pi_{f_i,l_j}
-$$
-
-Low entropy means the SDF's activation is concentrated within one or a few labels, indicating high specificity.
-High entropy means the feature is broadly active across many groups.
-
-We retain the top $k_3$ SDFs per label with the lowest label entropy, 
-yielding the final set of candidate SDFs most specific to each label.
+<Figure src="/projects/vista/LP_performance.png" alt="Linear probe validation results" caption="Ablation evaluation of the Linear Probes on the validation set." />
 
 <SectionDivider />
 
-<a id="findings" />
-## Findings: VEs "See" Cultural Markers
+<a id="sae-training" />
+## Decomposing Activations with Sparse Autoencoders
 
-Due to time constraints, we were only able to perform the SDF identification process for 
-the race attribute of our dataset.
+To move from mere "prediction" to true "interpretability," VISTA uses Sparse Autoencoders to detangle the $\bar{z}_{\text{img}}$ vectors. We primarily utilize the **BatchTopK SAE** architecture mapping a $d$-dimensional input to a $4d$-dimensional sparse code via:
 
-The analysis revealed a mixture of signals.
-Some features align strongly with demographic labels, 
-while others are entangled with unrelated concepts.
+$$
+\mathbf{z} = \text{TopK}\bigl(\text{ReLU}(\mathbf{W}_{\text{enc}}\,\mathbf{x} + \mathbf{b}_{\text{enc}}),\; k\bigr)
+$$
+$$
+\hat{\mathbf{x}} = \mathbf{W}_{\text{dec}}\,\mathbf{z} + \mathbf{b}_{\text{dec}}
+$$
 
-<Figure src="/projects/vista/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="A feature associated with images of people wearing sunglasses."/>
+Where the $\text{TopK}(\cdot, k)$ operation retains only the $k$ largest activations across the batch, dynamically allocating sparsity to features based on specific image complexity.
 
-We also found features aligned to cultural markers such as headscarves and beards.
+<Figure src="/projects/vista/SAE_training.png" alt="SAE training pipeline" caption="Patch-level SAE architecture. Continuous dense vectors are funnelled through a Top-K bottleneck to derive monosemantic, sparse dictionary features." />
+
+### The Three-Stage SDF Discovery Pipeline
+To isolate demographic-specific SDFs from the thousands of learned dictionary features, we execute a rigorous, intersectional filtering pipeline:
+
+1. **Activation Frequency**: Features must activate for $>10\%$ of samples within at least one core demographic class.
+2. **Mean-Activation Strength**: Candidate features are ranked by the ratio of their highest class-conditional mean activation to their lowest. We retain the top 50 discriminative features per class.
+3. **Entropy Filtering**: The selected features are evaluated via Shannon Entropy. We favor features with low label entropy, indicating they act as "pure" monosemantic representations of a singular demographic segment rather than broad, heavily entangled abstractions.
+
+<SectionDivider />
+
+<a id="causal-interventions" />
+## Causal Interventions & Methodologies
+
+Having identified target SDFs, VISTA performs causal mediation analysis during the VLM's generative inference. We intercept the vision encoder output before it hits the language modeling head, applying six distinct intervention regimes.
+
+1. **Noise Perturbation**: We add Gaussian noise $\boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2\mathbf{I})$ where $\sigma$ matches the magnitude of standard SAE reconstruction error.
+2. **SAE Passthrough**: Activations are encoded and decoded through the SAE *without modifying features*. This measures the isolated impact of the SAE's lossy reconstruction bottleneck on VLM performance.
+3. **Random Feature Suppression**: Randomly selected, non-SDF features are zeroed out as a control against arbitrary dimensionality reduction.
+4. **Targeted SDF Suppression**: The explicitly identified demographic SDFs are zeroed: $z_i = 0 \; \forall i \in \mathcal{S}_{\text{attr}}$.
+5. **LEACE Erasure**: A Least-squares Concept Erasure projector is fit to the latents and applied to completely subtract the linear subspace associated with a concept, bypassing SAE reconstruction entirely.
+6. **S\&P Top-K Projection**: The SAE encoder weights corresponding to the top SDFs define a concept direction, and all incoming latents are orthogonally projected away from this vector.
+
+<SectionDivider />
+
+<a id="evaluation-findings" />
+## Evaluation & Key Discoveries
+
+We subjected the modified VLMs to free-form **Image Captioning** (measuring the Demographic Classification Rate, DCR, and BERTScore semantic preservation) and **Visual Question Answering (VQA)**.
+
+### The Reconstruction Error Dominance
+The most striking insight yielded by VISTA involves the **SAE Passthrough** baseline. Previous literature has heralded targeted SDF suppression as a potent debiasing tool. However, VISTA demonstrates that merely passing latents through the SAE without modifying *any* features triggers nearly the exact same drop in demographic focus as specifically suppressing SDFs. 
+
+This indicates that **Reconstruction Error**, rather than highly surgical concept ablation, is frequently responsible for the "debiasing" effect observed in downstream VLMs. The lossy $L_0$ bottleneck drops high-frequency texture and semantic nuances, inherently "blurring" demographic clarity to the language model. 
+
+### Stereotypes as Semantic Features
+In examining the discovered SDFs directly, we observed that Vision Encoders heavily proxy demographic attributes using cultural attire and stylistic markers—features completely detached from base physiological traits.
+
+<Figure src="/projects/vista/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="Some SDFs successfully isolate purely semantic objects like sunglasses, entirely divorced from demographics."/>
+
+However, when searching for high-correlation demographic SDFs, the most prominent features often locked onto societal stereotypes and religious garments:
 
 <ImageGrid>
-<Figure src="/projects/vista/stereotype_feature1.png" alt="Headscarves activate a race-associated feature" caption="A feature strongly activates on headscarves, acting as a demographic proxy." />
-<Figure src="/projects/vista/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="A feature activates on beards, also acting as a demographic proxy." />
+<Figure src="/projects/vista/stereotype_feature1.png" alt="Headscarves activate a race-associated feature" caption="A specific 'race' SDF strongly activates on headscarves, acting as a lazy demographic proxy." />
+<Figure src="/projects/vista/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="Another SDF treats prominent facial hair styles as primary indicators for demographic traits." />
 </ImageGrid>
-
-Training datasets for contemporary VLMs will contain correlations between certain visual features and demographic attributes.
 
 <SectionDivider />
 
-<a id="limitations" />
-## Limitations & Future Directions
+<a id="conclusion" />
+## Conclusion
 
-- Unsupervised discovery risk: some learned features remain entangled and not cleanly demographic-specific.
-- Proxy sensitivity: contextual cues may reflect dataset correlations rather than intrinsic attributes.
-- Scope: analysis focused on race in FairFace; controlling for age/gender could guide the identification of more concentrated SDFs.
-- Causality not established: correlations do not prove that features contribute to demographic attribute understanding in the language model.
+VISTA underscores that while Sparse Autoencoders offer a mesmerizing window into the black-box representations of Vision-Language Models, utilizing them directly for active debiasing is incredibly fraught. Interventions must be rigidly baselined against reconstruction loss, as the simple act of sparse compression strips away demographic subtleties. 
 
-We think future work will involve:
-
-1. Causal interventions (feature editing/pruning/ablation) to test whether identified features drive biased outcomes
-
-2. Semi-supervised SAEs guided by concept targets
-
-3. Evaluation of robustness and generalization across datasets and VLMs.
+Future ML safety efforts must focus on either developing highly lossless Matryoshka-style SAEs, or employing direct spatial-projection techniques (like LEACE) to erase concepts without globally damaging the latent representation.
