@@ -11,7 +11,7 @@ const TopAscii = () => {
 
     return (
         <div
-            className='align-center flex flex-wrap items-center justify-around text-2xs font-normal leading-tight hover:cursor-pointer hover:text-accent1 lg:text-sm lg:leading-tight'
+            className='align-center flex flex-wrap items-center justify-around font-mono text-2xs font-normal leading-tight hover:cursor-pointer hover:text-accent1 lg:text-sm lg:leading-tight'
             onClick={toggleTheme}
         >
             <pre className='mb-4 mr-4 text-bold'>

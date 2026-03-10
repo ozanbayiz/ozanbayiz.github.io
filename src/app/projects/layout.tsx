@@ -5,10 +5,6 @@ export default function ProjectsLayout({
 }: {
   children: React.ReactNode
 }) {
-  return (
-      <section className='container mx-auto space-y-8 px-4'>
-          {children}
-      </section>
-  )
+  return <>{children}</>
 }
 

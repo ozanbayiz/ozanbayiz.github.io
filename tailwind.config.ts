@@ -18,6 +18,10 @@ export default {
             padding: '1rem'
         },
         extend: {
+            fontFamily: {
+                sans: ['var(--font-jetbrains-mono)', 'monospace'],
+                mono: ['var(--font-jetbrains-mono)', 'monospace'],
+            },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',

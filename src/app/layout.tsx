@@ -1,11 +1,16 @@
 import './globals.css'
 
-import { JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
 import { Providers } from '@/app/providers'
 import { HUE_BOOTSTRAP_IIFE } from '@/lib/hue-script'
 
 import type { Metadata } from 'next'
+
+const inter = Inter({
+    variable: '--font-inter',
+    subsets: ['latin']
+})
 
 const jetBrainsMono = JetBrains_Mono({
     variable: '--font-jetbrains-mono',
@@ -47,7 +52,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
+            <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
                 <script dangerouslySetInnerHTML={{ __html: HUE_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>

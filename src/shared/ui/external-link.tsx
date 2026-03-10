@@ -7,6 +7,7 @@ import type { AnchorHTMLAttributes } from 'react'
 type ExternalLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
     href: string
     newTab?: boolean
+    icon?: boolean
 }
 
 export default function ExternalLink({
@@ -14,6 +15,7 @@ export default function ExternalLink({
     children,
     className,
     newTab = true,
+    icon,
     ...rest
 }: ExternalLinkProps) {
     const rel = newTab ? 'noopener noreferrer' : undefined
@@ -24,7 +26,7 @@ export default function ExternalLink({
             href={href}
             target={target}
             rel={rel}
-            className={cn('transition-colors hover:text-accent1', className)}
+            className={cn(icon ? 'transition-colors hover:text-accent1' : 'gradient-link', className)}
             {...rest}
         >
             {children}

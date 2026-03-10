@@ -26,7 +26,7 @@ export function ReadingProgressBar() {
 
     return (
         <div
-            className='absolute bottom-0 left-2 right-2 h-[1px]'
+            className='fixed top-12 left-0 w-full h-[2px] z-50'
             role='progressbar'
             aria-valuenow={Math.round(progress)}
             aria-valuemin={0}
@@ -34,7 +34,7 @@ export function ReadingProgressBar() {
             aria-label='Reading progress'
         >
             <div
-                className='h-full bg-accent transition-all duration-150 ease-out'
+                className='h-full bg-gradient-to-r from-[hsl(226,100%,50%)] via-[hsl(266,100%,50%)] to-[hsl(306,100%,50%)] transition-all duration-150 ease-out'
                 style={{ width: `${progress}%` }}
             />
         </div>

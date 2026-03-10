@@ -1,34 +1,42 @@
+import HeroSection from '@/features/home/components/HeroSection'
 import LazyFavoritesSection from '@/features/home/components/LazyFavoritesSection'
 import OzanSection from '@/features/home/components/OzanSection'
 import ProjectSection from '@/features/home/components/ProjectSection'
-import ResearchSection from '@/features/home/components/ResearchSection'
-import SocialLinks from '@/features/home/components/SocialLinks'
-import TopAscii from '@/features/home/components/TopAscii'
+import Section from '@/features/home/components/Section'
 
 export default function Home() {
     return (
-        <div className='container mx-auto flex max-w-screen-lg flex-col items-center justify-center px-6 py-8 md:px-8 md:py-12' style={{ ['--inset-x' as unknown as string]: '1rem' }}>
-            {/* ascii art*/}
-            <TopAscii />
-            <hr className="w-full my-8 border-foreground" />
+        <>
+            <HeroSection />
 
-            <SocialLinks />
-            <hr className="w-full my-8 border-foreground" />
+            <main className="relative">
+                <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
+                <Section id="about">
+                    <OzanSection />
+                </Section>
 
-            <OzanSection />
-            <hr className="w-full my-8 border-foreground" />
+                <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
+                <Section id="projects">
+                    <ProjectSection />
+                </Section>
 
-            <ProjectSection />
-            <hr className="w-full my-8 border-foreground" />
+                <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
+                <Section id="favorites" className="pb-8 md:pb-10">
+                    <LazyFavoritesSection />
+                </Section>
 
-            <ResearchSection />
-            <hr className="w-full my-8 border-foreground" />
-
-            <LazyFavoritesSection />
-
-            <footer className='py-8 text-xs text-foreground'>
-                Ozan Bayiz, {new Date().getFullYear()}
-            </footer>
-        </div>
+                <footer className="py-16 md:py-20 text-center">
+                    <div className="container mx-auto max-w-screen-lg px-6 md:px-8">
+                        <div className="h-px w-full bg-foreground mb-16" />
+                        <p className="text-xs text-foreground">
+                            ozanbayiz {new Date().getFullYear()}
+                            <span className="animate-blink ml-1">
+                                _
+                            </span>
+                        </p>
+                    </div>
+                </footer>
+            </main>
+        </>
     )
 }

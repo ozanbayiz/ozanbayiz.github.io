@@ -44,7 +44,15 @@ export default function ProjectCard(props: ProjectCardProps) {
     const displayImage = imageUrl ?? heroImageSrc ?? '/logo512.png'
 
     return (
-        <div className={cn('group relative flex h-full flex-col overflow-hidden rounded-lg border bg-background text-foreground transition-colors hover:border-accent1 hover:bg-transparent', className)}>
+        <div className={cn(
+            'group relative flex h-full flex-col overflow-hidden border bg-background text-foreground',
+            'transition-all duration-300',
+            'hover:-translate-y-2 hover:glow-accent-sm gradient-border-hover',
+            className
+        )}>
+            {/* Accent line sweep */}
+            <div className="absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 bg-accent1 transition-transform duration-500 group-hover:scale-x-100" />
+
             <Link
                 href={resolvedHref}
                 prefetch={false}
@@ -53,29 +61,29 @@ export default function ProjectCard(props: ProjectCardProps) {
             />
 
             {/* Thumbnail */}
-            <div className='relative w-full aspect-video overflow-hidden bg-muted/50 border-b'>
+            <div className='relative w-full aspect-video overflow-hidden border-b'>
                 <ExportedImage
                     src={displayImage}
                     alt={title}
                     fill
-                    className='object-cover transition-transform duration-300 group-hover:scale-105'
+                    className='object-cover transition-transform duration-500 group-hover:scale-110'
                     sizes='(max-width: 768px) 100vw, 50vw'
                 />
             </div>
 
             {/* Content */}
-            <div className='flex min-w-0 flex-1 flex-col gap-1.5 p-4'>
-                <h3 className='line-clamp-2 text-lg font-semibold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
+            <div className='flex min-w-0 flex-1 flex-col gap-2 p-5'>
+                <h3 className='line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
                 <p className='line-clamp-2 text-sm leading-relaxed flex-1 text-foreground'>
                     {displayDescription}
                 </p>
                 {(gitUrl || pdfUrl) && (
-                    <div className='relative z-20 flex gap-2 pt-1'>
+                    <div className='relative z-20 flex gap-2 pt-2 md:opacity-0 md:translate-y-2 transition-all duration-300 md:group-hover:opacity-100 md:group-hover:translate-y-0'>
                         {pdfUrl && (
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='h-7 gap-1.5'
+                                className='h-7 gap-1.5 transition-all duration-200 hover:border-accent1 hover:glow-accent-sm'
                                 onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
@@ -90,7 +98,7 @@ export default function ProjectCard(props: ProjectCardProps) {
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='h-7 gap-1.5'
+                                className='h-7 gap-1.5 transition-all duration-200 hover:border-accent1 hover:glow-accent-sm'
                                 onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()

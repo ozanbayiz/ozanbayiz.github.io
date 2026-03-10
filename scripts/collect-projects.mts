@@ -7,8 +7,8 @@ const CONTENT_DIR = path.join(ROOT, 'src/content/projects')
 const PROJECTS_OUT = path.join(ROOT, 'src/features/projects/data/projects.generated.ts')
 const REGISTRY_OUT = path.join(ROOT, 'src/content/projects/registry.generated.ts')
 
-const COURSE_COLLECTIONS = new Set(['cs180', 'cs184', 'cs185', 'cs280'])
-const VALID_COLLECTIONS = new Set(['cs180', 'cs184', 'cs185', 'cs280', 'personal', 'misc-academic'])
+const COURSE_COLLECTIONS = new Set(['cs185', 'cs280'])
+const VALID_COLLECTIONS = new Set(['cs185', 'cs280', 'personal', 'misc-academic'])
 
 type Frontmatter = {
     title: string

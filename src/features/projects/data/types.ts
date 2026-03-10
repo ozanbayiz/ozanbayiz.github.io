@@ -1,4 +1,4 @@
-export type Collection = 'cs180' | 'cs184' | 'cs185' | 'cs280' | 'personal' | 'misc-academic'
+export type Collection = 'cs185' | 'cs280' | 'personal' | 'misc-academic'
 
 export type Project = {
     collection: Collection
@@ -18,7 +18,7 @@ export type Project = {
     hideHero?: boolean
 }
 
-export const COURSE_COLLECTIONS = new Set<string>(['cs180', 'cs184', 'cs185', 'cs280'])
+export const COURSE_COLLECTIONS = new Set<string>(['cs185', 'cs280'])
 
 export function deriveSlug(collection: string, filename: string): string {
     if (COURSE_COLLECTIONS.has(collection)) return `${collection}-${filename}`

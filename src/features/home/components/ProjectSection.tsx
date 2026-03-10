@@ -1,44 +1,61 @@
+'use client'
+
 import Link from 'next/link'
 
+import { Reveal } from '@/components/common/Reveal'
 import { projectsData } from '@/features/projects'
-import ProjectCard from '@/features/projects/components/ProjectCard'
-import { Button } from '@/shared/ui/button'
 
 export default function ProjectSection() {
+    const featured = [...projectsData]
+        .filter(p => p.featured)
+        .sort(
+            (a, b) =>
+                (Date.parse(b.date ?? '') || 0) -
+                (Date.parse(a.date ?? '') || 0)
+        )
+
     return (
-        <section className="w-full flex flex-col py-6 md:py-8">
-            <div className='grid grid-cols-1 justify-stretch gap-8'>
-                <div className='text-center sm:text-left'>
-                    <div className='mb-4 flex items-center justify-between gap-2'>
-                        <h1 className='text-xl font-bold sm:text-2xl md:text-3xl tracking-tight'>Featured Projects</h1>
-                        <Button variant='outline' size='sm' asChild>
-                            <Link href='/projects/' prefetch={false}>
-                                all projects
-                            </Link>
-                        </Button>
-                    </div>
-                    <ul className='mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                        {[...projectsData]
-                            .filter(p => p.featured)
-                            .sort((a, b) => (Date.parse(b.date ?? '') || 0) - (Date.parse(a.date ?? '') || 0))
-                            .map((project, index) => (
-                                <li key={index}>
-                                    <ProjectCard
-                                        slug={project.slug}
-                                        title={project.title}
-                                        description={project.description}
-                                        imageUrl={project.imageUrl}
-                                        gitUrl={project.gitUrl}
-                                        pdfUrl={project.pdfUrl}
-                                        date={project.date}
-                                    />
-                                </li>
-                            ))}
-                    </ul>
+        <div className="w-full">
+            <Reveal>
+                <div className="mb-4 flex items-baseline justify-between">
+                    <h2 className="text-sm font-bold uppercase tracking-widest">
+                        Projects
+                    </h2>
+                    <Link
+                        href="/projects/"
+                        prefetch={false}
+                        className="gradient-link text-xs"
+                    >
+                        all &rarr;
+                    </Link>
                 </div>
+            </Reveal>
+
+            <div className="border-t">
+                {featured.map((project, i) => (
+                    <Reveal key={project.slug} delay={i * 60}>
+                        <Link
+                            href={`/projects/${project.slug}/`}
+                            prefetch={false}
+                            className="group flex items-baseline justify-between gap-4 border-b py-3"
+                        >
+                            <span className="gradient-link-group text-sm">
+                                {project.title}
+                            </span>
+                            <span className="shrink-0 text-xs text-foreground">
+                                {project.date
+                                    ? new Date(
+                                          project.date
+                                      ).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          year: 'numeric'
+                                      })
+                                    : ''}
+                            </span>
+                        </Link>
+                    </Reveal>
+                ))}
             </div>
-        </section>
+        </div>
     )
 }
-
-

@@ -1,8 +1,8 @@
-import { Button } from '@/shared/ui/button'
 import ExternalLink from '@/shared/ui/external-link'
 
 export type HeaderProps = {
     title: string
+    description?: string | undefined
     repoUrl: string
     date?: string | undefined
     authors?: string[] | undefined
@@ -12,6 +12,7 @@ export type HeaderProps = {
 
 export default function ProjectHeader({
     title,
+    description,
     repoUrl,
     date,
     authors,
@@ -20,41 +21,29 @@ export default function ProjectHeader({
 }: HeaderProps) {
     return (
         <div className='space-y-4'>
-            <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                <h1 className='text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight leading-tight'>{title}</h1>
-                <div className='flex shrink-0 items-center gap-2'>
-                    {demoUrl ? (
-                        <ExternalLink href={demoUrl} aria-label='View demo'>
-                            <Button variant='outlineAccent' size='sm'>
-                                Demo
-                            </Button>
-                        </ExternalLink>
-                    ) : null}
-                    {pdfUrl ? (
-                        <ExternalLink href={pdfUrl} aria-label='View PDF'>
-                            <Button variant='outlineAccent' size='sm'>
-                                View PDF
-                            </Button>
-                        </ExternalLink>
-                    ) : null}
-                    <ExternalLink href={repoUrl} aria-label='View repository'>
-                        <Button variant='outlineAccent' size='sm'>
-                            View repo
-                        </Button>
-                    </ExternalLink>
-                </div>
-            </div>
-            {(date || authors?.length) ? (
-                <div className='flex flex-wrap items-center gap-2 text-xs text-foreground'>
-                    {date ? <time dateTime={date}>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time> : null}
-                    {date && authors?.length ? <span>·</span> : null}
-                    {authors?.length ? (
-                        <span>{authors.join(' · ')}</span>
-                    ) : null}
-                </div>
+            <h1 className='text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight leading-tight'>{title}</h1>
+            {description ? (
+                <p className='text-sm leading-relaxed text-foreground'>{description}</p>
             ) : null}
+            {(date || authors?.length) ? (
+                <p className='text-sm text-foreground'>
+                    {date ? (
+                        <time dateTime={date}>{'// '}{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+                    ) : null}
+                    {authors?.length ? (
+                        <span>{' // '}{authors.join(', ')}</span>
+                    ) : null}
+                </p>
+            ) : null}
+            <div className='flex flex-wrap items-center gap-3'>
+                <ExternalLink href={repoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'>[view repo]</ExternalLink>
+                {pdfUrl ? (
+                    <ExternalLink href={pdfUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'>[view pdf]</ExternalLink>
+                ) : null}
+                {demoUrl ? (
+                    <ExternalLink href={demoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'>[demo]</ExternalLink>
+                ) : null}
+            </div>
         </div>
     )
 }
-
-

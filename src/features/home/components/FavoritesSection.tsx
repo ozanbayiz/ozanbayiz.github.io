@@ -4,93 +4,113 @@ import AutoScroll from 'embla-carousel-auto-scroll'
 import useEmblaCarousel from 'embla-carousel-react'
 import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import ExportedImage from 'next-image-export-optimizer'
-import { useState } from 'react'
+import { useCallback } from 'react'
 
 import { useIsMobile } from '@/hooks/use-mobile'
+import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { cn } from '@/lib/utils'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
 
 import { favoritesData, FavoriteItem } from '../data/favorites'
 
 export default function FavoritesSection() {
-    // Explicitly separate data
     const moviesCategory = favoritesData.find(c => c.title === 'Movies')
     const musicCategory = favoritesData.find(c => c.title === 'Music')
 
     return (
-        <TooltipProvider delayDuration={0}>
-            <section className="w-full flex flex-col py-6 md:py-8 space-y-4 overflow-hidden">
-                <h1 className="relative z-10 text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight text-center sm:text-left">Things I Like</h1>
-                {/* MOVIES SUB-SECTION */}
-                {moviesCategory && (
-                    <FavoritesSubSection
-                        category={moviesCategory}
-                        type="movies"
-                    />
-                )}
-
-                {/* MUSIC SUB-SECTION */}
-                {musicCategory && (
-                    <FavoritesSubSection
-                        category={musicCategory}
-                        type="music"
-                    />
-                )}
-            </section>
-        </TooltipProvider>
+        <div className="w-full flex flex-col space-y-6 overflow-hidden">
+            <h2 className="text-sm font-bold uppercase tracking-widest">Things I Like</h2>
+            <div className="h-px w-full bg-foreground" />
+            {moviesCategory && (
+                <FavoritesSubSection
+                    category={moviesCategory}
+                    type="movies"
+                />
+            )}
+            <div className="h-px w-full bg-foreground" />
+            {musicCategory && (
+                <FavoritesSubSection
+                    category={musicCategory}
+                    type="music"
+                />
+            )}
+        </div>
     )
 }
 
 function FavoritesSubSection({ category, type }: { category: typeof favoritesData[0], type: 'movies' | 'music' }) {
     const isMusic = type === 'music'
     const isMobile = useIsMobile()
+    const prefersReducedMotion = usePrefersReducedMotion()
 
-    // Configuration specific to type
     const direction = isMusic ? 'backward' : 'forward'
-    const speed = 0.6 // Adjust for velocity
+    const speed = 0.4
 
-    const [emblaRef] = useEmblaCarousel(
-        {
-            loop: true,
-            dragFree: true
-        },
-        [
-            AutoScroll({
-                playOnInit: true,
-                stopOnInteraction: false,
-                stopOnMouseEnter: !isMobile,
-                speed,
-                direction,
-                startDelay: 0 // Delay in ms before scrolling resumes after drag
-            }),
-            // Enable two-finger trackpad scrolling on desktop
-            ...(!isMobile ? [WheelGesturesPlugin({ forceWheelAxis: 'x' })] : [])
-        ]
+    const plugins = [
+        ...(!prefersReducedMotion ? [AutoScroll({
+            playOnInit: true,
+            stopOnInteraction: false,
+            stopOnMouseEnter: !isMobile,
+            speed,
+            direction,
+            startDelay: 500
+        })] : []),
+        ...(!isMobile ? [WheelGesturesPlugin({ forceWheelAxis: 'x' })] : [])
+    ]
+
+    const [emblaRef, emblaApi] = useEmblaCarousel(
+        { loop: true, dragFree: true },
+        plugins
     )
 
-    return (
-        <div className="w-full space-y-8">
-            {/* Header */}
-            <div className={cn(
-                "space-y-2 relative z-10",
-                isMusic ? "text-right" : ""
-            )}>
-                <h2 className="text-xl font-bold sm:text-2xl md:text-3xl tracking-tight text-foreground">{category.title}</h2>
-                {category.description && (
-                    <p className={cn(
-                        "text-sm leading-relaxed max-w-prose text-foreground",
-                        isMusic && "ml-auto"
-                    )}>{category.description}</p>
-                )}
-            </div>
+    const ariaLabel = isMusic ? 'Favorite music albums' : 'Favorite movies'
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (!emblaApi) return
+        if (e.key === 'ArrowLeft') {
+            e.preventDefault()
+            emblaApi.scrollPrev()
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault()
+            emblaApi.scrollNext()
+        }
+    }, [emblaApi])
+
+    const handleFocus = useCallback(() => {
+        if (!emblaApi) return
+        const autoScroll = emblaApi.plugins()?.autoScroll
+        if (autoScroll) (autoScroll as ReturnType<typeof AutoScroll>).stop()
+    }, [emblaApi])
+
+    const handleBlur = useCallback(() => {
+        if (!emblaApi) return
+        const autoScroll = emblaApi.plugins()?.autoScroll
+        if (autoScroll) (autoScroll as ReturnType<typeof AutoScroll>).play()
+    }, [emblaApi])
+
+    return (
+        <div className="w-full">
             {/* Scroll Container */}
             <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-                <div ref={emblaRef} className="overflow-hidden cursor-grab active:cursor-grabbing">
+                <div
+                    ref={emblaRef}
+                    className="overflow-hidden cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-accent1 focus-visible:outline-offset-2"
+                    role="region"
+                    aria-roledescription="carousel"
+                    aria-label={ariaLabel}
+                    tabIndex={0}
+                    onKeyDown={handleKeyDown}
+                    onFocus={handleFocus}
+                    onBlur={handleBlur}
+                >
                     <div className="flex gap-4 px-4 touch-pan-y">
-                        {/* Original Items */}
                         {category.items.map((item, idx) => (
-                            <div key={`${type}-original-${idx}`} className="flex-[0_0_auto]">
+                            <div
+                                key={`${type}-original-${idx}`}
+                                className="flex-[0_0_auto]"
+                                role="group"
+                                aria-roledescription="slide"
+                                aria-label={`${item.title} by ${item.creator}, ${item.year}`}
+                            >
                                 <FavoriteCard
                                     item={item}
                                     isMusic={isMusic}
@@ -105,39 +125,32 @@ function FavoritesSubSection({ category, type }: { category: typeof favoritesDat
 }
 
 function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean }) {
-    const [isOpen, setIsOpen] = useState(false)
-
     return (
-        <Tooltip open={isOpen} onOpenChange={setIsOpen}>
-            <TooltipTrigger asChild>
-                <div
-                    onClick={() => setIsOpen((prev) => !prev)}
-                    onMouseLeave={() => setIsOpen(false)}
-                    className={cn(
-                        'relative shrink-0 cursor-pointer overflow-hidden rounded-md border transition-all duration-300 hover:border-accent1 hover:shadow-[0_0_0_1px_hsl(var(--accent1))]',
-                        'bg-background',
-                        // Fixed Dimensions
-                        isMusic ? 'h-48 w-48' : 'h-64 w-40',
-                        // Border fix
-                        'border-foreground/0 hover:border-accent1'
-                    )}
-                >
-                    <ExportedImage
-                        src={item.cover}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        sizes={isMusic ? '192px' : '160px'}
-                    />
-                </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                <p className="font-bold italic">
-                    {item.title} <span className="not-italic text-xs text-foreground">({item.year})</span>
+        <div className="group">
+            <div
+                className={cn(
+                    'relative shrink-0 overflow-hidden rounded-md border transition-all duration-300',
+                    'bg-background',
+                    'gradient-border-group',
+                    isMusic ? 'h-48 w-48' : 'h-64 w-40',
+                )}
+            >
+                <ExportedImage
+                    src={item.cover}
+                    alt={item.title}
+                    fill
+                    className="object-cover"
+                    sizes={isMusic ? '192px' : '160px'}
+                />
+            </div>
+            <div className={cn('mt-1.5', isMusic ? 'w-48' : 'w-40')}>
+                <p className="text-xs font-bold truncate">
+                    {item.title}
+                    {' '}
+                    <span className="text-[10px] text-foreground font-normal">{item.year}</span>
                 </p>
-                <p className="text-xs text-foreground">{item.creator}</p>
-                {item.note && <p className="mt-1 text-xs text-accent1">{item.note}</p>}
-            </TooltipContent>
-        </Tooltip>
+                <p className="text-[10px] text-foreground truncate">{item.creator}</p>
+            </div>
+        </div>
     )
 }
