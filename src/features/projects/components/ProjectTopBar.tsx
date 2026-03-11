@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import * as React from 'react'
 
-import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { ModeToggle } from '@/components/common/ModeToggle'
 
 import { ProjectArticleContext } from './ProjectArticleShell'
 
@@ -38,7 +38,9 @@ export default function ProjectTopBar() {
             >
                 {title}
             </span>
-            <ThemeToggle />
+            <div className='flex items-center gap-3'>
+                <ModeToggle />
+            </div>
         </header>
     )
 }

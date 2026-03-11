@@ -12,7 +12,7 @@
 /** Curated hue palette — neon-leaning stops that read vividly at full saturation */
 export const HUES = [50, 90, 120, 140, 155, 170, 185, 200, 215, 235, 255, 270, 285, 300, 315, 330, 345]
 
-const S = 100
+const DEFAULT_S = 100
 const GRAD_OFFSETS = [-40, 0, 40, 80, 120]
 
 // ── Color math (WCAG 2.1) ───────────────────────────────────────────
@@ -55,7 +55,7 @@ function contrastL(hue: number, sat: number, dark: boolean): number {
 
 // ── Palette ──────────────────────────────────────────────────────────
 
-function modeVars(H: number, dark: boolean): string {
+function modeVars(H: number, dark: boolean, S: number = DEFAULT_S): string {
     // Primary accent — the 10 % color
     const accentL = dark ? Math.max(contrastL(H, S, true), 64) : contrastL(H, S, false)
     // Muted accent — shifted 30 lightness units toward background
@@ -71,8 +71,8 @@ function modeVars(H: number, dark: boolean): string {
 }
 
 /** Full CSS for the <style id="dynamic-accents"> tag — both light and dark rules. */
-export function generatePalette(H: number): string {
-    return `:root { ${modeVars(H, false)} } .dark { ${modeVars(H, true)} }`
+export function generatePalette(H: number, saturation: number = DEFAULT_S): string {
+    return `:root { ${modeVars(H, false, saturation)} } .dark { ${modeVars(H, true, saturation)} }`
 }
 
 export function randomHue(): number {

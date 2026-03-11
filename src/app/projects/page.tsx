@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import ExportedImage from 'next-image-export-optimizer'
 
-import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { ModeToggle } from '@/components/common/ModeToggle'
 import { projectsData, type Project } from '@/features/projects'
 import ExternalLink from '@/shared/ui/external-link'
 
@@ -62,7 +62,9 @@ export default function ProjectsListPage() {
                     &larr; Home
                 </Link>
                 <h1 className='text-sm font-bold uppercase tracking-widest'>Projects</h1>
-                <ThemeToggle />
+                <div className='flex items-center gap-3'>
+                    <ModeToggle />
+                </div>
             </header>
             <div className='flex flex-col gap-10'>
                 <div className='space-y-3'>
@@ -70,8 +72,8 @@ export default function ProjectsListPage() {
                         <h2 className='text-sm font-bold uppercase tracking-widest'>CS185 — Deep RL</h2>
                         <p className='text-xs text-foreground mt-1'>
                             with{' '}
-                            <ExternalLink href='https://people.eecs.berkeley.edu/~svlevine/' className='italic' aria-label='Prof. Sergey Levine' newTab={false}>
-                                Prof. Sergey Levine
+                            <ExternalLink href='https://people.eecs.berkeley.edu/~svlevine/'>
+                                Sergey Levine
                             </ExternalLink>
                         </p>
                     </div>
@@ -83,11 +85,11 @@ export default function ProjectsListPage() {
                         <h2 className='text-sm font-bold uppercase tracking-widest'>CS280 — Computer Vision</h2>
                         <p className='text-xs text-foreground mt-1'>
                             with{' '}
-                            <ExternalLink href='https://people.eecs.berkeley.edu/~kanazawa/' className='font-bold' aria-label='Angjoo Kanazawa' newTab={false}>
+                            <ExternalLink href='https://people.eecs.berkeley.edu/~kanazawa/'>
                                 Angjoo Kanazawa
                             </ExternalLink>
                             {' '}and{' '}
-                            <ExternalLink href='https://people.eecs.berkeley.edu/~efros/' className='font-bold' aria-label='Alexei Efros' newTab={false}>
+                            <ExternalLink href='https://people.eecs.berkeley.edu/~efros/'>
                                 Alexei Efros
                             </ExternalLink>
                         </p>

@@ -1,8 +1,4 @@
-'use client'
-
 import Link from 'next/link'
-
-import { Reveal } from '@/components/common/Reveal'
 
 import { researchData } from '../data/research'
 
@@ -13,16 +9,13 @@ export default function ResearchSection() {
 
     return (
         <div className="w-full">
-            <Reveal>
-                <h2 className="mb-6 text-sm font-bold uppercase tracking-widest">
-                    Research
-                </h2>
-            </Reveal>
+            <h2 className="mb-6 text-sm font-bold uppercase tracking-widest">
+                Research
+            </h2>
 
             <div className="space-y-8">
-                {items.map((item, index) => (
-                    <Reveal key={item.slug} delay={index * 80}>
-                        <div>
+                {items.map((item) => (
+                    <div key={item.slug}>
 
                             <p className="text-xs text-foreground">
                                 {new Date(item.date).toLocaleDateString(
@@ -78,8 +71,7 @@ export default function ResearchSection() {
                                     )}
                                 </div>
                             )}
-                        </div>
-                    </Reveal>
+                    </div>
                 ))}
             </div>
         </div>

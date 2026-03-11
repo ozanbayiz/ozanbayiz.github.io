@@ -1,5 +1,5 @@
+import FavoritesSection from '@/features/home/components/FavoritesSection'
 import HeroSection from '@/features/home/components/HeroSection'
-import LazyFavoritesSection from '@/features/home/components/LazyFavoritesSection'
 import OzanSection from '@/features/home/components/OzanSection'
 import ProjectSection from '@/features/home/components/ProjectSection'
 import Section from '@/features/home/components/Section'
@@ -22,7 +22,7 @@ export default function Home() {
 
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
                 <Section id="favorites" className="pb-8 md:pb-10">
-                    <LazyFavoritesSection />
+                    <FavoritesSection />
                 </Section>
 
                 <footer className="py-16 md:py-20 text-center">

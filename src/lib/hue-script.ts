@@ -10,6 +10,8 @@ import { HUES } from './palette'
 export const HUE_BOOTSTRAP_IIFE = `
 (function(){
   try {
+    var dataMode = document.documentElement.dataset.mode || 'color';
+    if (dataMode === 'ink' || dataMode === 'clean') return;
     var hues = ${JSON.stringify(HUES)};
     var H = hues[Math.floor(Math.random() * hues.length)];
     var S = 100;

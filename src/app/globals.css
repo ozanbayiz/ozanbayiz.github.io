@@ -299,4 +299,158 @@ html {
     animation: blink 1s step-end infinite;
 }
 
+/* ── Ink mode: pure B&W, no color at all ─────────────────────────── */
+
+[data-mode="ink"] .ascii-gradient,
+[data-mode="ink"] .gradient-link,
+[data-mode="ink"] .gradient-link-group,
+[data-mode="ink"] .prose a:not([id]):not(.no-gradient) {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: currentColor;
+}
+
+[data-mode="ink"] .gradient-link,
+[data-mode="ink"] .prose a:not([id]):not(.no-gradient) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+
+[data-mode="ink"] .gradient-link:hover,
+[data-mode="ink"] .prose a:not([id]):not(.no-gradient):hover {
+    filter: none;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+[data-mode="ink"] .group:hover .gradient-link-group {
+    filter: none;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+[data-mode="ink"] .gradient-border-hover::after,
+[data-mode="ink"] .gradient-border-group::after {
+    display: none;
+}
+
+[data-mode="ink"] .glow-accent,
+[data-mode="ink"] .glow-accent-sm,
+[data-mode="ink"] .glow-accent-lg,
+[data-mode="ink"] .border-glow-accent,
+[data-mode="ink"] .hover\:glow-accent-sm:hover {
+    box-shadow: none;
+}
+
+[data-mode="ink"] .text-glow-accent {
+    text-shadow: none;
+}
+
+[data-mode="ink"] ::selection {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+}
+
+[data-mode="ink"] .hover\:text-accent1:hover {
+    color: hsl(var(--foreground));
+}
+
+[data-mode="ink"] .gradient-border-hover:hover,
+[data-mode="ink"] .group:hover .gradient-border-group {
+    box-shadow: 3px 3px 0 hsl(var(--foreground));
+}
+
+[data-mode="ink"] .bg-accent1 {
+    background-color: hsl(var(--foreground));
+}
+
+[data-mode="ink"] .border-accent1 {
+    border-color: hsl(var(--foreground));
+}
+
+[data-mode="ink"] .focus-visible\:outline-accent1:focus-visible {
+    outline-color: hsl(var(--foreground));
+}
+
+[data-mode="ink"] .progress-fill {
+    background: hsl(var(--foreground)) !important;
+}
+
+[data-mode="ink"] .hover\:border-accent1:hover {
+    border-color: hsl(var(--foreground));
+}
+
+/* ── Clean mode: serif, no terminal chrome, accent1 = foreground ── */
+
+[data-mode="clean"] {
+    --accent1: var(--foreground);
+}
+
+[data-mode="clean"] body {
+    font-family: var(--font-baskervville), 'Baskerville', 'Georgia', serif;
+}
+
+[data-mode="clean"] .ascii-gradient,
+[data-mode="clean"] .gradient-link,
+[data-mode="clean"] .gradient-link-group,
+[data-mode="clean"] .prose a:not([id]):not(.no-gradient) {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    -webkit-text-fill-color: currentColor;
+}
+
+[data-mode="clean"] .gradient-link,
+[data-mode="clean"] .prose a:not([id]):not(.no-gradient) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+}
+
+[data-mode="clean"] .gradient-link:hover,
+[data-mode="clean"] .group:hover .gradient-link-group,
+[data-mode="clean"] .prose a:not([id]):not(.no-gradient):hover {
+    filter: none;
+}
+
+[data-mode="clean"] .gradient-border-hover::after,
+[data-mode="clean"] .gradient-border-group::after,
+[data-mode="clean"] .animate-blink,
+[data-mode="clean"] .terminal-chrome {
+    display: none;
+}
+
+[data-mode="clean"] .glow-accent,
+[data-mode="clean"] .glow-accent-sm,
+[data-mode="clean"] .glow-accent-lg,
+[data-mode="clean"] .border-glow-accent,
+[data-mode="clean"] .hover\:glow-accent-sm:hover {
+    box-shadow: none;
+}
+[data-mode="clean"] .text-glow-accent {
+    text-shadow: none;
+}
+
+[data-mode="clean"] ::selection {
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
+}
+
+[data-mode="clean"] .progress-fill {
+    background: hsl(var(--foreground)) !important;
+}
+
+/* Clean mode: bump body text one step for readability */
+[data-mode="clean"] .text-sm {
+    font-size: 1rem;        /* text-base */
+    line-height: 1.5rem;
+}
+[data-mode="clean"] .text-xs {
+    font-size: 0.875rem;    /* text-sm */
+    line-height: 1.25rem;
+}
+
 /* KaTeX CSS handled via app/layout.tsx import */

@@ -1,155 +1,187 @@
 'use client'
 
-import AutoScroll from 'embla-carousel-auto-scroll'
-import useEmblaCarousel from 'embla-carousel-react'
-import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures'
 import ExportedImage from 'next-image-export-optimizer'
-import { useCallback } from 'react'
+import { useState } from 'react'
 
-import { useIsMobile } from '@/hooks/use-mobile'
-import { usePrefersReducedMotion } from '@/hooks/use-reduced-motion'
 import { cn } from '@/lib/utils'
 
 import { favoritesData, FavoriteItem } from '../data/favorites'
 
+type ActiveItem = {
+    item: FavoriteItem
+    variant: 'movie' | 'music'
+} | null
+
 export default function FavoritesSection() {
+    const [activeItem, setActiveItem] = useState<ActiveItem>(null)
+
     const moviesCategory = favoritesData.find(c => c.title === 'Movies')
     const musicCategory = favoritesData.find(c => c.title === 'Music')
 
+    const handleSelect = (item: FavoriteItem, variant: 'movie' | 'music') => {
+        setActiveItem(prev =>
+            prev?.item === item ? null : { item, variant }
+        )
+    }
+
+    const handleHover = (item: FavoriteItem, variant: 'movie' | 'music') => {
+        setActiveItem({ item, variant })
+    }
+
     return (
-        <div className="w-full flex flex-col space-y-6 overflow-hidden">
+        <div className="w-full flex flex-col space-y-6">
             <h2 className="text-sm font-bold uppercase tracking-widest">Things I Like</h2>
             <div className="h-px w-full bg-foreground" />
-            {moviesCategory && (
-                <FavoritesSubSection
-                    category={moviesCategory}
-                    type="movies"
-                />
-            )}
-            <div className="h-px w-full bg-foreground" />
-            {musicCategory && (
-                <FavoritesSubSection
-                    category={musicCategory}
-                    type="music"
-                />
-            )}
-        </div>
-    )
-}
+            <div className="flex flex-col md:flex-row md:gap-8">
+                {/* Inventory Grids */}
+                <div className="md:w-[55%] flex flex-col gap-6">
+                    {moviesCategory && (
+                        <InventoryPanel
+                            label="MOVIES"
+                            items={moviesCategory.items}
+                            variant="movie"
+                            cols="grid-cols-3"
+                            activeItem={activeItem}
+                            onSelect={handleSelect}
+                            onHover={handleHover}
+                        />
+                    )}
+                    {musicCategory && (
+                        <InventoryPanel
+                            label="MUSIC"
+                            items={musicCategory.items}
+                            variant="music"
+                            cols="grid-cols-4 md:grid-cols-5"
+                            activeItem={activeItem}
+                            onSelect={handleSelect}
+                            onHover={handleHover}
+                        />
+                    )}
+                </div>
 
-function FavoritesSubSection({ category, type }: { category: typeof favoritesData[0], type: 'movies' | 'music' }) {
-    const isMusic = type === 'music'
-    const isMobile = useIsMobile()
-    const prefersReducedMotion = usePrefersReducedMotion()
-
-    const direction = isMusic ? 'backward' : 'forward'
-    const speed = 0.4
-
-    const plugins = [
-        ...(!prefersReducedMotion ? [AutoScroll({
-            playOnInit: true,
-            stopOnInteraction: false,
-            stopOnMouseEnter: !isMobile,
-            speed,
-            direction,
-            startDelay: 500
-        })] : []),
-        ...(!isMobile ? [WheelGesturesPlugin({ forceWheelAxis: 'x' })] : [])
-    ]
-
-    const [emblaRef, emblaApi] = useEmblaCarousel(
-        { loop: true, dragFree: true },
-        plugins
-    )
-
-    const ariaLabel = isMusic ? 'Favorite music albums' : 'Favorite movies'
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (!emblaApi) return
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault()
-            emblaApi.scrollPrev()
-        } else if (e.key === 'ArrowRight') {
-            e.preventDefault()
-            emblaApi.scrollNext()
-        }
-    }, [emblaApi])
-
-    const handleFocus = useCallback(() => {
-        if (!emblaApi) return
-        const autoScroll = emblaApi.plugins()?.autoScroll
-        if (autoScroll) (autoScroll as ReturnType<typeof AutoScroll>).stop()
-    }, [emblaApi])
-
-    const handleBlur = useCallback(() => {
-        if (!emblaApi) return
-        const autoScroll = emblaApi.plugins()?.autoScroll
-        if (autoScroll) (autoScroll as ReturnType<typeof AutoScroll>).play()
-    }, [emblaApi])
-
-    return (
-        <div className="w-full">
-            {/* Scroll Container */}
-            <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-                <div
-                    ref={emblaRef}
-                    className="overflow-hidden cursor-grab active:cursor-grabbing focus-visible:outline-2 focus-visible:outline-accent1 focus-visible:outline-offset-2"
-                    role="region"
-                    aria-roledescription="carousel"
-                    aria-label={ariaLabel}
-                    tabIndex={0}
-                    onKeyDown={handleKeyDown}
-                    onFocus={handleFocus}
-                    onBlur={handleBlur}
-                >
-                    <div className="flex gap-4 px-4 touch-pan-y">
-                        {category.items.map((item, idx) => (
-                            <div
-                                key={`${type}-original-${idx}`}
-                                className="flex-[0_0_auto]"
-                                role="group"
-                                aria-roledescription="slide"
-                                aria-label={`${item.title} by ${item.creator}, ${item.year}`}
-                            >
-                                <FavoriteCard
-                                    item={item}
-                                    isMusic={isMusic}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                {/* Inspection Panel */}
+                <div className="mt-6 md:mt-0 md:w-[45%]">
+                    <InspectionPanel activeItem={activeItem} />
                 </div>
             </div>
         </div>
     )
 }
 
-function FavoriteCard({ item, isMusic }: { item: FavoriteItem; isMusic: boolean }) {
+function InventoryPanel({
+    label,
+    items,
+    variant,
+    cols,
+    activeItem,
+    onSelect,
+    onHover,
+}: {
+    label: string
+    items: FavoriteItem[]
+    variant: 'movie' | 'music'
+    cols: string
+    activeItem: ActiveItem
+    onSelect: (item: FavoriteItem, variant: 'movie' | 'music') => void
+    onHover: (item: FavoriteItem, variant: 'movie' | 'music') => void
+}) {
     return (
-        <div className="group">
-            <div
-                className={cn(
-                    'relative shrink-0 overflow-hidden rounded-md border transition-all duration-300',
-                    'bg-background',
-                    'gradient-border-group',
-                    isMusic ? 'h-48 w-48' : 'h-64 w-40',
-                )}
-            >
-                <ExportedImage
-                    src={item.cover}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    sizes={isMusic ? '192px' : '160px'}
-                />
+        <div>
+            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+                {label} [{items.length}/{items.length}]
+            </p>
+            <div className={cn('grid gap-px bg-foreground border border-foreground', cols)}>
+                {items.map((item, idx) => (
+                    <InventorySlot
+                        key={idx}
+                        item={item}
+                        variant={variant}
+                        isActive={activeItem?.item === item}
+                        onSelect={() => onSelect(item, variant)}
+                        onHover={() => onHover(item, variant)}
+                    />
+                ))}
             </div>
-            <div className={cn('mt-1.5', isMusic ? 'w-48' : 'w-40')}>
-                <p className="text-xs font-bold truncate">
-                    {item.title}
-                    {' '}
-                    <span className="text-[10px] text-foreground font-normal">{item.year}</span>
-                </p>
-                <p className="text-[10px] text-foreground truncate">{item.creator}</p>
+        </div>
+    )
+}
+
+function InventorySlot({
+    item,
+    variant,
+    isActive,
+    onSelect,
+    onHover,
+}: {
+    item: FavoriteItem
+    variant: 'movie' | 'music'
+    isActive: boolean
+    onSelect: () => void
+    onHover: () => void
+}) {
+    return (
+        <button
+            className={cn(
+                'relative bg-background overflow-hidden',
+                variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
+                isActive ? 'ring-2 ring-accent1 z-10' : '',
+            )}
+            onClick={onSelect}
+            onMouseEnter={onHover}
+            onFocus={onHover}
+        >
+            <ExportedImage
+                src={item.cover}
+                alt={item.title}
+                fill
+                className={cn(
+                    'object-cover transition-[filter] duration-200',
+                    isActive ? '' : 'grayscale',
+                )}
+                sizes="80px"
+            />
+        </button>
+    )
+}
+
+function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
+    return (
+        <div className="md:sticky md:top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+                {'>'} INSPECT
+            </p>
+            <div className="border border-foreground p-4">
+                {activeItem ? (
+                    <div
+                        key={activeItem.item.title}
+                        className="animate-in fade-in duration-200 flex flex-col gap-3"
+                    >
+                        <div className={cn(
+                            'relative w-full',
+                            activeItem.variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
+                        )}>
+                            <ExportedImage
+                                src={activeItem.item.cover}
+                                alt={activeItem.item.title}
+                                fill
+                                className="object-cover"
+                                sizes="(min-width: 768px) 40vw, 90vw"
+                            />
+                        </div>
+                        <div className="h-px w-full bg-foreground" />
+                        <div>
+                            <p className="text-sm font-bold">{activeItem.item.title}</p>
+                            <p className="text-xs">{activeItem.item.creator}, {activeItem.item.year}</p>
+                        </div>
+                        {activeItem.item.note && (
+                            <p className="text-xs">{'// '}{activeItem.item.note}</p>
+                        )}
+                    </div>
+                ) : (
+                    <p className="text-2xs font-bold uppercase tracking-widest py-8 text-center">
+                        {'>'} SELECT ITEM<span className="animate-blink">_</span>
+                    </p>
+                )}
             </div>
         </div>
     )

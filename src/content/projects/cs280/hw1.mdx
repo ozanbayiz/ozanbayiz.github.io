@@ -12,10 +12,20 @@ CS C280: Computer Vision, Homework 1, Spring 2026
 
 <SectionDivider />
 
-<a id="q1" />
-## Question 1: Poor Man's Augmented Reality
+<a id="ar-result" />
+## Augmented Reality Result
 
-The goal here is to project a virtual 3D cube onto a real video of a textured box, tracking the scene across all frames.
+The full pipeline — manual keypoint annotation, MedianFlow tracking with drift correction, DLT + RANSAC camera calibration, bundle adjustment, and 3D projection — produces a virtual cube that tracks the real scene across all frames.
+
+<ImageGrid>
+<Figure src="/projects/cs280/hw1/cube_projection.mp4" alt="Synthetic cube projection" caption="Cube projected onto the box." />
+<Figure src="/projects/cs280/hw1/ar_result.mp4" alt="Final AR result" caption="Final AR output." />
+</ImageGrid>
+
+<SectionDivider />
+
+<a id="q1" />
+## Poor Man's Augmented Reality
 
 ---
 
@@ -51,15 +61,10 @@ After per-frame estimation, I jointly refined all projection matrices by minimiz
 
 I defined a cube at a known world position on the box face, then projected it into each frame using the calibrated projection matrices. I culled edges with negative depth ($w \le 0$).
 
-<ImageGrid>
-<Figure src="/projects/cs280/hw1/cube_projection.mp4" alt="Synthetic cube projection" caption="Cube projected onto the box." />
-<Figure src="/projects/cs280/hw1/ar_result.mp4" alt="Final AR result" caption="Final AR output." />
-</ImageGrid>
-
 <SectionDivider />
 
 <a id="q2" />
-## Question 2: Affine Transforms & Homographies
+## Affine Transforms & Homographies
 
 ---
 
@@ -67,8 +72,6 @@ I defined a cube at a known world position on the box face, then projected it in
 ### Affine Transform
 
 The affine transform $H$ is constrained to rotation and translation: the last row is fixed to $\begin{bmatrix}0 & 0 & 1\end{bmatrix}$, and the upper-left $2 \times 2$ block is an orthogonal rotation matrix, leaving 4 unknowns $(a, b, t_x, t_y)$.
-
-I solved via least squares from $N$ point correspondences.
 
 <ImageGrid>
 <Figure src="/projects/cs280/hw1/provided_affine.jpg" alt="Provided affine result" caption="Provided source to target (affine)." />
@@ -86,18 +89,3 @@ The homography has 8 degrees of freedom ($h_{33} = 1$). The free last row allows
 <Figure src="/projects/cs280/hw1/provided_homography.jpg" alt="Provided homography result" caption="Provided source to target (homography)." />
 <Figure src="/projects/cs280/hw1/my_homography.jpg" alt="Custom homography result" caption="Custom source on custom target (homography)." />
 </ImageGrid>
-
----
-
-<a id="written" />
-### Written Questions
-
-**What constraints are placed on $H$ for the affine transform vs. the homography?**
-
-For the affine transform, the last row is fixed to $\begin{bmatrix}0 & 0 & 1\end{bmatrix}$, and the upper-left block must be an orthogonal rotation. This gives 4 unknowns. Straight lines and parallel lines are preserved.
-
-For the homography, only $h_{33}$ is fixed to 1, giving 8 degrees of freedom. The free last row allows perspective foreshortening, so parallel lines may converge to a vanishing point.
-
-**Is the affine transform able to exactly transform the points?**
-
-In general, no. With 4 unknowns and 4 corner correspondences (8 equations), the system is overdetermined. The least-squares solution minimizes the residual but does not generally eliminate it. A homography has 8 degrees of freedom matching 8 equations from 4 correspondences, so it can interpolate all 4 points exactly.
