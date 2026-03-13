@@ -60,7 +60,7 @@ export default function FavoritesSection() {
                 </div>
 
                 {/* Inspection Panel */}
-                <div className="mt-6 md:mt-0 md:w-[45%]">
+                <div className="order-first md:order-none mb-4 md:mb-0 md:w-[45%]">
                     <InspectionPanel activeItem={activeItem} />
                 </div>
             </div>
@@ -146,18 +146,19 @@ function InventorySlot({
 
 function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
     return (
-        <div className="md:sticky md:top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+        <div className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <p className="text-2xs font-bold uppercase tracking-widest mb-2 bg-background">
                 {'>'} INSPECT
             </p>
-            <div className="border border-foreground p-4">
+            <div className="border border-foreground p-3 md:p-4">
                 {activeItem ? (
                     <div
                         key={activeItem.item.title}
-                        className="animate-in fade-in duration-200 flex flex-col gap-3"
+                        className="animate-in fade-in duration-200 flex flex-row md:flex-col gap-3"
                     >
                         <div className={cn(
-                            'relative w-full',
+                            'relative shrink-0',
+                            'w-16 md:w-full',
                             activeItem.variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
                         )}>
                             <ExportedImage
@@ -165,20 +166,20 @@ function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
                                 alt={activeItem.item.title}
                                 fill
                                 className="object-cover"
-                                sizes="(min-width: 768px) 40vw, 90vw"
+                                sizes="(min-width: 768px) 40vw, 80px"
                             />
                         </div>
-                        <div className="h-px w-full bg-foreground" />
-                        <div>
+                        <div className="hidden md:block h-px w-full bg-foreground" />
+                        <div className="flex flex-col justify-center md:justify-start">
                             <p className="text-sm font-bold">{activeItem.item.title}</p>
                             <p className="text-xs">{activeItem.item.creator}, {activeItem.item.year}</p>
+                            {activeItem.item.note && (
+                                <p className="text-xs mt-1 md:mt-2">{'// '}{activeItem.item.note}</p>
+                            )}
                         </div>
-                        {activeItem.item.note && (
-                            <p className="text-xs">{'// '}{activeItem.item.note}</p>
-                        )}
                     </div>
                 ) : (
-                    <p className="text-2xs font-bold uppercase tracking-widest py-8 text-center">
+                    <p className="text-2xs font-bold uppercase tracking-widest py-3 md:py-8 text-center">
                         {'>'} SELECT ITEM<span className="animate-blink">_</span>
                     </p>
                 )}
