@@ -69,7 +69,7 @@ export const favoritesData: FavoriteCategory[] = [
                 year: '1966',
                 creator: 'Andrei Tarkovsky',
                 cover: '/covers/movies/andrei-roublev.webp',
-                note: 'This is one of the first movies I watched in BAMPFA in summer 2025; I\'d recommmend watching it in a physically comfortable setting.'
+                note: ''
             },
             {
                 title: 'Amélie',
@@ -88,21 +88,21 @@ export const favoritesData: FavoriteCategory[] = [
                 year: '1994',
                 creator: 'Hole',
                 cover: '/covers/music/hole-live-through-this.webp',
-                note: 'The politics get complicated but I really like this album'
+                note: ''
             },
             {
                 title: 'Girl with Fish',
                 year: '2023',
                 creator: 'Feeble Little Horse',
                 cover: '/covers/music/feeble-little-horse-girl-with-fish.webp',
-                note: 'This one sounds cool, i\'m not really sure how else to put it.'
+                note: ''
             },
             {
                 title: 'Belki Alışman Lazım',
                 year: '2002',
                 creator: 'Duman',
                 cover: '/covers/music/duman-belki-alisman-lazim.webp',
-                note: 'My mom used to play this in the car when I was really really small'
+                note: ''
             },
             {
                 title: 'Frank',
@@ -116,14 +116,14 @@ export const favoritesData: FavoriteCategory[] = [
                 year: '1999',
                 creator: '702',
                 cover: '/covers/music/702-star.webp',
-                note: 'Summer 2024: long drives to SDSC and back. Sometimes while cooking steak'
+                note: ''
             },
             {
                 title: 'Dots and Loops',
                 year: '1997',
                 creator: 'Stereolab',
                 cover: '/covers/music/stereolab-dots-and-loops.webp',
-                note: 'I have a story about this album and my ex-roommate\'s cat pillow (Hi Bobbo!)'
+                note: ''
             },
             {
                 title: 'Serçe',
@@ -144,7 +144,7 @@ export const favoritesData: FavoriteCategory[] = [
                 year: '2000',
                 creator: 'Mirah',
                 cover: '/covers/music/mirah-you-think-its-like-this-but-its-really-like-this.webp',
-                note: 'I first listened to this album in a bathroom in Amsterdam and it\'s sort of stuck with me since then. These days it\'s best suited for late night showers.'
+                note: ''
             },
             {
                 title: 'Orgonon',
@@ -172,49 +172,49 @@ export const favoritesData: FavoriteCategory[] = [
                 year: '1973',
                 creator: 'Asha Puthli',
                 cover: '/covers/music/asha-puthli-asha-puthli.webp',
-                note: 'I love a self-titled; this was what I listened to on the way to Safeway and stuff'
+                note: ''
             },
             {
                 title: 'Windswept Adan',
                 year: '2020',
                 creator: 'Ichiko Aoba',
                 cover: '/covers/music/ichiko-aoba-windswept-adan.webp',
-                note: 'iMessage on my keyboard, cats in my room. Went downstairs for a banana. Now its 4AM again?'
+                note: ''
             },
             {
                 title: 'Like the Linen',
                 year: '2005',
                 creator: 'Thao',
                 cover: '/covers/music/thao-like-the-linen.webp',
-                note: 'Music for brushing teeth.'
+                note: ''
             },
             {
                 title: 'Hayat..',
                 year: '2001',
                 creator: 'Sakin',
                 cover: '/covers/music/sakin-hayat.webp',
-                note: 'Music for walking to the 9 AM OH that I am normally not responsible for hosting.(.)'
+                note: ''
             },
             {
                 title: 'Come Get It!',
                 year: '1978',
                 creator: 'Rick James',
                 cover: '/covers/music/rick-james-come-get-it.webp',
-                note: 'Aw man, so funky. Aw man'
+                note: ''
             },
             {
                 title: 'Ampersands',
                 year: '2020',
                 creator: 'Mei Ehara',
                 cover: '/covers/music/mei-ehara-ampersands.webp',
-                note: 'Music for writing.'
+                note: ''
             },
             {
                 title: 'Feet of Mud',
                 year: '2007',
                 creator: 'Ivy Knight',
                 cover: '/covers/music/ivy-knight-feet-of-mud.webp',
-                note: 'Music for driving.'
+                note: ''
             }
         ]
     }
