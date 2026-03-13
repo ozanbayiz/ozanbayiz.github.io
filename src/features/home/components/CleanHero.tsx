@@ -25,7 +25,7 @@ export default function CleanHero() {
 
                 {/* Subtitle */}
                 <p className="text-base text-foreground">
-                    CS @ Berkeley &mdash; AI-Enhanced Learning
+                    CS @ Berkeley
                 </p>
 
                 {/* Social links */}

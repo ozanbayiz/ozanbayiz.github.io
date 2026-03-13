@@ -7,9 +7,10 @@ const OzanSection = () => {
                 <p className="text-sm leading-relaxed">
                     I&apos;m a fourth-year Regents&apos; and
                     Chancellor&apos;s Scholar at UC Berkeley studying
-                    Computer Science. I&apos;m interested in exploring
-                    ways to augment video models to support AI-enhanced
-                    learning.
+                    Computer Science. I&apos;m the Head TA for CS
+                    189/289A: Introduction to Machine Learning. My
+                    research interests are computer vision, reinforcement
+                    learning, and AI for education.
                 </p>
                 <p className="mt-4 text-sm leading-relaxed text-foreground">
                     I&apos;m extremely grateful for

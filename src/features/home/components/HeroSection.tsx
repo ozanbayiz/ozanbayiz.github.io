@@ -86,7 +86,7 @@ export default function HeroSection() {
 
                 {/* Subtitle */}
                 <p className="text-sm text-foreground">
-                    CS @ Berkeley &mdash; AI-Enhanced Learning
+                    CS @ Berkeley
                 </p>
 
                 {/* Social links */}
