@@ -3,8 +3,6 @@
 import Link from 'next/link'
 import * as React from 'react'
 
-import { ModeToggle } from '@/components/common/ModeToggle'
-
 import { ProjectArticleContext } from './ProjectArticleShell'
 
 export default function ProjectTopBar() {
@@ -27,7 +25,7 @@ export default function ProjectTopBar() {
         <header className='fixed top-0 z-50 w-full h-12 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between px-4 md:px-6'>
             <Link
                 href='/projects/'
-                className='gradient-link text-xs uppercase tracking-widest'
+                className='text-xs uppercase tracking-widest underline underline-offset-4 hover:decoration-2'
             >
                 &larr; Projects
             </Link>
@@ -38,9 +36,6 @@ export default function ProjectTopBar() {
             >
                 {title}
             </span>
-            <div className='flex items-center gap-3'>
-                <ModeToggle />
-            </div>
         </header>
     )
 }

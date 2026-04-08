@@ -2,7 +2,7 @@
 export const MEDIA_BASE = 'block h-auto max-w-full m-0 align-middle'
 
 /** Hover-border treatment shared by Figure, MdxImg, and ImageTile. */
-export const MEDIA_HOVER = 'border border-transparent hover:border-accent1 transition-colors'
+export const MEDIA_HOVER = 'border border-transparent hover:border-foreground transition-colors'
 
 /** Standard figcaption styling. */
 export const CAPTION = 'mt-3 text-sm italic text-foreground'

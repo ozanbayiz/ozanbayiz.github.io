@@ -75,7 +75,7 @@ export default function LightboxModal({
                     {items.length > 1 ? (
                         <button
                             aria-label="Previous"
-                            className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
+                            className="rounded px-3 py-1 text-foreground transition-opacity bg-transparent hover:opacity-70 hover:bg-transparent focus:bg-transparent"
                             onClick={onPrev}
                         >
                             ←
@@ -84,7 +84,7 @@ export default function LightboxModal({
                     {items.length > 1 ? (
                         <button
                             aria-label="Next"
-                            className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
+                            className="rounded px-3 py-1 text-foreground transition-opacity bg-transparent hover:opacity-70 hover:bg-transparent focus:bg-transparent"
                             onClick={onNext}
                         >
                             →
@@ -92,7 +92,7 @@ export default function LightboxModal({
                     ) : null}
                     <button
                         aria-label="Close"
-                        className="rounded px-3 py-1 text-foreground transition-colors bg-transparent hover:text-accent1 hover:bg-transparent focus:bg-transparent"
+                        className="rounded px-3 py-1 text-foreground transition-opacity bg-transparent hover:opacity-70 hover:bg-transparent focus:bg-transparent"
                         onClick={onClose}
                     >
                         ✕

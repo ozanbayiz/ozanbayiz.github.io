@@ -26,7 +26,7 @@ export default function ExternalLink({
             href={href}
             target={target}
             rel={rel}
-            className={cn(icon ? 'transition-colors hover:text-accent1' : 'gradient-link', className)}
+            className={cn(icon ? 'transition-transform' : 'underline underline-offset-4 hover:decoration-2', className)}
             {...rest}
         >
             {children}

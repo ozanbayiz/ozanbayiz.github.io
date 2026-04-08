@@ -20,7 +20,7 @@ export default function ProjectSection() {
                 <Link
                     href="/projects/"
                     prefetch={false}
-                    className="gradient-link text-xs"
+                    className="text-xs underline underline-offset-4 hover:decoration-2"
                 >
                     all &rarr;
                 </Link>
@@ -34,7 +34,7 @@ export default function ProjectSection() {
                         prefetch={false}
                         className="group flex items-baseline justify-between gap-4 border-b py-3"
                     >
-                        <span className="gradient-link-group text-sm">
+                        <span className="text-sm underline underline-offset-4 decoration-1 group-hover:decoration-2">
                             {project.title}
                         </span>
                         <span className="shrink-0 text-xs text-foreground">

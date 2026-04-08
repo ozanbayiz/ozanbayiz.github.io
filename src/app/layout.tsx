@@ -1,10 +1,8 @@
 import './globals.css'
 
-import { Inter, JetBrains_Mono, Baskervville } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
 import { Providers } from '@/app/providers'
-import { HUE_BOOTSTRAP_IIFE } from '@/lib/hue-script'
-import { MODE_BOOTSTRAP_IIFE } from '@/lib/mode-script'
 import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
 import type { Metadata } from 'next'
@@ -17,13 +15,6 @@ const inter = Inter({
 const jetBrainsMono = JetBrains_Mono({
     variable: '--font-jetbrains-mono',
     subsets: ['latin']
-})
-
-const baskervville = Baskervville({
-    variable: '--font-baskervville',
-    subsets: ['latin'],
-    weight: ['400'],
-    style: ['normal', 'italic'],
 })
 
 export const metadata: Metadata = {
@@ -61,9 +52,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${inter.variable} ${jetBrainsMono.variable} ${baskervville.variable} antialiased overflow-x-hidden`}>
-                <script dangerouslySetInnerHTML={{ __html: MODE_BOOTSTRAP_IIFE }} />
-                <script dangerouslySetInnerHTML={{ __html: HUE_BOOTSTRAP_IIFE }} />
+            <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
                 <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>

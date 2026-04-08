@@ -55,7 +55,7 @@ export default function ResearchSection() {
                                         <Link
                                             href={item.pdfUrl}
                                             target="_blank"
-                                            className="gradient-link text-xs"
+                                            className="text-xs underline underline-offset-4 hover:decoration-2"
                                         >
                                             pdf &#8599;
                                         </Link>
@@ -64,7 +64,7 @@ export default function ResearchSection() {
                                         <Link
                                             href={item.projectUrl}
                                             target="_blank"
-                                            className="gradient-link text-xs"
+                                            className="text-xs underline underline-offset-4 hover:decoration-2"
                                         >
                                             project &#8599;
                                         </Link>

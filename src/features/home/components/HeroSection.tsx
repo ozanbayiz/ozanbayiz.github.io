@@ -1,26 +1,14 @@
-'use client'
-
-import { useModeContext } from '@/lib/mode-context'
 import ExternalLink from '@/shared/ui/external-link'
 
-import CleanHero from './CleanHero'
-
 export default function HeroSection() {
-    const { mode, cycleMode } = useModeContext()
-
-    if (mode === 'clean') return <CleanHero />
-
     return (
         <section className="relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
             {/* Main content */}
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 md:px-8">
                 {/* ASCII Art — the centerpiece */}
-                <div
-                    className="cursor-pointer text-2xs leading-tight transition-[filter] duration-300 hover:brightness-125 lg:text-sm lg:leading-tight"
-                    onClick={cycleMode}
-                >
+                <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
                     <div className="flex flex-wrap items-center justify-around gap-x-4">
-                        <pre className="ascii-gradient mb-4">
+                        <pre className="mb-4">
                             {'                     '}XXXXXXX{'\n'}
                             {'                     '}XXXXXXX{'\n'}
                             {'                    '}XXXXXXXX{'\n'}
@@ -48,7 +36,7 @@ export default function HeroSection() {
                             {'\n'}
                             {'   '}XXX{'                      '}
                         </pre>
-                        <pre className="ascii-gradient mb-4">
+                        <pre className="mb-4">
                             {' '}
                             XXX XXX{'    '}XXX XXX{'        '}XXX{'      '}XXX XXX
                             {'              '}
@@ -95,7 +83,7 @@ export default function HeroSection() {
                         href="https://github.com/ozanbayiz"
                         aria-label="GitHub profile"
                         icon
-                        className="text-foreground transition-[color,transform] hover:text-accent1 hover:scale-110"
+                        className="text-foreground transition-[color,transform] hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -111,7 +99,7 @@ export default function HeroSection() {
                         href="https://linkedin.com/in/ozanbayiz"
                         aria-label="LinkedIn profile"
                         icon
-                        className="text-foreground transition-[color,transform] hover:text-accent1 hover:scale-110"
+                        className="text-foreground transition-[color,transform] hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -127,7 +115,7 @@ export default function HeroSection() {
                         href="/ozanbayiz_cv.pdf"
                         aria-label="Resume"
                         icon
-                        className="text-foreground transition-[color,transform] hover:text-accent1 hover:scale-110"
+                        className="text-foreground transition-[color,transform] hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -143,7 +131,7 @@ export default function HeroSection() {
                     <span className="mx-1 h-4 w-px bg-foreground" />
 
                     <a
-                        className="gradient-link text-xs"
+                        className="text-xs underline underline-offset-4 hover:decoration-2"
                         href="mailto:ozanbayiz@berkeley.edu"
                     >
                         ozanbayiz@berkeley.edu
