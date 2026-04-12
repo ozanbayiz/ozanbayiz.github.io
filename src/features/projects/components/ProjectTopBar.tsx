@@ -36,6 +36,7 @@ export default function ProjectTopBar() {
             >
                 {title}
             </span>
+            <div className='w-16' />
         </header>
     )
 }
