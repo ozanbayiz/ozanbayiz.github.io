@@ -50,7 +50,7 @@ const BreadcrumbLink = React.forwardRef<
     return (
         <Comp
             ref={ref}
-            className={cn('link-lean', className)}
+            className={cn('link-hover', className)}
             {...props}
         />
     )

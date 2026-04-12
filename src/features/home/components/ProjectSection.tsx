@@ -34,7 +34,7 @@ export default function ProjectSection() {
                         prefetch={false}
                         className="group flex items-baseline justify-between gap-4 border-b py-3"
                     >
-                        <span className="link-group-weight text-sm">
+                        <span className="link-group-hover text-sm">
                             {project.title}
                         </span>
                         <span className="shrink-0 text-xs text-foreground">
