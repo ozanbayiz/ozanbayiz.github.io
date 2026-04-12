@@ -19,6 +19,30 @@ function SunThemeEffect() {
     return null
 }
 
+/** Track mouse position as unitless 0-100 values on :root.
+ *  --mx and --my feed the ROND axis in .type-mouse-rond elements. */
+function MouseTracker() {
+    useEffect(() => {
+        let frame: number
+        const onMove = (e: MouseEvent) => {
+            cancelAnimationFrame(frame)
+            frame = requestAnimationFrame(() => {
+                const x = Math.round((e.clientX / window.innerWidth) * 100)
+                const y = Math.round((e.clientY / window.innerHeight) * 100)
+                document.documentElement.style.setProperty('--mx', String(x))
+                document.documentElement.style.setProperty('--my', String(y))
+            })
+        }
+        window.addEventListener('mousemove', onMove)
+        return () => {
+            window.removeEventListener('mousemove', onMove)
+            cancelAnimationFrame(frame)
+        }
+    }, [])
+
+    return null
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <ThemeProvider
@@ -27,6 +51,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             disableTransitionOnChange
         >
             <SunThemeEffect />
+            <MouseTracker />
             {children}
         </ThemeProvider>
     )

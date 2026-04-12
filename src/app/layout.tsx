@@ -1,16 +1,12 @@
 import './globals.css'
+import '@fontsource-variable/google-sans-flex/full.css'
 
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
 
 import { Providers } from '@/app/providers'
 import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
 import type { Metadata } from 'next'
-
-const inter = Inter({
-    variable: '--font-inter',
-    subsets: ['latin']
-})
 
 const jetBrainsMono = JetBrains_Mono({
     variable: '--font-jetbrains-mono',
@@ -52,7 +48,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${inter.variable} ${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
+            <body className={`${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
                 <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>

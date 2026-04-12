@@ -21,6 +21,7 @@
         "ts-prune": "ts-prune -p tsconfig.json"
     },
     "dependencies": {
+        "@fontsource-variable/google-sans-flex": "^5.2.2",
         "@mdx-js/react": "^3.1.0",
         "@radix-ui/react-avatar": "^1.1.10",
         "@radix-ui/react-dialog": "^1.1.14",
@@ -31,7 +32,6 @@
         "@radix-ui/react-tooltip": "^1.2.7",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-
         "katex": "^0.16.22",
         "lucide-react": "^0.473.0",
         "next": "15.4.11",

@@ -73,7 +73,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 
             {/* Content */}
             <div className='flex min-w-0 flex-1 flex-col gap-2 p-5'>
-                <h3 className='line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
+                <h3 className='link-group-weight line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
                 <p className='line-clamp-2 text-sm leading-relaxed flex-1 text-foreground'>
                     {displayDescription}
                 </p>

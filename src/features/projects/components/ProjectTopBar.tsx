@@ -25,7 +25,7 @@ export default function ProjectTopBar() {
         <header className='fixed top-0 z-50 w-full h-12 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between px-4 md:px-6'>
             <Link
                 href='/projects/'
-                className='text-xs uppercase tracking-widest underline underline-offset-4 hover:decoration-2'
+                className='link-nav text-xs uppercase tracking-widest'
             >
                 &larr; Projects
             </Link>

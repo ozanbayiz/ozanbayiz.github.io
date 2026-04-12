@@ -36,12 +36,12 @@ export default function ProjectHeader({
                 </p>
             ) : null}
             <div className='flex flex-wrap items-center gap-3'>
-                <ExternalLink href={repoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest hover:border-foreground transition-all no-underline'>[view repo]</ExternalLink>
+                <ExternalLink href={repoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view repo]</ExternalLink>
                 {pdfUrl ? (
-                    <ExternalLink href={pdfUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest hover:border-foreground transition-all no-underline'>[view pdf]</ExternalLink>
+                    <ExternalLink href={pdfUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view pdf]</ExternalLink>
                 ) : null}
                 {demoUrl ? (
-                    <ExternalLink href={demoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest hover:border-foreground transition-all no-underline'>[demo]</ExternalLink>
+                    <ExternalLink href={demoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[demo]</ExternalLink>
                 ) : null}
             </div>
         </div>

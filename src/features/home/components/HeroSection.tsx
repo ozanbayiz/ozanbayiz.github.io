@@ -2,10 +2,10 @@ import ExternalLink from '@/shared/ui/external-link'
 
 export default function HeroSection() {
     return (
-        <section className="relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
+        <section className="type-mouse-rond relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
             {/* Main content */}
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 md:px-8">
-                {/* ASCII Art — the centerpiece */}
+                {/* ASCII Art — the centerpiece (stays monospace) */}
                 <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
                     <div className="flex flex-wrap items-center justify-around gap-x-4">
                         <pre className="mb-4">
@@ -72,8 +72,8 @@ export default function HeroSection() {
                 {/* Divider */}
                 <div className="h-px w-32 bg-foreground" />
 
-                {/* Subtitle */}
-                <p className="text-sm text-foreground">
+                {/* Subtitle — uses Google Sans Flex, responds to mouse roundness */}
+                <p className="text-lg font-light tracking-wide">
                     CS @ Berkeley
                 </p>
 
@@ -83,7 +83,7 @@ export default function HeroSection() {
                         href="https://github.com/ozanbayiz"
                         aria-label="GitHub profile"
                         icon
-                        className="text-foreground transition-[color,transform] hover:scale-110"
+                        className="text-foreground transition-transform hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -99,7 +99,7 @@ export default function HeroSection() {
                         href="https://linkedin.com/in/ozanbayiz"
                         aria-label="LinkedIn profile"
                         icon
-                        className="text-foreground transition-[color,transform] hover:scale-110"
+                        className="text-foreground transition-transform hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -115,7 +115,7 @@ export default function HeroSection() {
                         href="/ozanbayiz_cv.pdf"
                         aria-label="Resume"
                         icon
-                        className="text-foreground transition-[color,transform] hover:scale-110"
+                        className="text-foreground transition-transform hover:scale-110"
                     >
                         <svg
                             aria-hidden="true"
@@ -131,7 +131,7 @@ export default function HeroSection() {
                     <span className="mx-1 h-4 w-px bg-foreground" />
 
                     <a
-                        className="text-xs underline underline-offset-4 hover:decoration-2"
+                        className="link-lean text-xs"
                         href="mailto:ozanbayiz@berkeley.edu"
                     >
                         ozanbayiz@berkeley.edu

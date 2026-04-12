@@ -2,19 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Animatable custom properties for variable font axes ──────────── */
+/* @property lets the browser interpolate these as numbers in transitions */
+
+@property --GRAD {
+    syntax: '<number>';
+    initial-value: 0;
+    inherits: true;
+}
+
+@property --ROND {
+    syntax: '<number>';
+    initial-value: 0;
+    inherits: true;
+}
+
+@property --mx {
+    syntax: '<number>';
+    initial-value: 50;
+    inherits: true;
+}
+
+@property --my {
+    syntax: '<number>';
+    initial-value: 50;
+    inherits: true;
+}
+
+/* ── Base typography ──────────────────────────────────────────────── */
+
 body {
+    font-family: 'Google Sans Flex Variable', system-ui, sans-serif;
+    font-optical-sizing: auto;
+    font-variation-settings: 'GRAD' var(--GRAD), 'ROND' var(--ROND);
+}
+
+/* Code and ASCII art stay monospace */
+pre, code, kbd, samp, .font-mono {
     font-family: var(--font-jetbrains-mono), monospace;
+    font-variation-settings: normal;
 }
 
 @layer base {
     :root {
         --background: 0 0% 100%;
         --foreground: 0 0% 0%;
+        --GRAD: 0;
+        --ROND: 0;
     }
 
     .dark {
         --background: 0 0% 0%;
         --foreground: 0 0% 100%;
+        /* Grade compensation: white-on-black looks optically thinner,
+           bumping grade thickens strokes without changing layout */
+        --GRAD: 40;
     }
 }
 
@@ -80,29 +122,102 @@ html {
     scroll-behavior: smooth;
 }
 
-/* Underlined link style for prose content */
+/* ── Interactive link typography ──────────────────────────────────── */
+/* Links "lean into" their destination on hover via slant + weight */
+
+.link-lean {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: font-weight 0.2s ease,
+                font-style 0.2s ease,
+                text-decoration-thickness 0.15s ease;
+}
+
+.link-lean:hover {
+    font-weight: 550;
+    font-style: oblique -6deg;
+    text-decoration-thickness: 2px;
+}
+
+/* Navigation links: bolder lean effect, no underline by default */
+.link-nav {
+    transition: font-weight 0.2s ease,
+                font-style 0.2s ease,
+                font-stretch 0.2s ease;
+}
+
+.link-nav:hover {
+    font-weight: 550;
+    font-style: oblique -6deg;
+    font-stretch: 105%;
+}
+
+/* Subtle weight-only hover for items within group containers */
+.group:hover .link-group-weight {
+    font-weight: 600;
+    transition: font-weight 0.2s ease;
+}
+
+/* Prose links: subtle weight bump on hover */
 .prose a:not([id]) {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     color: inherit;
+    transition: font-weight 0.15s ease,
+                text-decoration-thickness 0.15s ease;
 }
 
 .prose a:not([id]):hover {
+    font-weight: 500;
     text-decoration-thickness: 2px;
 }
 
-/* Scroll-triggered reveal animations */
+/* ── Section personality via roundness ────────────────────────────── */
+/* Each section has a distinct typographic character through ROND axis */
+
+.type-warm { --ROND: 60; }    /* Personal, friendly sections */
+.type-sharp { --ROND: 0; }    /* Technical, precise sections */
+.type-soft { --ROND: 25; }    /* Academic, thoughtful sections */
+.type-playful { --ROND: 80; } /* Fun, casual sections */
+
+/* ── Mouse-driven roundness for hero ─────────────────────────────── */
+/* Mouse X position (0-100) directly drives ROND in the hero area.
+   Text morphs from crisp-geometric (left) to soft-rounded (right). */
+
+.type-mouse-rond {
+    --ROND: clamp(0, var(--mx, 50), 100);
+    transition: --ROND 0.15s ease-out;
+}
+
+/* ── Button axis interaction ─────────────────────────────────────── */
+
+.btn-axis {
+    transition: font-weight 0.15s ease,
+                font-stretch 0.15s ease;
+}
+
+.btn-axis:hover {
+    font-weight: 600;
+    font-stretch: 105%;
+}
+
+/* ── Reveal animations (text materializes from light weight) ─────── */
+
 .reveal-up {
     opacity: 0;
     transform: translateY(30px);
+    font-weight: 200;
     transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                font-weight 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-up.revealed {
     opacity: 1;
     transform: translateY(0);
+    font-weight: 400;
 }
 
 .reveal-scale {
@@ -116,7 +231,8 @@ html {
     transform: scale(1);
 }
 
-/* Hero entry animations */
+/* ── Hero entry animations ───────────────────────────────────────── */
+
 @keyframes fade-in-up {
     from {
         opacity: 0;
@@ -154,6 +270,23 @@ html {
 
 .progress-fill {
     background: hsl(var(--foreground)) !important;
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .link-lean,
+    .link-nav,
+    .btn-axis,
+    .reveal-up,
+    .reveal-scale,
+    .prose a:not([id]) {
+        transition: none !important;
+    }
+
+    .reveal-up {
+        font-weight: 400;
+    }
 }
 
 /* KaTeX CSS handled via app/layout.tsx import */

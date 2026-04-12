@@ -19,7 +19,7 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['var(--font-jetbrains-mono)', 'monospace'],
+                sans: ['"Google Sans Flex Variable"', 'system-ui', 'sans-serif'],
                 mono: ['var(--font-jetbrains-mono)', 'monospace'],
             },
             colors: {
