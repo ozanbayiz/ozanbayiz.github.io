@@ -34,6 +34,13 @@
 body {
     font-family: 'Google Sans Flex Variable', system-ui, sans-serif;
     font-optical-sizing: auto;
+}
+
+/* CRITICAL: font-variation-settings must be declared per-element,
+   not just on body. Inherited declarations resolve var() on the parent,
+   so child changes to --GRAD/--ROND would have no effect.
+   :where(*) has zero specificity so code/kbd/samp easily override. */
+:where(*) {
     font-variation-settings: 'GRAD' var(--GRAD), 'ROND' var(--ROND);
 }
 
@@ -42,9 +49,6 @@ code, kbd, samp {
     font-family: var(--font-jetbrains-mono), monospace;
     font-variation-settings: normal;
 }
-
-/* ASCII art uses Google Sans Flex in fixed-width character cells.
-   <pre> no longer forces monospace — AsciiBlock handles alignment. */
 
 @layer base {
     :root {
