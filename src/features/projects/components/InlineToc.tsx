@@ -38,8 +38,8 @@ function TocEntry({ item, activeId, navigateTo }: { item: TocItem; activeId: str
                 href={`#${item.id}`}
                 onClick={() => navigateTo(item.id)}
                 className={cn(
-                    'gradient-link text-sm',
-                    isActive && '[animation-play-state:running]'
+                    'link-lean text-sm',
+                    isActive && 'font-bold'
                 )}
             >
                 {item.title}

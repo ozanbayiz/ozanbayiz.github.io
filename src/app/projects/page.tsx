@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import ExportedImage from 'next-image-export-optimizer'
 
-import { ModeToggle } from '@/components/common/ModeToggle'
 import { projectsData, type Project } from '@/features/projects'
 import ExternalLink from '@/shared/ui/external-link'
 
@@ -28,7 +27,7 @@ function ProjectRow({ p }: { p: Project }) {
                     <ExportedImage src={p.imageUrl} alt={p.title} fill className='object-cover' sizes='96px' />
                 </div>
                 <div className='flex-1 min-w-0'>
-                    <h3 className='gradient-link-group text-sm font-bold'>{p.title}</h3>
+                    <h3 className='link-group-weight text-sm font-bold'>{p.title}</h3>
                     <p className='text-xs text-foreground line-clamp-1 mt-0.5'>{p.description}</p>
                 </div>
                 {formattedDate ? (
@@ -58,13 +57,11 @@ export default function ProjectsListPage() {
     return (
         <div className='relative mx-auto w-full max-w-screen-lg px-6 pb-12 md:px-8'>
             <header className='flex items-center justify-between py-6'>
-                <Link href='/' className='gradient-link text-xs uppercase tracking-widest'>
+                <Link href='/' className='link-nav text-xs uppercase tracking-widest'>
                     &larr; Home
                 </Link>
                 <h1 className='text-sm font-bold uppercase tracking-widest'>Projects</h1>
-                <div className='flex items-center gap-3'>
-                    <ModeToggle />
-                </div>
+                <div className='w-16' />
             </header>
             <div className='flex flex-col gap-10'>
                 <div className='space-y-3'>

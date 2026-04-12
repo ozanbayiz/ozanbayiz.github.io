@@ -28,20 +28,20 @@ export default function ProjectHeader({
             {(date || authors?.length) ? (
                 <p className='text-sm text-foreground'>
                     {date ? (
-                        <time dateTime={date}><span className="terminal-chrome">{'// '}</span>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+                        <time dateTime={date}>{'// '}{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
                     ) : null}
                     {authors?.length ? (
-                        <span><span className="terminal-chrome">{' // '}</span>{authors.join(', ')}</span>
+                        <span>{' // '}{authors.join(', ')}</span>
                     ) : null}
                 </p>
             ) : null}
             <div className='flex flex-wrap items-center gap-3'>
-                <ExternalLink href={repoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'><span className="terminal-chrome">[</span>view repo<span className="terminal-chrome">]</span></ExternalLink>
+                <ExternalLink href={repoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view repo]</ExternalLink>
                 {pdfUrl ? (
-                    <ExternalLink href={pdfUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'><span className="terminal-chrome">[</span>view pdf<span className="terminal-chrome">]</span></ExternalLink>
+                    <ExternalLink href={pdfUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view pdf]</ExternalLink>
                 ) : null}
                 {demoUrl ? (
-                    <ExternalLink href={demoUrl} className='border px-3 py-1.5 text-xs uppercase tracking-widest gradient-link hover:border-accent1 hover:glow-accent-sm transition-all'><span className="terminal-chrome">[</span>demo<span className="terminal-chrome">]</span></ExternalLink>
+                    <ExternalLink href={demoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[demo]</ExternalLink>
                 ) : null}
             </div>
         </div>

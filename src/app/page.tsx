@@ -11,17 +11,17 @@ export default function Home() {
 
             <main className="relative">
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
-                <Section id="about">
+                <Section id="about" className="type-warm">
                     <OzanSection />
                 </Section>
 
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
-                <Section id="projects">
+                <Section id="projects" className="type-sharp">
                     <ProjectSection />
                 </Section>
 
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
-                <Section id="favorites" className="pb-8 md:pb-10">
+                <Section id="favorites" className="pb-8 md:pb-10 type-playful">
                     <FavoritesSection />
                 </Section>
 

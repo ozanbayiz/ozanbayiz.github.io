@@ -19,14 +19,12 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['var(--font-jetbrains-mono)', 'monospace'],
+                sans: ['"Google Sans Flex Variable"', 'system-ui', 'sans-serif'],
                 mono: ['var(--font-jetbrains-mono)', 'monospace'],
             },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
-                accent1: 'hsl(var(--accent1))',
-                accent2: 'hsl(var(--accent2))',
                 border: 'hsl(var(--foreground))',
                 input: 'hsl(var(--foreground))',
                 ring: 'hsl(var(--foreground))',
@@ -53,7 +51,7 @@ export default {
                     foreground: 'hsl(var(--foreground))'
                 },
                 accent: {
-                    DEFAULT: 'hsl(var(--accent1))',
+                    DEFAULT: 'hsl(var(--foreground))',
                     foreground: 'hsl(var(--background))'
                 },
                 destructive: {

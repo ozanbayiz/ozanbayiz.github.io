@@ -47,11 +47,11 @@ export default function ProjectCard(props: ProjectCardProps) {
         <div className={cn(
             'group relative flex h-full flex-col overflow-hidden border bg-background text-foreground',
             'transition-all duration-300',
-            'hover:-translate-y-2 hover:glow-accent-sm gradient-border-hover',
+            'hover:-translate-y-2 hover:shadow-[3px_3px_0_hsl(var(--foreground))]',
             className
         )}>
             {/* Accent line sweep */}
-            <div className="absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 bg-accent1 transition-transform duration-500 group-hover:scale-x-100" />
+            <div className="absolute top-0 left-0 z-20 h-0.5 w-full origin-left scale-x-0 bg-foreground transition-transform duration-500 group-hover:scale-x-100" />
 
             <Link
                 href={resolvedHref}
@@ -73,7 +73,7 @@ export default function ProjectCard(props: ProjectCardProps) {
 
             {/* Content */}
             <div className='flex min-w-0 flex-1 flex-col gap-2 p-5'>
-                <h3 className='line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
+                <h3 className='link-group-weight line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
                 <p className='line-clamp-2 text-sm leading-relaxed flex-1 text-foreground'>
                     {displayDescription}
                 </p>
@@ -83,7 +83,7 @@ export default function ProjectCard(props: ProjectCardProps) {
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='h-7 gap-1.5 transition-all duration-200 hover:border-accent1 hover:glow-accent-sm'
+                                className='h-7 gap-1.5 transition-all duration-200 hover:border-foreground'
                                 onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
@@ -98,7 +98,7 @@ export default function ProjectCard(props: ProjectCardProps) {
                             <Button
                                 variant='outline'
                                 size='sm'
-                                className='h-7 gap-1.5 transition-all duration-200 hover:border-accent1 hover:glow-accent-sm'
+                                className='h-7 gap-1.5 transition-all duration-200 hover:border-foreground'
                                 onClick={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()

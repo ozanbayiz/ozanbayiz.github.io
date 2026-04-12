@@ -1,11 +1,8 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import { ThemeProvider, useTheme } from 'next-themes'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 
-import { useModeContext, ModeProvider } from '@/lib/mode-context'
-import { generatePalette, randomHue } from '@/lib/palette'
 import { isDaytime } from '@/lib/sun'
 
 /** Sync theme to sunrise/sunset every 60 seconds. */
@@ -22,38 +19,18 @@ function SunThemeEffect() {
     return null
 }
 
-/** Re-randomize accent hue on SPA route changes. IIFE handles first paint. */
-function HueEffect() {
-    const pathname = usePathname()
-    const { mode } = useModeContext()
-    const isFirstMount = useRef(true)
-
-    useEffect(() => {
-        if (isFirstMount.current) {
-            isFirstMount.current = false
-            return
-        }
-        const tag = document.getElementById('dynamic-accents')
-        if (mode === 'ink' || mode === 'clean') {
-            if (tag) tag.innerHTML = ''
-        } else {
-            if (tag) tag.innerHTML = generatePalette(randomHue())
-        }
-    }, [pathname, mode])
-
-    return null
-}
-
-export function Providers({ children }: { children: React.ReactNode }) {
+/** Track mouse position as unitless 0-100 values on :root.
+ *  --mx and --my feed the ROND axis in .type-mouse-rond elements. */
+function MouseTracker() {
     useEffect(() => {
         let frame: number
         const onMove = (e: MouseEvent) => {
             cancelAnimationFrame(frame)
             frame = requestAnimationFrame(() => {
-                const x = (e.clientX / window.innerWidth) * 100
-                const y = (e.clientY / window.innerHeight) * 100
-                document.documentElement.style.setProperty('--mouse-x', `${x}%`)
-                document.documentElement.style.setProperty('--mouse-y', `${y}%`)
+                const x = Math.round((e.clientX / window.innerWidth) * 100)
+                const y = Math.round((e.clientY / window.innerHeight) * 100)
+                document.documentElement.style.setProperty('--mx', String(x))
+                document.documentElement.style.setProperty('--my', String(y))
             })
         }
         window.addEventListener('mousemove', onMove)
@@ -63,17 +40,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
         }
     }, [])
 
+    return null
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <ThemeProvider
             attribute='class'
             defaultTheme='dark'
             disableTransitionOnChange
         >
-            <ModeProvider>
-                <SunThemeEffect />
-                <HueEffect />
-                {children}
-            </ModeProvider>
+            <SunThemeEffect />
+            <MouseTracker />
+            {children}
         </ThemeProvider>
     )
 }

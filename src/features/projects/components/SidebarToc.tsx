@@ -35,8 +35,8 @@ function SidebarTocEntry({ item, activeId, navigateTo }: { item: TocItem; active
                 href={`#${item.id}`}
                 onClick={() => navigateTo(item.id)}
                 className={cn(
-                    'block pl-3 py-0.5 text-xs transition-colors gradient-link',
-                    isActive && 'border-l-2 border-accent1 -ml-px [animation-play-state:running]'
+                    'link-lean block pl-3 py-0.5 text-xs',
+                    isActive && 'border-l-2 border-foreground -ml-px font-bold'
                 )}
             >
                 {item.title}

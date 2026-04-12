@@ -17,7 +17,7 @@ const OzanSection = () => {
                     {' '}
                     <a
                         href="https://people.eecs.berkeley.edu/~vongani_maluleke/"
-                        className="gradient-link"
+                        className="link-lean"
                     >
                         Vongani Maluleke
                     </a>

@@ -13,12 +13,12 @@ export default function ProjectFooter() {
             {(prev || next) ? (
                 <div className='flex items-center justify-between border-t pt-8 mb-16'>
                     {prev ? (
-                        <Link href={`/projects/${prev.slug}/`} className='gradient-link text-sm'>
+                        <Link href={`/projects/${prev.slug}/`} className='link-nav text-sm'>
                             &larr; {prev.title}
                         </Link>
                     ) : <span />}
                     {next ? (
-                        <Link href={`/projects/${next.slug}/`} className='gradient-link text-sm'>
+                        <Link href={`/projects/${next.slug}/`} className='link-nav text-sm'>
                             {next.title} &rarr;
                         </Link>
                     ) : <span />}
