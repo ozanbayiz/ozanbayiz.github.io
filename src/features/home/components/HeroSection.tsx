@@ -43,23 +43,22 @@ export default function HeroSection() {
     return (
         <section className="type-mouse-axes relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 md:px-8">
-                {/* ASCII Art — Google Sans Flex in fixed-width cells,
-                    responds to mouse position via ROND (X) and GRAD (Y) */}
-                <div className="flex flex-wrap items-center justify-around gap-x-4 text-2xs lg:text-sm">
-                    <AsciiBlock art={FACE} className="mb-4" />
-                    <AsciiBlock art={NAME} className="mb-4" />
+                {/* ASCII Art — thick, dense, responds to mouse via ROND+GRAD */}
+                <div className="flex flex-wrap items-center justify-around gap-x-4 text-2xs lg:text-sm font-black" style={{ fontStretch: '90%' }}>
+                    <AsciiBlock art={FACE} className="mb-4" dense />
+                    <AsciiBlock art={NAME} className="mb-4" dense />
                 </div>
 
                 {/* Divider */}
                 <div className="h-px w-32 bg-foreground" />
 
-                {/* Subtitle */}
-                <p className="text-lg font-light tracking-wide">
+                {/* Subtitle — medium weight, slightly condensed */}
+                <p className="text-base font-medium" style={{ fontStretch: '90%' }}>
                     CS @ Berkeley
                 </p>
 
-                {/* Social links */}
-                <div className="flex items-center gap-4">
+                {/* Social links — large icons */}
+                <div className="flex items-center gap-5">
                     <ExternalLink
                         href="https://github.com/ozanbayiz"
                         aria-label="GitHub profile"
@@ -68,7 +67,7 @@ export default function HeroSection() {
                     >
                         <svg
                             aria-hidden="true"
-                            className="h-5 w-5 fill-current"
+                            className="h-8 w-8 fill-current"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 32 32"
                         >
@@ -84,7 +83,7 @@ export default function HeroSection() {
                     >
                         <svg
                             aria-hidden="true"
-                            className="h-5 w-5 fill-current"
+                            className="h-8 w-8 fill-current"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 32 32"
                         >
@@ -100,7 +99,7 @@ export default function HeroSection() {
                     >
                         <svg
                             aria-hidden="true"
-                            className="h-5 w-5 fill-current"
+                            className="h-8 w-8 fill-current"
                             viewBox="0 0 26 28"
                             xmlns="http://www.w3.org/2000/svg"
                             fillRule="evenodd"
@@ -109,10 +108,10 @@ export default function HeroSection() {
                         </svg>
                     </ExternalLink>
 
-                    <span className="mx-1 h-4 w-px bg-foreground" />
+                    <span className="mx-1 h-5 w-px bg-foreground" />
 
                     <a
-                        className="link-hover text-xs"
+                        className="link-hover text-sm"
                         href="mailto:ozanbayiz@berkeley.edu"
                     >
                         ozanbayiz@berkeley.edu
