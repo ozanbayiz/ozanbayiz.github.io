@@ -1,78 +1,59 @@
+import AsciiBlock from '@/shared/ui/ascii-block'
 import ExternalLink from '@/shared/ui/external-link'
+
+const FACE = [
+    '                     XXXXXXX',
+    '                     XXXXXXX',
+    '                    XXXXXXXX',
+    '                    XXXXXXXX',
+    '                    XX      ',
+    '           XXX       X      ',
+    '          XX X       X      ',
+    '         XX  XX      XX     ',
+    '         X    XXXXXXX X     ',
+    '        XX          XXX     ',
+    '        x                   ',
+    '        x                   ',
+    'xxx     X                   ',
+    'XXX    XX                   ',
+    'XXX  XXX                    ',
+    '  XX X                      ',
+    '   XXX                      ',
+].join('\n')
+
+const NAME = [
+    ' XXX XXX    XXX XXX        XXX      XXX XXX              ',
+    'XXX   XXX        XXX     XXX XXX    XXX   XXX            ',
+    'XXX   XXX       XXX     XXX   XXX   XXX   XXX            ',
+    'XXX   XXX    XXX XXX     XXX XXX    XXX   XXX            ',
+    'XXX   XXX     XXX       XXX   XXX   XXX   XXX            ',
+    'XXX   XXX    XXX        XXX   XXX   XXX   XXX            ',
+    ' XXX XXX      XXX XXX   XXX   XXX   XXX   XXX            ',
+    '',
+    ' XXX XXX       XXX      XXX   XXX    XXXXXX    XXX XXX  ',
+    'XXX   XXX    XXX XXX    XXX   XXX      XXX           XXX',
+    'XXX   XXX   XXX   XXX    XXX XXX       XXX          XXX  ',
+    ' XXX XXX     XXX XXX       XXX         XXX       XXX XXX ',
+    'XXX   XXX   XXX   XXX      XXX         XXX        XXX    ',
+    'XXX   XXX   XXX   XXX      XXX         XXX       XXX     ',
+    ' XXX XXX    XXX   XXX      XXX       XXXXXX      XXX XXX',
+].join('\n')
 
 export default function HeroSection() {
     return (
-        <section className="type-mouse-rond relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
-            {/* Main content */}
+        <section className="type-mouse-axes relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16">
             <div className="relative z-10 flex flex-col items-center gap-6 px-6 md:px-8">
-                {/* ASCII Art — the centerpiece (stays monospace) */}
-                <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
-                    <div className="flex flex-wrap items-center justify-around gap-x-4">
-                        <pre className="mb-4">
-                            {'                     '}XXXXXXX{'\n'}
-                            {'                     '}XXXXXXX{'\n'}
-                            {'                    '}XXXXXXXX{'\n'}
-                            {'                    '}XXXXXXXX{'\n'}
-                            {'                    '}XX{'      '}
-                            {'\n'}
-                            {'           '}XXX{'       '}X{'      '}
-                            {'\n'}
-                            {'          '}XX X{'       '}X{'      '}
-                            {'\n'}
-                            {'         '}XX{'  '}XX{'      '}XX{'     '}
-                            {'\n'}
-                            {'         '}X{'    '}XXXXXXX X{'     '}
-                            {'\n'}
-                            {'        '}XX{'          '}XXX{'     '}
-                            {'\n'}
-                            {'        '}x{'                   '}
-                            {'\n'}
-                            {'        '}x{'                   '}
-                            {'\n'}xxx{'     '}X{'                   '}
-                            {'\n'}XXX{'    '}XX{'                   '}
-                            {'\n'}XXX{'  '}XXX{'                    '}
-                            {'\n'}
-                            {'  '}XX X{'                      '}
-                            {'\n'}
-                            {'   '}XXX{'                      '}
-                        </pre>
-                        <pre className="mb-4">
-                            {' '}
-                            XXX XXX{'    '}XXX XXX{'        '}XXX{'      '}XXX XXX
-                            {'              '}
-                            {'\n'}XXX{'   '}XXX{'        '}XXX{'     '}XXX XXX{'    '}XXX
-                            {'   '}XXX{'            '}
-                            {'\n'}XXX{'   '}XXX{'       '}XXX{'     '}XXX{'   '}XXX{'   '}
-                            XXX{'   '}XXX{'            '}
-                            {'\n'}XXX{'   '}XXX{'    '}XXX XXX{'     '}XXX XXX{'    '}XXX
-                            {'   '}XXX{'            '}
-                            {'\n'}XXX{'   '}XXX{'     '}XXX{'       '}XXX{'   '}XXX{'   '}
-                            XXX{'   '}XXX{'            '}
-                            {'\n'}XXX{'   '}XXX{'    '}XXX{'        '}XXX{'   '}XXX{'   '}
-                            XXX{'   '}XXX{'            '}
-                            {'\n'} XXX XXX{'      '}XXX XXX{'   '}XXX{'   '}XXX{'   '}XXX
-                            {'   '}XXX{'            '}
-                            {'\n'}
-                            {'\n'} XXX XXX{'       '}XXX{'      '}XXX{'   '}XXX{'    '}XXX
-                            XXX{'    '}XXX XXX{'  '}
-                            {'\n'}XXX{'   '}XXX{'    '}XXX XXX{'    '}XXX{'   '}XXX
-                            {'      '}XXX{'           '}XXX {'\n'}XXX{'   '}XXX{'   '}XXX
-                            {'   '}XXX{'    '}XXX XXX{'       '}XXX{'          '}XXX{'  '}
-                            {'\n'} XXX XXX{'     '}XXX XXX{'       '}XXX{'         '}XXX
-                            {'       '}XXX XXX {'\n'}XXX{'   '}XXX{'   '}XXX{'   '}XXX{'      '}XXX
-                            {'         '}XXX{'        '}XXX{'    '}
-                            {'\n'}XXX{'   '}XXX{'   '}XXX{'   '}XXX{'      '}XXX
-                            {'         '}XXX{'       '}XXX{'     '}
-                            {'\n'} XXX XXX{'    '}XXX{'   '}XXX{'      '}XXX{'       '}XXX
-                            XXX{'      '}XXX XXX{'\n'}
-                        </pre>
-                    </div>
+                {/* ASCII Art — Google Sans Flex in fixed-width cells,
+                    responds to mouse position via ROND (X) and GRAD (Y) */}
+                <div className="flex flex-wrap items-center justify-around gap-x-4 text-2xs lg:text-sm">
+                    <AsciiBlock art={FACE} className="mb-4" />
+                    <AsciiBlock art={NAME} className="mb-4" />
                 </div>
 
                 {/* Divider */}
                 <div className="h-px w-32 bg-foreground" />
 
-                {/* Subtitle — uses Google Sans Flex, responds to mouse roundness */}
+                {/* Subtitle */}
                 <p className="text-lg font-light tracking-wide">
                     CS @ Berkeley
                 </p>
@@ -131,7 +112,7 @@ export default function HeroSection() {
                     <span className="mx-1 h-4 w-px bg-foreground" />
 
                     <a
-                        className="link-lean text-xs"
+                        className="link-hover text-xs"
                         href="mailto:ozanbayiz@berkeley.edu"
                     >
                         ozanbayiz@berkeley.edu

@@ -38,7 +38,7 @@ function TocEntry({ item, activeId, navigateTo }: { item: TocItem; activeId: str
                 href={`#${item.id}`}
                 onClick={() => navigateTo(item.id)}
                 className={cn(
-                    'link-lean text-sm',
+                    'link-hover text-sm',
                     isActive && 'font-bold'
                 )}
             >

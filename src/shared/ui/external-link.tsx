@@ -26,7 +26,7 @@ export default function ExternalLink({
             href={href}
             target={target}
             rel={rel}
-            className={cn(icon ? 'transition-transform' : 'link-lean', className)}
+            className={cn(icon ? 'transition-transform' : 'link-hover', className)}
             {...rest}
         >
             {children}

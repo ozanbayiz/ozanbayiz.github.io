@@ -27,7 +27,7 @@ function ProjectRow({ p }: { p: Project }) {
                     <ExportedImage src={p.imageUrl} alt={p.title} fill className='object-cover' sizes='96px' />
                 </div>
                 <div className='flex-1 min-w-0'>
-                    <h3 className='link-group-weight text-sm font-bold'>{p.title}</h3>
+                    <h3 className='link-group-hover text-sm font-bold'>{p.title}</h3>
                     <p className='text-xs text-foreground line-clamp-1 mt-0.5'>{p.description}</p>
                 </div>
                 {formattedDate ? (

@@ -37,11 +37,14 @@ body {
     font-variation-settings: 'GRAD' var(--GRAD), 'ROND' var(--ROND);
 }
 
-/* Code and ASCII art stay monospace */
-pre, code, kbd, samp, .font-mono {
+/* Code blocks stay monospace (Google Sans Flex can't do true monospace) */
+code, kbd, samp {
     font-family: var(--font-jetbrains-mono), monospace;
     font-variation-settings: normal;
 }
+
+/* ASCII art uses Google Sans Flex in fixed-width character cells.
+   <pre> no longer forces monospace — AsciiBlock handles alignment. */
 
 @layer base {
     :root {
@@ -122,56 +125,63 @@ html {
     scroll-behavior: smooth;
 }
 
-/* ── Interactive link typography ──────────────────────────────────── */
-/* Links "lean into" their destination on hover via slant + weight */
+/* ── Link hover: axis shift, zero layout change ──────────────────── */
+/* GRAD thickens strokes without changing glyph width.
+   ROND shifts shape. Together they create rich feedback
+   without any text reflow or size change. */
 
-.link-lean {
+.link-hover {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    transition: font-weight 0.2s ease,
-                font-style 0.2s ease,
-                text-decoration-thickness 0.15s ease;
+    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
 }
 
-.link-lean:hover {
-    font-weight: 550;
-    font-style: oblique -6deg;
-    text-decoration-thickness: 2px;
+.link-hover:hover {
+    --GRAD: 70;
+    --ROND: 100;
 }
 
-/* Navigation links: bolder lean effect, no underline by default */
+/* Navigation links: same axis shift, no underline */
 .link-nav {
-    transition: font-weight 0.2s ease,
-                font-style 0.2s ease,
-                font-stretch 0.2s ease;
+    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
 }
 
 .link-nav:hover {
-    font-weight: 550;
-    font-style: oblique -6deg;
-    font-stretch: 105%;
+    --GRAD: 70;
+    --ROND: 100;
 }
 
-/* Subtle weight-only hover for items within group containers */
-.group:hover .link-group-weight {
-    font-weight: 600;
-    transition: font-weight 0.2s ease;
+/* Group hover: parent hover shifts child axes */
+.group:hover .link-group-hover {
+    --GRAD: 70;
+    --ROND: 100;
+    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
 }
 
-/* Prose links: subtle weight bump on hover */
+/* Prose links */
 .prose a:not([id]) {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
     color: inherit;
-    transition: font-weight 0.15s ease,
-                text-decoration-thickness 0.15s ease;
+    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
 }
 
 .prose a:not([id]):hover {
-    font-weight: 500;
-    text-decoration-thickness: 2px;
+    --GRAD: 70;
+    --ROND: 100;
+}
+
+/* ── Button hover ────────────────────────────────────────────────── */
+
+.btn-axis {
+    transition: --GRAD 0.2s ease, --ROND 0.2s ease;
+}
+
+.btn-axis:hover {
+    --GRAD: 70;
+    --ROND: 60;
 }
 
 /* ── Section personality via roundness ────────────────────────────── */
@@ -182,42 +192,34 @@ html {
 .type-soft { --ROND: 25; }    /* Academic, thoughtful sections */
 .type-playful { --ROND: 80; } /* Fun, casual sections */
 
-/* ── Mouse-driven roundness for hero ─────────────────────────────── */
-/* Mouse X position (0-100) directly drives ROND in the hero area.
-   Text morphs from crisp-geometric (left) to soft-rounded (right). */
+/* ── Mouse-driven axes for hero ──────────────────────────────────── */
+/* Mouse X → ROND (sharp left, round right)
+   Mouse Y → GRAD (light top, heavy bottom)
+   Creates a 2D typographic field. */
 
-.type-mouse-rond {
+.type-mouse-axes {
     --ROND: clamp(0, var(--mx, 50), 100);
-    transition: --ROND 0.15s ease-out;
+    --GRAD: clamp(0, var(--my, 50), 100);
+    transition: --ROND 0.15s ease-out, --GRAD 0.15s ease-out;
 }
 
-/* ── Button axis interaction ─────────────────────────────────────── */
-
-.btn-axis {
-    transition: font-weight 0.15s ease,
-                font-stretch 0.15s ease;
+.dark .type-mouse-axes {
+    /* Keep dark mode GRAD floor at 40 for optical compensation */
+    --GRAD: clamp(40, calc(40 + var(--my, 50) * 0.6), 100);
 }
 
-.btn-axis:hover {
-    font-weight: 600;
-    font-stretch: 105%;
-}
-
-/* ── Reveal animations (text materializes from light weight) ─────── */
+/* ── Reveal animations ───────────────────────────────────────────── */
 
 .reveal-up {
     opacity: 0;
     transform: translateY(30px);
-    font-weight: 200;
     transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                font-weight 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-up.revealed {
     opacity: 1;
     transform: translateY(0);
-    font-weight: 400;
 }
 
 .reveal-scale {
@@ -272,20 +274,27 @@ html {
     background: hsl(var(--foreground)) !important;
 }
 
+/* ── ASCII art character cells ───────────────────────────────────── */
+/* Each character sits in a fixed-width inline-block cell so
+   Google Sans Flex (proportional) maintains grid alignment. */
+
+.ascii-cell {
+    display: inline-block;
+    width: var(--ascii-ch, 0.64em);
+    text-align: center;
+}
+
 /* ── Reduced motion ──────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-    .link-lean,
+    .link-hover,
     .link-nav,
     .btn-axis,
     .reveal-up,
     .reveal-scale,
-    .prose a:not([id]) {
+    .prose a:not([id]),
+    .type-mouse-axes {
         transition: none !important;
-    }
-
-    .reveal-up {
-        font-weight: 400;
     }
 }
 

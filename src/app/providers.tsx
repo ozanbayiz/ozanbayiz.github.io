@@ -20,7 +20,7 @@ function SunThemeEffect() {
 }
 
 /** Track mouse position as unitless 0-100 values on :root.
- *  --mx and --my feed the ROND axis in .type-mouse-rond elements. */
+ *  --mx feeds ROND, --my feeds GRAD in .type-mouse-axes elements. */
 function MouseTracker() {
     useEffect(() => {
         let frame: number
