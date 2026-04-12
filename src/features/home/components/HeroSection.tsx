@@ -53,8 +53,8 @@ export default function HeroSection() {
                 <div className="h-px w-32 bg-foreground" />
 
                 {/* Subtitle — medium weight, slightly condensed */}
-                <p className="text-base font-medium" style={{ fontStretch: '90%' }}>
-                    CS @ Berkeley
+                <p className="text-base" style={{ fontStretch: '85%' }}>
+                    CS for Education @ Berkeley
                 </p>
 
                 {/* Social links — large icons */}
