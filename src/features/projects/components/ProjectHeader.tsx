@@ -21,7 +21,7 @@ export default function ProjectHeader({
 }: HeaderProps) {
     return (
         <div className='space-y-4'>
-            <h1 className='text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight leading-tight'>{title}</h1>
+            <h1 className='accent-1 text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight leading-tight'>{title}</h1>
             {description ? (
                 <p className='text-sm leading-relaxed text-foreground'>{description}</p>
             ) : null}

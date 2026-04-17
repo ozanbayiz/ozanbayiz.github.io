@@ -2,95 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Animatable custom properties for variable font axes ──────────── */
-/* @property lets the browser interpolate these as numbers in transitions */
-
-@property --GRAD {
-    syntax: '<number>';
-    initial-value: 0;
-    inherits: true;
-}
-
-@property --ROND {
-    syntax: '<number>';
-    initial-value: 0;
-    inherits: true;
-}
-
-@property --mx {
-    syntax: '<number>';
-    initial-value: 50;
-    inherits: true;
-}
-
-@property --my {
-    syntax: '<number>';
-    initial-value: 50;
-    inherits: true;
-}
-
 /* ── Base typography ──────────────────────────────────────────────── */
 
 body {
-    font-family: 'Google Sans Flex Variable', system-ui, sans-serif;
-    font-optical-sizing: auto;
-    font-stretch: 93%;
+    font-family: 'CMU Serif', 'Latin Modern Roman', Georgia, serif;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.55;
 }
 
-/* CRITICAL: font-variation-settings must be declared per-element,
-   not just on body. Inherited declarations resolve var() on the parent,
-   so child changes to --GRAD/--ROND would have no effect.
-   :where(*) has zero specificity so code/kbd/samp easily override. */
-:where(*) {
-    font-variation-settings: 'GRAD' var(--GRAD), 'ROND' var(--ROND);
-}
-
-/* Code blocks stay monospace (Google Sans Flex can't do true monospace) */
-code, kbd, samp {
-    font-family: var(--font-jetbrains-mono), monospace;
-    font-variation-settings: normal;
+pre, code, kbd, samp {
+    font-family: 'CMU Typewriter Text', 'Computer Modern Typewriter', ui-monospace, monospace;
 }
 
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 0%;
-        --GRAD: 0;
-        --ROND: 0;
+        --background: 44 30% 96%;
+        --foreground: 0 0% 10%;
+        /* Default accent fallback (overridden by accent-script on load) */
+        --accent-1: hsl(222 80% 40%);
+        --accent-2: hsl(355 75% 40%);
+        --accent-3: hsl(210 80% 42%);
+        --accent-4: hsl(0 75% 40%);
+        --accent-5: hsl(220 80% 38%);
     }
 
     .dark {
-        --background: 0 0% 0%;
-        --foreground: 0 0% 100%;
-        /* Grade compensation: white-on-black looks optically thinner,
-           bumping grade thickens strokes without changing layout */
-        --GRAD: 40;
-    }
-}
-
-/* Math (KaTeX) sizing and wrapping helpers */
-@layer utilities {
-    .math-wrap .katex-display {
-        overflow: visible;
-        max-width: 100%;
+        --background: 0 0% 6%;
+        --foreground: 44 30% 96%;
+        --accent-1: hsl(222 80% 70%);
+        --accent-2: hsl(355 75% 70%);
+        --accent-3: hsl(210 80% 72%);
+        --accent-4: hsl(0 75% 70%);
+        --accent-5: hsl(220 80% 72%);
     }
 
-    .math-wrap .katex {
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        max-width: 100%;
-    }
-}
-
-/* Ensure display math ($$...$$) is centered in prose content */
-.prose .katex-display {
-    display: block;
-    text-align: center;
-    margin: 1em 0;
-}
-
-@layer base {
     * {
         @apply border-border;
     }
@@ -99,19 +45,36 @@ code, kbd, samp {
         @apply bg-background text-foreground;
     }
 
-    /* Ensure anchored headings scroll below the sticky project header */
     :is(h1, h2, h3, h4, h5, h6)[id] {
         scroll-margin-top: 4rem;
     }
 
-    /* Classless media responsiveness */
-    img,
-    video,
-    canvas {
+    img, video, canvas {
         display: block;
         max-width: 100%;
         height: auto;
     }
+}
+
+/* ── Math (KaTeX) ─────────────────────────────────────────────────── */
+
+@layer utilities {
+    .math-wrap .katex-display {
+        overflow: visible;
+        max-width: 100%;
+    }
+    .math-wrap .katex {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        max-width: 100%;
+    }
+}
+
+.prose .katex-display {
+    display: block;
+    text-align: center;
+    margin: 1em 0;
 }
 
 .clamp-2 {
@@ -130,87 +93,83 @@ html {
     scroll-behavior: smooth;
 }
 
-/* ── Link hover: axis shift, zero layout change ──────────────────── */
-/* GRAD thickens strokes without changing glyph width.
-   ROND shifts shape. Together they create rich feedback
-   without any text reflow or size change. */
+/* ── Random accent application ────────────────────────────────────── */
+/* Different elements pick different accents so each page load feels
+   distinct. Underlines always remain so color is never the only signal. */
+
+.accent-1 { color: var(--accent-1); }
+.accent-2 { color: var(--accent-2); }
+.accent-3 { color: var(--accent-3); }
+.accent-4 { color: var(--accent-4); }
+.accent-5 { color: var(--accent-5); }
+
+.bg-accent-1 { background-color: var(--accent-1); }
+.bg-accent-2 { background-color: var(--accent-2); }
+.bg-accent-3 { background-color: var(--accent-3); }
+
+/* ── Interactive links ───────────────────────────────────────────── */
+/* Academic serif vibe: color + underline, italic lean on hover.
+   No size change, no layout reflow. */
 
 .link-hover {
+    color: var(--accent-1);
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
+    transition: color 0.2s ease, font-style 0.2s ease, text-decoration-thickness 0.15s ease;
 }
 
 .link-hover:hover {
-    --GRAD: 70;
-    --ROND: 100;
+    color: var(--accent-2);
+    font-style: italic;
+    text-decoration-thickness: 2px;
 }
 
-/* Navigation links: same axis shift, no underline */
 .link-nav {
-    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
+    color: var(--accent-3);
+    transition: color 0.2s ease, font-style 0.2s ease;
 }
 
 .link-nav:hover {
-    --GRAD: 70;
-    --ROND: 100;
+    color: var(--accent-4);
+    font-style: italic;
 }
 
-/* Group hover: parent hover shifts child axes */
 .group:hover .link-group-hover {
-    --GRAD: 70;
-    --ROND: 100;
-    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
+    color: var(--accent-2);
+    font-style: italic;
+    transition: color 0.2s ease, font-style 0.2s ease;
 }
 
-/* Prose links */
 .prose a:not([id]) {
+    color: var(--accent-1);
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    color: inherit;
-    transition: --GRAD 0.25s ease, --ROND 0.25s ease;
+    transition: color 0.2s ease, font-style 0.2s ease, text-decoration-thickness 0.15s ease;
 }
 
 .prose a:not([id]):hover {
-    --GRAD: 70;
-    --ROND: 100;
+    color: var(--accent-2);
+    font-style: italic;
+    text-decoration-thickness: 2px;
 }
+
+/* Cycle accent colors across repeated elements for variety */
+article :is(h2, h3):nth-of-type(3n+1) { color: var(--accent-1); }
+article :is(h2, h3):nth-of-type(3n+2) { color: var(--accent-3); }
+article :is(h2, h3):nth-of-type(3n+3) { color: var(--accent-5); }
 
 /* ── Button hover ────────────────────────────────────────────────── */
 
 .btn-axis {
-    transition: --GRAD 0.2s ease, --ROND 0.2s ease;
+    transition: color 0.2s ease, font-style 0.2s ease, border-color 0.2s ease;
 }
 
 .btn-axis:hover {
-    --GRAD: 70;
-    --ROND: 60;
-}
-
-/* ── Section personality via roundness ────────────────────────────── */
-/* Each section has a distinct typographic character through ROND axis */
-
-.type-warm { --ROND: 60; }    /* Personal, friendly sections */
-.type-sharp { --ROND: 0; }    /* Technical, precise sections */
-.type-soft { --ROND: 25; }    /* Academic, thoughtful sections */
-.type-playful { --ROND: 80; } /* Fun, casual sections */
-
-/* ── Mouse-driven axes for hero ──────────────────────────────────── */
-/* Mouse X → ROND (sharp left, round right)
-   Mouse Y → GRAD (light top, heavy bottom)
-   Creates a 2D typographic field. */
-
-.type-mouse-axes {
-    --ROND: clamp(0, var(--mx, 50), 100);
-    --GRAD: clamp(0, var(--my, 50), 100);
-    transition: --ROND 0.15s ease-out, --GRAD 0.15s ease-out;
-}
-
-.dark .type-mouse-axes {
-    /* Keep dark mode GRAD floor at 40 for optical compensation */
-    --GRAD: clamp(40, calc(40 + var(--my, 50) * 0.6), 100);
+    color: var(--accent-1);
+    border-color: var(--accent-1);
+    font-style: italic;
 }
 
 /* ── Reveal animations ───────────────────────────────────────────── */
@@ -241,36 +200,24 @@ html {
 /* ── Hero entry animations ───────────────────────────────────────── */
 
 @keyframes fade-in-up {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; } to { opacity: 1; }
 }
-
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%, 100% { opacity: 1; } 50% { opacity: 0; }
 }
 
 .animate-fade-in-up {
     opacity: 0;
     animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
 .animate-fade-in {
     opacity: 0;
     animation: fade-in 1s ease-out forwards;
 }
-
 .animate-blink {
     animation: blink 1s step-end infinite;
 }
@@ -279,27 +226,44 @@ html {
     background: hsl(var(--foreground)) !important;
 }
 
-/* ── ASCII art character cells ───────────────────────────────────── */
-/* Each character sits in a fixed-width inline-block cell so
-   Google Sans Flex (proportional) maintains grid alignment. */
+/* ── Focus visible (a11y) ────────────────────────────────────────── */
 
-.ascii-cell {
-    display: inline-block;
-    width: var(--ascii-ch, 0.64em);
-    text-align: center;
+:focus-visible {
+    outline: 2px solid var(--accent-1);
+    outline-offset: 2px;
+}
+
+/* ── Forced colors (Windows high-contrast mode) ──────────────────── */
+/* Let the OS palette win; disable our custom colors. */
+
+@media (forced-colors: active) {
+    .accent-1, .accent-2, .accent-3, .accent-4, .accent-5,
+    .link-hover, .link-nav, .prose a:not([id]) {
+        color: LinkText;
+    }
+    .link-hover:hover, .link-nav:hover, .prose a:not([id]):hover {
+        color: ActiveText;
+    }
+    :focus-visible {
+        outline: 2px solid Highlight;
+    }
 }
 
 /* ── Reduced motion ──────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-    .link-hover,
-    .link-nav,
-    .btn-axis,
-    .reveal-up,
-    .reveal-scale,
+    .link-hover, .link-nav, .btn-axis,
+    .reveal-up, .reveal-scale,
     .prose a:not([id]),
-    .type-mouse-axes {
+    .group:hover .link-group-hover {
         transition: none !important;
+    }
+    .animate-fade-in-up, .animate-fade-in, .animate-blink {
+        animation: none !important;
+        opacity: 1;
+    }
+    html {
+        scroll-behavior: auto;
     }
 }
 

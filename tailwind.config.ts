@@ -19,8 +19,9 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['"Google Sans Flex Variable"', 'system-ui', 'sans-serif'],
-                mono: ['var(--font-jetbrains-mono)', 'monospace'],
+                sans: ['"CMU Serif"', '"Latin Modern Roman"', 'Georgia', 'serif'],
+                serif: ['"CMU Serif"', '"Latin Modern Roman"', 'Georgia', 'serif'],
+                mono: ['"CMU Typewriter Text"', '"Computer Modern Typewriter"', 'ui-monospace', 'monospace'],
             },
             colors: {
                 background: 'hsl(var(--background))',

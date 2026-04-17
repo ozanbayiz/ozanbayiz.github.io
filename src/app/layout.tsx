@@ -1,17 +1,12 @@
 import './globals.css'
-import '@fontsource-variable/google-sans-flex/full.css'
-
-import { JetBrains_Mono } from 'next/font/google'
+import 'computer-modern/cmu-serif.css'
+import 'computer-modern/cmu-typewriter-text.css'
 
 import { Providers } from '@/app/providers'
+import { ACCENT_BOOTSTRAP_IIFE } from '@/lib/accent-script'
 import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
 import type { Metadata } from 'next'
-
-const jetBrainsMono = JetBrains_Mono({
-    variable: '--font-jetbrains-mono',
-    subsets: ['latin']
-})
 
 export const metadata: Metadata = {
     title: 'ozanbayiz',
@@ -48,8 +43,9 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${jetBrainsMono.variable} antialiased overflow-x-hidden`}>
+            <body className='antialiased overflow-x-hidden'>
                 <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
+                <script dangerouslySetInnerHTML={{ __html: ACCENT_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>
         </html>
