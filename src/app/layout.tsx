@@ -3,7 +3,6 @@ import 'computer-modern/cmu-serif.css'
 import 'computer-modern/cmu-typewriter-text.css'
 
 import { Providers } from '@/app/providers'
-import { ACCENT_BOOTSTRAP_IIFE } from '@/lib/accent-script'
 import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
 import type { Metadata } from 'next'
@@ -45,7 +44,6 @@ export default function RootLayout({
         <html lang='en' suppressHydrationWarning>
             <body className='antialiased overflow-x-hidden'>
                 <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
-                <script dangerouslySetInnerHTML={{ __html: ACCENT_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>
         </html>

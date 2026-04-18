@@ -14,13 +14,13 @@ export default function ProjectSection() {
     return (
         <div className="w-full">
             <div className="mb-4 flex items-baseline justify-between">
-                <h2 className="accent text-base font-bold">
+                <h2>
                     Projects
                 </h2>
                 <Link
                     href="/projects/"
                     prefetch={false}
-                    className="link-nav text-xs"
+                    className="link-nav"
                 >
                     all &rarr;
                 </Link>
@@ -34,10 +34,10 @@ export default function ProjectSection() {
                         prefetch={false}
                         className="group flex items-baseline justify-between gap-4 border-b py-3"
                     >
-                        <span className="link-group-hover text-sm">
+                        <span className="link-group-hover">
                             {project.title}
                         </span>
-                        <span className="shrink-0 text-xs text-foreground">
+                        <span className="shrink-0">
                             {project.date
                                 ? new Date(
                                       project.date

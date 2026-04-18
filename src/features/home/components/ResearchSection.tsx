@@ -9,7 +9,7 @@ export default function ResearchSection() {
 
     return (
         <div className="w-full">
-            <h2 className="accent mb-6 text-base font-bold">
+            <h2 className="mb-6">
                 Research
             </h2>
 
@@ -17,7 +17,7 @@ export default function ResearchSection() {
                 {items.map((item) => (
                     <div key={item.slug}>
 
-                            <p className="text-xs text-foreground">
+                            <p>
                                 {new Date(item.date).toLocaleDateString(
                                     'en-US',
                                     {
@@ -27,24 +27,24 @@ export default function ResearchSection() {
                                 )}
                             </p>
 
-                            <h3 className="mt-1 text-sm font-bold leading-tight">
+                            <h3 className="mt-1 leading-tight">
                                 {item.title}
                             </h3>
 
                             {item.venue && (
-                                <span className="mt-1 inline-block text-xs text-foreground">
+                                <span className="mt-1 inline-block">
                                     {item.venue}
                                 </span>
                             )}
 
                             {item.description && (
-                                <p className="mt-1 text-xs leading-relaxed text-foreground">
+                                <p className="mt-1 leading-relaxed">
                                     {item.description}
                                 </p>
                             )}
 
                             {item.authors && (
-                                <p className="mt-1 text-xs italic text-foreground">
+                                <p className="mt-1 italic">
                                     with {item.authors.join(', ')}
                                 </p>
                             )}
@@ -55,7 +55,7 @@ export default function ResearchSection() {
                                         <Link
                                             href={item.pdfUrl}
                                             target="_blank"
-                                            className="link-hover text-xs"
+                                            className="link-hover"
                                         >
                                             pdf &#8599;
                                         </Link>
@@ -64,7 +64,7 @@ export default function ResearchSection() {
                                         <Link
                                             href={item.projectUrl}
                                             target="_blank"
-                                            className="link-hover text-xs"
+                                            className="link-hover"
                                         >
                                             project &#8599;
                                         </Link>

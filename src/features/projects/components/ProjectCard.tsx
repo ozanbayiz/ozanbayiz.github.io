@@ -73,8 +73,8 @@ export default function ProjectCard(props: ProjectCardProps) {
 
             {/* Content */}
             <div className='flex min-w-0 flex-1 flex-col gap-2 p-5'>
-                <h3 className='link-group-hover line-clamp-2 text-lg font-bold sm:text-xl md:text-2xl tracking-tight leading-tight'>{title}</h3>
-                <p className='line-clamp-2 text-sm leading-relaxed flex-1 text-foreground'>
+                <h3 className='link-group-hover line-clamp-2 leading-tight'>{title}</h3>
+                <p className='line-clamp-2 leading-relaxed flex-1'>
                     {displayDescription}
                 </p>
                 {(gitUrl || pdfUrl) && (
@@ -91,7 +91,7 @@ export default function ProjectCard(props: ProjectCardProps) {
                                 }}
                             >
                                 <FileText className='h-3 w-3' />
-                                <span className='text-xs'>PDF</span>
+                                <span>PDF</span>
                             </Button>
                         )}
                         {gitUrl && (
@@ -106,7 +106,7 @@ export default function ProjectCard(props: ProjectCardProps) {
                                 }}
                             >
                                 <Github className='h-3 w-3' />
-                                <span className='text-xs'>Code</span>
+                                <span>Code</span>
                             </Button>
                         )}
                     </div>

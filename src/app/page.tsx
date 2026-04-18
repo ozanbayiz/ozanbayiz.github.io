@@ -28,7 +28,7 @@ export default function Home() {
                 <footer className="py-16 md:py-20 text-center">
                     <div className="container mx-auto max-w-screen-lg px-6 md:px-8">
                         <div className="h-px w-full bg-foreground mb-16" />
-                        <p className="text-xs text-foreground">
+                        <p>
                             ozanbayiz {new Date().getFullYear()}
                             <span className="animate-blink ml-1">
                                 _

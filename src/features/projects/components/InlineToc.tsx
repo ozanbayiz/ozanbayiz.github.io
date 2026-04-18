@@ -15,7 +15,7 @@ export default function InlineToc() {
 
     return (
         <details open className='border px-5 py-4 xl:hidden'>
-            <summary className='text-xs uppercase tracking-widest text-foreground cursor-pointer select-none'>
+            <summary className='uppercase tracking-widest cursor-pointer select-none'>
                 Table of Contents
             </summary>
             <nav className='mt-3'>
@@ -38,7 +38,7 @@ function TocEntry({ item, activeId, navigateTo }: { item: TocItem; activeId: str
                 href={`#${item.id}`}
                 onClick={() => navigateTo(item.id)}
                 className={cn(
-                    'link-hover text-sm',
+                    'link-hover',
                     isActive && 'font-bold'
                 )}
             >
