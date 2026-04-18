@@ -7,7 +7,7 @@ export default function HeroSection() {
                 {/* Name — \mathbf{Ozan Bayiz} at display size */}
                 <h1
                     className='font-bold leading-none tracking-tight'
-                    style={{ fontSize: 'clamp(3rem, 2rem + 4vw, 6.5rem)' }}
+                    style={{ fontSize: 'clamp(2.25rem, 1.75rem + 2vw, 4rem)' }}
                 >
                     Ozan Bayiz
                 </h1>
