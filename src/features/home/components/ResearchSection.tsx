@@ -9,7 +9,7 @@ export default function ResearchSection() {
 
     return (
         <div className="w-full">
-            <h2 className="accent-2 mb-6 text-sm font-bold uppercase tracking-widest">
+            <h2 className="accent mb-6 text-sm font-bold uppercase tracking-widest">
                 Research
             </h2>
 
