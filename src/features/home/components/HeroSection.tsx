@@ -70,7 +70,7 @@ export default function HeroSection() {
                 <div className='h-px w-32 bg-foreground' />
 
                 {/* Subtitle */}
-                <p className='text-base italic'>
+                <p className='text-base font-bold'>
                     CS for Education @ Berkeley
                 </p>
 

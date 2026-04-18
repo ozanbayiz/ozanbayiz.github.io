@@ -60,13 +60,13 @@ export default function ProjectsListPage() {
                 <Link href='/' className='link-nav text-xs uppercase tracking-widest'>
                     &larr; Home
                 </Link>
-                <h1 className='accent text-sm font-bold uppercase tracking-widest'>Projects</h1>
+                <h1 className='accent text-xl font-bold'>Projects</h1>
                 <div className='w-16' />
             </header>
             <div className='flex flex-col gap-10'>
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-sm font-bold uppercase tracking-widest'>CS185 — Deep RL</h2>
+                        <h2 className='accent text-base font-bold'>CS185 — Deep RL</h2>
                         <p className='text-xs text-foreground mt-1'>
                             with{' '}
                             <ExternalLink href='https://people.eecs.berkeley.edu/~svlevine/'>
@@ -79,7 +79,7 @@ export default function ProjectsListPage() {
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-sm font-bold uppercase tracking-widest'>CS280 — Computer Vision</h2>
+                        <h2 className='accent text-base font-bold'>CS280 — Computer Vision</h2>
                         <p className='text-xs text-foreground mt-1'>
                             with{' '}
                             <ExternalLink href='https://people.eecs.berkeley.edu/~kanazawa/'>
@@ -96,14 +96,14 @@ export default function ProjectsListPage() {
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-sm font-bold uppercase tracking-widest'>Academic</h2>
+                        <h2 className='accent text-base font-bold'>Academic</h2>
                     </div>
                     <Section items={research} />
                 </div>
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-sm font-bold uppercase tracking-widest'>Personal</h2>
+                        <h2 className='accent text-base font-bold'>Personal</h2>
                     </div>
                     <Section items={personal} />
                 </div>

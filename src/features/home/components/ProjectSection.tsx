@@ -14,7 +14,7 @@ export default function ProjectSection() {
     return (
         <div className="w-full">
             <div className="mb-4 flex items-baseline justify-between">
-                <h2 className="accent text-sm font-bold uppercase tracking-widest">
+                <h2 className="accent text-base font-bold">
                     Projects
                 </h2>
                 <Link

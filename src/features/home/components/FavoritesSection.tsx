@@ -30,7 +30,7 @@ export default function FavoritesSection() {
 
     return (
         <div className="w-full flex flex-col space-y-6">
-            <h2 className="accent text-sm font-bold uppercase tracking-widest">Things I Like</h2>
+            <h2 className="accent text-base font-bold">Things I Like</h2>
             <div className="h-px w-full bg-foreground" />
             <div className="flex flex-col md:flex-row md:gap-8">
                 {/* Inventory Grids */}
