@@ -6,7 +6,7 @@ export default function HeroSection() {
             <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8'>
                 {/* ASCII Art — CMU Typewriter (genuine monospace), bold weight */}
                 <div className='flex flex-wrap items-center justify-around gap-x-4 text-2xs leading-tight lg:text-sm'>
-                    <pre className='mb-4 accent-1 font-mono font-bold'>
+                    <pre className='mb-4 font-mono font-bold'>
                         {'                     '}XXXXXXX{'\n'}
                         {'                     '}XXXXXXX{'\n'}
                         {'                    '}XXXXXXXX{'\n'}
@@ -34,7 +34,7 @@ export default function HeroSection() {
                         {'\n'}
                         {'   '}XXX{'                      '}
                     </pre>
-                    <pre className='mb-4 accent-2 font-mono font-bold'>
+                    <pre className='mb-4 font-mono font-bold'>
                         {' '}
                         XXX XXX{'    '}XXX XXX{'        '}XXX{'      '}XXX XXX
                         {'              '}
@@ -67,10 +67,10 @@ export default function HeroSection() {
                 </div>
 
                 {/* Divider */}
-                <div className='h-px w-32 bg-accent-3' />
+                <div className='h-px w-32 bg-foreground' />
 
                 {/* Subtitle */}
-                <p className='text-base italic'>
+                <p className='text-base font-bold'>
                     CS for Education @ Berkeley
                 </p>
 
@@ -80,7 +80,7 @@ export default function HeroSection() {
                         href='https://github.com/ozanbayiz'
                         aria-label='GitHub profile'
                         icon
-                        className='accent-1 transition-transform hover:scale-110'
+                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
                     >
                         <svg
                             aria-hidden='true'
@@ -96,7 +96,7 @@ export default function HeroSection() {
                         href='https://linkedin.com/in/ozanbayiz'
                         aria-label='LinkedIn profile'
                         icon
-                        className='accent-3 transition-transform hover:scale-110'
+                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
                     >
                         <svg
                             aria-hidden='true'
@@ -112,7 +112,7 @@ export default function HeroSection() {
                         href='/ozanbayiz_cv.pdf'
                         aria-label='Resume'
                         icon
-                        className='accent-4 transition-transform hover:scale-110'
+                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
                     >
                         <svg
                             aria-hidden='true'
