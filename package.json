@@ -6,8 +6,8 @@
     "scripts": {
         "prebuild": "tsx scripts/collect-projects.mts",
         "dev": "pnpm prebuild && next dev --webpack",
-        "build": "pnpm prebuild && next build && next-image-export-optimizer",
-        "analyze": "ANALYZE=true next build",
+        "build": "pnpm prebuild && next build --webpack && next-image-export-optimizer",
+        "analyze": "ANALYZE=true next build --webpack",
         "start": "pnpm dlx serve@latest out -l 3000",
         "preview": "pnpm dlx serve@latest out -l 3000",
         "lint": "oxlint --deny correctness",
