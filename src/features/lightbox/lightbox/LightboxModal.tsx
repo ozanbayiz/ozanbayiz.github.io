@@ -66,7 +66,7 @@ export default function LightboxModal({
         >
             {/* Top bar */}
             <div className="flex items-center justify-between p-3 text-foreground">
-                <div className="text-sm">
+                <div>
                     {items.length > 1
                         ? `${currentIndex + 1} / ${items.length}`
                         : ''}
@@ -134,7 +134,7 @@ export default function LightboxModal({
             {/* Caption */}
             {item.caption ? (
                 <div className="px-4 pb-5">
-                    <div className="mx-auto max-w-3xl text-center text-sm text-foreground">
+                    <div className="mx-auto max-w-3xl text-center text-foreground">
                         {item.caption}
                     </div>
                 </div>

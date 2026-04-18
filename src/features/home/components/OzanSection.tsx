@@ -4,7 +4,7 @@ const OzanSection = () => {
     return (
         <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
             <div className="col-span-1 flex flex-col justify-center md:col-span-7">
-                <p className="text-sm leading-relaxed">
+                <p className="leading-relaxed">
                     I&apos;m a fourth-year Regents&apos; and
                     Chancellor&apos;s Scholar at UC Berkeley studying
                     Computer Science. I&apos;m the Head TA for CS
@@ -12,7 +12,7 @@ const OzanSection = () => {
                     research interests are computer vision, reinforcement
                     learning, and AI for education.
                 </p>
-                <p className="mt-4 text-sm leading-relaxed text-foreground">
+                <p className="mt-4 leading-relaxed">
                     I&apos;m extremely grateful for
                     {' '}
                     <a

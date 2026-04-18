@@ -27,11 +27,11 @@ function ProjectRow({ p }: { p: Project }) {
                     <ExportedImage src={p.imageUrl} alt={p.title} fill className='object-cover' sizes='96px' />
                 </div>
                 <div className='flex-1 min-w-0'>
-                    <h3 className='link-group-hover text-sm font-bold'>{p.title}</h3>
-                    <p className='text-xs text-foreground line-clamp-1 mt-0.5'>{p.description}</p>
+                    <h3 className='link-group-hover'>{p.title}</h3>
+                    <p className='line-clamp-1 mt-0.5'>{p.description}</p>
                 </div>
                 {formattedDate ? (
-                    <span className='shrink-0 text-xs text-foreground hidden sm:block'>{formattedDate}</span>
+                    <span className='shrink-0 hidden sm:block'>{formattedDate}</span>
                 ) : null}
             </Link>
         </div>
@@ -57,17 +57,17 @@ export default function ProjectsListPage() {
     return (
         <div className='relative mx-auto w-full max-w-screen-lg px-6 pb-12 md:px-8'>
             <header className='flex items-center justify-between py-6'>
-                <Link href='/' className='link-nav text-xs uppercase tracking-widest'>
+                <Link href='/' className='link-nav uppercase tracking-widest'>
                     &larr; Home
                 </Link>
-                <h1 className='accent text-xl font-bold'>Projects</h1>
+                <h1>Projects</h1>
                 <div className='w-16' />
             </header>
             <div className='flex flex-col gap-10'>
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-base font-bold'>CS185 — Deep RL</h2>
-                        <p className='text-xs text-foreground mt-1'>
+                        <h2>CS185 — Deep RL</h2>
+                        <p className='mt-1'>
                             with{' '}
                             <ExternalLink href='https://people.eecs.berkeley.edu/~svlevine/'>
                                 Sergey Levine
@@ -79,8 +79,8 @@ export default function ProjectsListPage() {
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-base font-bold'>CS280 — Computer Vision</h2>
-                        <p className='text-xs text-foreground mt-1'>
+                        <h2>CS280 — Computer Vision</h2>
+                        <p className='mt-1'>
                             with{' '}
                             <ExternalLink href='https://people.eecs.berkeley.edu/~kanazawa/'>
                                 Angjoo Kanazawa
@@ -96,21 +96,21 @@ export default function ProjectsListPage() {
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-base font-bold'>Academic</h2>
+                        <h2>Academic</h2>
                     </div>
                     <Section items={research} />
                 </div>
                 <div className='h-px w-full bg-foreground' />
                 <div className='space-y-3'>
                     <div className='sticky top-0 z-10 bg-background py-3'>
-                        <h2 className='accent text-base font-bold'>Personal</h2>
+                        <h2>Personal</h2>
                     </div>
                     <Section items={personal} />
                 </div>
             </div>
             <footer className='py-16 md:py-20 text-center'>
                 <div className='h-px w-full bg-foreground mb-16' />
-                <p className='text-xs text-foreground'>
+                <p>
                     ozanbayiz {new Date().getFullYear()}
                     <span className='animate-blink ml-1'>_</span>
                 </p>

@@ -30,7 +30,7 @@ export default function FavoritesSection() {
 
     return (
         <div className="w-full flex flex-col space-y-6">
-            <h2 className="accent text-base font-bold">Things I Like</h2>
+            <h2>Things I Like</h2>
             <div className="h-px w-full bg-foreground" />
             <div className="flex flex-col md:flex-row md:gap-8">
                 {/* Inventory Grids */}
@@ -87,7 +87,7 @@ function InventoryPanel({
 }) {
     return (
         <div>
-            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+            <p className="font-bold uppercase tracking-widest mb-2">
                 {label} [{items.length}/{items.length}]
             </p>
             <div className={cn('grid gap-px bg-foreground border border-foreground', cols)}>
@@ -147,7 +147,7 @@ function InventorySlot({
 function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
     return (
         <div className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <p className="text-2xs font-bold uppercase tracking-widest mb-2 bg-background">
+            <p className="font-bold uppercase tracking-widest mb-2 bg-background">
                 {'>'} INSPECT
             </p>
             <div className="border border-foreground p-3 md:p-4">
@@ -171,15 +171,15 @@ function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
                         </div>
                         <div className="hidden md:block h-px w-full bg-foreground" />
                         <div className="flex flex-col justify-center md:justify-start">
-                            <p className="text-sm font-bold">{activeItem.item.title}</p>
-                            <p className="text-xs">{activeItem.item.creator}, {activeItem.item.year}</p>
+                            <p className="font-bold">{activeItem.item.title}</p>
+                            <p>{activeItem.item.creator}, {activeItem.item.year}</p>
                             {activeItem.item.note && (
-                                <p className="text-xs mt-1 md:mt-2">{'// '}{activeItem.item.note}</p>
+                                <p className="mt-1 md:mt-2">{'// '}{activeItem.item.note}</p>
                             )}
                         </div>
                     </div>
                 ) : (
-                    <p className="text-2xs font-bold uppercase tracking-widest py-3 md:py-8 text-center">
+                    <p className="font-bold uppercase tracking-widest py-3 md:py-8 text-center">
                         {'>'} SELECT ITEM<span className="animate-blink">_</span>
                     </p>
                 )}

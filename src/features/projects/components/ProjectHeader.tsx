@@ -21,12 +21,12 @@ export default function ProjectHeader({
 }: HeaderProps) {
     return (
         <div className='space-y-4'>
-            <h1 className='accent text-2xl font-bold sm:text-3xl md:text-4xl tracking-tight leading-tight'>{title}</h1>
+            <h1 className='tracking-tight leading-tight'>{title}</h1>
             {description ? (
-                <p className='text-sm leading-relaxed text-foreground'>{description}</p>
+                <p className='leading-relaxed'>{description}</p>
             ) : null}
             {(date || authors?.length) ? (
-                <p className='text-sm text-foreground'>
+                <p>
                     {date ? (
                         <time dateTime={date}>{'// '}{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
                     ) : null}
@@ -36,12 +36,12 @@ export default function ProjectHeader({
                 </p>
             ) : null}
             <div className='flex flex-wrap items-center gap-3'>
-                <ExternalLink href={repoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view repo]</ExternalLink>
+                <ExternalLink href={repoUrl} className='btn-axis border px-3 py-1.5 uppercase tracking-widest no-underline'>[view repo]</ExternalLink>
                 {pdfUrl ? (
-                    <ExternalLink href={pdfUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[view pdf]</ExternalLink>
+                    <ExternalLink href={pdfUrl} className='btn-axis border px-3 py-1.5 uppercase tracking-widest no-underline'>[view pdf]</ExternalLink>
                 ) : null}
                 {demoUrl ? (
-                    <ExternalLink href={demoUrl} className='btn-axis border px-3 py-1.5 text-xs uppercase tracking-widest no-underline'>[demo]</ExternalLink>
+                    <ExternalLink href={demoUrl} className='btn-axis border px-3 py-1.5 uppercase tracking-widest no-underline'>[demo]</ExternalLink>
                 ) : null}
             </div>
         </div>

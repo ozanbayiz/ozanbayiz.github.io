@@ -70,7 +70,7 @@ export default function HeroSection() {
                 <div className='h-px w-32 bg-foreground' />
 
                 {/* Subtitle */}
-                <p className='text-base font-bold'>
+                <p className='font-bold'>
                     CS for Education @ Berkeley
                 </p>
 
@@ -80,7 +80,7 @@ export default function HeroSection() {
                         href='https://github.com/ozanbayiz'
                         aria-label='GitHub profile'
                         icon
-                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
+                        className='transition-transform hover:scale-110'
                     >
                         <svg
                             aria-hidden='true'
@@ -96,7 +96,7 @@ export default function HeroSection() {
                         href='https://linkedin.com/in/ozanbayiz'
                         aria-label='LinkedIn profile'
                         icon
-                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
+                        className='transition-transform hover:scale-110'
                     >
                         <svg
                             aria-hidden='true'
@@ -112,7 +112,7 @@ export default function HeroSection() {
                         href='/ozanbayiz_cv.pdf'
                         aria-label='Resume'
                         icon
-                        className='transition-transform hover:scale-110 hover:text-[color:var(--accent)]'
+                        className='transition-transform hover:scale-110'
                     >
                         <svg
                             aria-hidden='true'
@@ -128,7 +128,7 @@ export default function HeroSection() {
                     <span className='mx-1 h-5 w-px bg-foreground' />
 
                     <a
-                        className='link-hover text-sm'
+                        className='link-hover'
                         href='mailto:ozanbayiz@berkeley.edu'
                     >
                         ozanbayiz@berkeley.edu

@@ -13,12 +13,12 @@ export default function ProjectFooter() {
             {(prev || next) ? (
                 <div className='flex items-center justify-between border-t pt-8 mb-16'>
                     {prev ? (
-                        <Link href={`/projects/${prev.slug}/`} className='link-nav text-sm'>
+                        <Link href={`/projects/${prev.slug}/`} className='link-nav'>
                             &larr; {prev.title}
                         </Link>
                     ) : <span />}
                     {next ? (
-                        <Link href={`/projects/${next.slug}/`} className='link-nav text-sm'>
+                        <Link href={`/projects/${next.slug}/`} className='link-nav'>
                             {next.title} &rarr;
                         </Link>
                     ) : <span />}
@@ -26,7 +26,7 @@ export default function ProjectFooter() {
             ) : (
                 <div className='h-px w-full bg-foreground mb-16' />
             )}
-            <p className='text-xs text-foreground text-center'>
+            <p className='text-center'>
                 ozanbayiz {new Date().getFullYear()}
                 <span className='animate-blink ml-1'>_</span>
             </p>
