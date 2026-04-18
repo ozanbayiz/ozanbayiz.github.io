@@ -4,9 +4,9 @@ export default function HeroSection() {
     return (
         <section className='relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16'>
             <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8'>
-                {/* ASCII Art — CMU Typewriter (genuine monospace) */}
-                <div className='flex flex-wrap items-center justify-around gap-x-4 font-mono text-2xs leading-tight lg:text-sm'>
-                    <pre className='mb-4 accent-1'>
+                {/* ASCII Art — CMU Typewriter (genuine monospace), bold weight */}
+                <div className='flex flex-wrap items-center justify-around gap-x-4 text-2xs leading-tight lg:text-sm'>
+                    <pre className='mb-4 accent-1 font-mono font-bold'>
                         {'                     '}XXXXXXX{'\n'}
                         {'                     '}XXXXXXX{'\n'}
                         {'                    '}XXXXXXXX{'\n'}
@@ -34,7 +34,7 @@ export default function HeroSection() {
                         {'\n'}
                         {'   '}XXX{'                      '}
                     </pre>
-                    <pre className='mb-4 accent-2'>
+                    <pre className='mb-4 accent-2 font-mono font-bold'>
                         {' '}
                         XXX XXX{'    '}XXX XXX{'        '}XXX{'      '}XXX XXX
                         {'              '}

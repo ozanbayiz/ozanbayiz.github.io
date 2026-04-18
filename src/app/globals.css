@@ -11,8 +11,8 @@ body {
     line-height: 1.55;
 }
 
-pre, code, kbd, samp {
-    font-family: 'CMU Typewriter Text', 'Computer Modern Typewriter', ui-monospace, monospace;
+pre, code, kbd, samp, .font-mono {
+    font-family: 'CMU Typewriter Text', 'Computer Modern Typewriter', ui-monospace, monospace !important;
 }
 
 @layer base {
