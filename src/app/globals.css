@@ -38,13 +38,13 @@ h3 {
 
 @layer base {
     :root {
-        --background: 44 30% 96%;
-        --foreground: 0 0% 10%;
+        --background: 0 0% 100%;
+        --foreground: 0 0% 0%;
     }
 
     .dark {
-        --background: 0 0% 6%;
-        --foreground: 44 30% 96%;
+        --background: 0 0% 0%;
+        --foreground: 0 0% 100%;
     }
 
     * {

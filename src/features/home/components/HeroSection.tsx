@@ -2,69 +2,15 @@ import ExternalLink from '@/shared/ui/external-link'
 
 export default function HeroSection() {
     return (
-        <section className='relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16'>
-            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8'>
-                {/* ASCII Art — CMU Typewriter (genuine monospace), bold weight */}
-                <div className='flex flex-wrap items-center justify-around gap-x-4 text-2xs leading-tight lg:text-sm'>
-                    <pre className='mb-4 font-mono font-bold'>
-                        {'                     '}XXXXXXX{'\n'}
-                        {'                     '}XXXXXXX{'\n'}
-                        {'                    '}XXXXXXXX{'\n'}
-                        {'                    '}XXXXXXXX{'\n'}
-                        {'                    '}XX{'      '}
-                        {'\n'}
-                        {'           '}XXX{'       '}X{'      '}
-                        {'\n'}
-                        {'          '}XX X{'       '}X{'      '}
-                        {'\n'}
-                        {'         '}XX{'  '}XX{'      '}XX{'     '}
-                        {'\n'}
-                        {'         '}X{'    '}XXXXXXX X{'     '}
-                        {'\n'}
-                        {'        '}XX{'          '}XXX{'     '}
-                        {'\n'}
-                        {'        '}x{'                   '}
-                        {'\n'}
-                        {'        '}x{'                   '}
-                        {'\n'}xxx{'     '}X{'                   '}
-                        {'\n'}XXX{'    '}XX{'                   '}
-                        {'\n'}XXX{'  '}XXX{'                    '}
-                        {'\n'}
-                        {'  '}XX X{'                      '}
-                        {'\n'}
-                        {'   '}XXX{'                      '}
-                    </pre>
-                    <pre className='mb-4 font-mono font-bold'>
-                        {' '}
-                        XXX XXX{'    '}XXX XXX{'        '}XXX{'      '}XXX XXX
-                        {'              '}
-                        {'\n'}XXX{'   '}XXX{'        '}XXX{'     '}XXX XXX{'    '}XXX
-                        {'   '}XXX{'            '}
-                        {'\n'}XXX{'   '}XXX{'       '}XXX{'     '}XXX{'   '}XXX{'   '}
-                        XXX{'   '}XXX{'            '}
-                        {'\n'}XXX{'   '}XXX{'    '}XXX XXX{'     '}XXX XXX{'    '}XXX
-                        {'   '}XXX{'            '}
-                        {'\n'}XXX{'   '}XXX{'     '}XXX{'       '}XXX{'   '}XXX{'   '}
-                        XXX{'   '}XXX{'            '}
-                        {'\n'}XXX{'   '}XXX{'    '}XXX{'        '}XXX{'   '}XXX{'   '}
-                        XXX{'   '}XXX{'            '}
-                        {'\n'} XXX XXX{'      '}XXX XXX{'   '}XXX{'   '}XXX{'   '}XXX
-                        {'   '}XXX{'            '}
-                        {'\n'}
-                        {'\n'} XXX XXX{'       '}XXX{'      '}XXX{'   '}XXX{'    '}XXX
-                        XXX{'    '}XXX XXX{'  '}
-                        {'\n'}XXX{'   '}XXX{'    '}XXX XXX{'    '}XXX{'   '}XXX
-                        {'      '}XXX{'           '}XXX {'\n'}XXX{'   '}XXX{'   '}XXX
-                        {'   '}XXX{'    '}XXX XXX{'       '}XXX{'          '}XXX{'  '}
-                        {'\n'} XXX XXX{'     '}XXX XXX{'       '}XXX{'         '}XXX
-                        {'       '}XXX XXX {'\n'}XXX{'   '}XXX{'   '}XXX{'   '}XXX{'      '}XXX
-                        {'         '}XXX{'        '}XXX{'    '}
-                        {'\n'}XXX{'   '}XXX{'   '}XXX{'   '}XXX{'      '}XXX
-                        {'         '}XXX{'       '}XXX{'     '}
-                        {'\n'} XXX XXX{'    '}XXX{'   '}XXX{'      '}XXX{'       '}XXX
-                        XXX{'      '}XXX XXX{'\n'}
-                    </pre>
-                </div>
+        <section className='relative flex flex-col items-center justify-center pt-24 pb-12 md:pt-36 md:pb-16'>
+            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8 text-center'>
+                {/* Name — \mathbf{Ozan Bayiz} at display size */}
+                <h1
+                    className='font-bold leading-none tracking-tight'
+                    style={{ fontSize: 'clamp(3rem, 2rem + 4vw, 6.5rem)' }}
+                >
+                    Ozan Bayiz
+                </h1>
 
                 {/* Divider */}
                 <div className='h-px w-32 bg-foreground' />
