@@ -2,15 +2,47 @@ import ExternalLink from '@/shared/ui/external-link'
 
 export default function HeroSection() {
     return (
-        <section className='relative flex flex-col items-center justify-center pt-24 pb-12 md:pt-36 md:pb-16'>
-            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8 text-center'>
-                {/* Name — \mathbf{Ozan Bayiz} at display size */}
-                <h1
-                    className='font-bold leading-none tracking-tight'
-                    style={{ fontSize: 'clamp(2.25rem, 1.75rem + 2vw, 4rem)' }}
-                >
-                    Ozan Bayiz
-                </h1>
+        <section className='relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16'>
+            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8'>
+                {/* ASCII Art — \mathbf{} style (CMU Serif bold, not monospace) */}
+                <div className='flex flex-wrap items-center justify-around gap-x-4 text-2xs leading-tight font-bold lg:text-sm'>
+                    <div className='mb-4 whitespace-pre'>
+{`                     XXXXXXX
+                     XXXXXXX
+                    XXXXXXXX
+                    XXXXXXXX
+                    XX
+           XXX       X
+          XX X       X
+         XX  XX      XX
+         X    XXXXXXX X
+        XX          XXX
+        x
+        x
+xxx     X
+XXX    XX
+XXX  XXX
+  XX X
+   XXX`}
+                    </div>
+                    <div className='mb-4 whitespace-pre'>
+{` XXX XXX    XXX XXX        XXX      XXX XXX
+XXX   XXX        XXX     XXX XXX    XXX   XXX
+XXX   XXX       XXX     XXX   XXX   XXX   XXX
+XXX   XXX    XXX XXX     XXX XXX    XXX   XXX
+XXX   XXX     XXX       XXX   XXX   XXX   XXX
+XXX   XXX    XXX        XXX   XXX   XXX   XXX
+ XXX XXX      XXX XXX   XXX   XXX   XXX   XXX
+
+ XXX XXX       XXX      XXX   XXX    XXXXXX    XXX XXX
+XXX   XXX    XXX XXX    XXX   XXX      XXX           XXX
+XXX   XXX   XXX   XXX    XXX XXX       XXX          XXX
+ XXX XXX     XXX XXX       XXX         XXX       XXX XXX
+XXX   XXX   XXX   XXX      XXX         XXX        XXX
+XXX   XXX   XXX   XXX      XXX         XXX       XXX
+ XXX XXX    XXX   XXX      XXX       XXXXXX      XXX XXX`}
+                    </div>
+                </div>
 
                 {/* Divider */}
                 <div className='h-px w-32 bg-foreground' />
