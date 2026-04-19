@@ -140,6 +140,7 @@ export default function Figure({
             // eslint-disable-next-line @next/next/no-img-element
             <img
                 loading="lazy"
+                decoding="async"
                 src={src}
                 alt={alt}
                 className={imgClasses}

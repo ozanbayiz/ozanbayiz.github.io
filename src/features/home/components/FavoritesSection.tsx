@@ -119,8 +119,12 @@ function InventorySlot({
     onSelect: () => void
     onHover: () => void
 }) {
+    const label = `${item.title} by ${item.creator} (${item.year})`
     return (
         <button
+            type='button'
+            aria-label={label}
+            aria-pressed={isActive}
             className={cn(
                 'relative bg-background overflow-hidden',
                 variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
@@ -132,8 +136,9 @@ function InventorySlot({
         >
             <ExportedImage
                 src={item.cover}
-                alt={item.title}
+                alt=''
                 fill
+                aria-hidden='true'
                 className={cn(
                     'object-cover transition-[filter] duration-200',
                     isActive ? '' : 'grayscale',
@@ -146,7 +151,12 @@ function InventorySlot({
 
 function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
     return (
-        <div className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <div
+            role='region'
+            aria-label='Selected favorite'
+            aria-live='polite'
+            className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto"
+        >
             <p className="font-bold uppercase tracking-widest mb-2 bg-background">
                 {'>'} INSPECT
             </p>

@@ -28,6 +28,7 @@ export default function MdxImg(props: MdxImgProps) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
             loading="lazy"
+            decoding="async"
             {...rest}
             src={src}
             alt={alt ?? ''}

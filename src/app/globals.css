@@ -2,6 +2,40 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Self-hosted CMU web fonts (font-display: swap, subset to used faces) */
+
+@font-face {
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/cmu-serif-500-roman.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'CMU Serif';
+    font-style: italic;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/cmu-serif-500-italic.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'CMU Serif';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/cmu-serif-700-roman.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'CMU Typewriter Text';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/cmu-typewriter-text-500-roman.woff2') format('woff2');
+}
+
 /* ── Base typography ──────────────────────────────────────────────── */
 
 body {
@@ -121,11 +155,16 @@ html {
 
 .link-nav {
     color: inherit;
-    transition: font-style 0.2s ease;
+    text-decoration: none;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: font-style 0.2s ease, text-decoration-thickness 0.15s ease, text-decoration-color 0.15s ease;
 }
 
 .link-nav:hover {
     font-style: italic;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
 }
 
 .group:hover .link-group-hover {

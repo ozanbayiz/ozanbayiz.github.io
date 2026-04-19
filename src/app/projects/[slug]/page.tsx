@@ -9,12 +9,40 @@ import ProjectMetaSetter from '@/features/projects/components/ProjectMetaSetter'
 import { SidebarToc } from '@/features/projects/components/SidebarToc'
 import ProjectsMdx from '@/features/projects/mdx/ProjectsMdx'
 
+import type { Metadata } from 'next'
+
 type Params = { slug: string }
 
 export function generateStaticParams() {
     return projectsData
         .filter(p => !!p.slug)
         .map(p => ({ slug: p.slug! }))
+}
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+    const { slug } = await params
+    const project = projectsData.find(p => p.slug === slug)
+    if (!project) return {}
+    const ogImage = project.heroImageSrc ?? project.imageUrl
+    const canonical = `/projects/${slug}`
+    return {
+        title: project.title,
+        description: project.description,
+        alternates: { canonical },
+        openGraph: {
+            type: 'article',
+            title: project.title,
+            description: project.description,
+            url: canonical,
+            images: ogImage ? [{ url: ogImage, alt: project.heroAlt ?? project.title }] : undefined
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: project.title,
+            description: project.description,
+            images: ogImage ? [ogImage] : undefined
+        }
+    }
 }
 
 const byDateDesc = (a?: string, b?: string) => {
@@ -38,8 +66,40 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
     const heroSrc = project.heroImageSrc ?? project.imageUrl
     const showHero = !project.hideHero && heroSrc
 
+    const siteUrl = 'https://ozanbayiz.github.io'
+    const projectUrl = `${siteUrl}/projects/${slug}`
+    const jsonLd = [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+                { '@type': 'ListItem', position: 2, name: 'Projects', item: `${siteUrl}/projects` },
+                { '@type': 'ListItem', position: 3, name: project.title, item: projectUrl }
+            ]
+        },
+        {
+            '@context': 'https://schema.org',
+            '@type': 'CreativeWork',
+            name: project.title,
+            description: project.description,
+            url: projectUrl,
+            image: heroSrc ? `${siteUrl}${heroSrc.startsWith('/') ? '' : '/'}${heroSrc}` : undefined,
+            dateCreated: project.date,
+            author: {
+                '@type': 'Person',
+                name: 'Ozan Bayiz',
+                url: siteUrl
+            }
+        }
+    ]
+
     return (
         <>
+            <script
+                type='application/ld+json'
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <ProjectMetaSetter
                 title={project.shortTitle ?? project.title}
                 prev={prev}
@@ -61,30 +121,32 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 <div className='pt-24 md:pt-28' />
             )}
 
-            <div className='max-w-screen-md mx-auto px-6 md:px-8 mt-12 space-y-6'>
-                <ProjectHeader
-                    title={project.title}
-                    description={project.description}
-                    repoUrl={project.gitUrl}
-                    date={project.date}
-                    authors={project.authors}
-                    pdfUrl={project.pdfUrl}
-                    demoUrl={project.demoUrl}
-                />
+            <main id='main'>
+                <div className='max-w-screen-md mx-auto px-6 md:px-8 mt-12 space-y-6'>
+                    <ProjectHeader
+                        title={project.title}
+                        description={project.description}
+                        repoUrl={project.gitUrl}
+                        date={project.date}
+                        authors={project.authors}
+                        pdfUrl={project.pdfUrl}
+                        demoUrl={project.demoUrl}
+                    />
 
-                <div className='h-px w-full bg-foreground' />
+                    <div className='h-px w-full bg-foreground' />
 
-                <InlineToc />
-            </div>
-
-            <div className='max-w-screen-md mx-auto px-6 md:px-8 pt-10 pb-16 relative'>
-                <SidebarToc />
-                <div className='prose prose-sm prose-neutral dark:prose-invert max-w-none [&_figure]:max-w-none [&_.grid]:max-w-none [&_video]:max-w-none [&_pre]:text-[1em] [&_code]:text-[1em] [&_table]:text-[1em] [&_pre]:border [&_pre]:bg-background [&_blockquote]:border-l-2 [&_blockquote]:border-foreground [&_blockquote]:pl-4 [&_hr]:border-foreground [&_hr]:my-8'>
-                    <LightboxProvider>
-                        <ProjectsMdx slug={slug} />
-                    </LightboxProvider>
+                    <InlineToc />
                 </div>
-            </div>
+
+                <div className='max-w-screen-md mx-auto px-6 md:px-8 pt-10 pb-16 relative'>
+                    <SidebarToc />
+                    <div className='prose prose-sm prose-neutral dark:prose-invert max-w-none [&_figure]:max-w-none [&_.grid]:max-w-none [&_video]:max-w-none [&_pre]:text-[1em] [&_code]:text-[1em] [&_table]:text-[1em] [&_pre]:border [&_pre]:bg-background [&_blockquote]:border-l-2 [&_blockquote]:border-foreground [&_blockquote]:pl-4 [&_hr]:border-foreground [&_hr]:my-8'>
+                        <LightboxProvider>
+                            <ProjectsMdx slug={slug} />
+                        </LightboxProvider>
+                    </div>
+                </div>
+            </main>
         </>
     )
 }

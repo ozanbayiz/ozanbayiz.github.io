@@ -4,12 +4,29 @@ import OzanSection from '@/features/home/components/OzanSection'
 import ProjectSection from '@/features/home/components/ProjectSection'
 import Section from '@/features/home/components/Section'
 
+const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Ozan Bayiz',
+    url: 'https://ozanbayiz.github.io',
+    email: 'mailto:ozanbayiz@berkeley.edu',
+    jobTitle: 'CS for Education @ Berkeley',
+    sameAs: [
+        'https://github.com/ozanbayiz',
+        'https://linkedin.com/in/ozanbayiz'
+    ]
+}
+
 export default function Home() {
     return (
         <>
+            <script
+                type='application/ld+json'
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+            />
             <HeroSection />
 
-            <main className="relative">
+            <main id='main' className="relative">
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
                 <Section id="about">
                     <OzanSection />
