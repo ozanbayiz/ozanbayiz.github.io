@@ -1,16 +1,74 @@
 import ExternalLink from '@/shared/ui/external-link'
 
+const FACE_ART = [
+    '                     XXXXXXX',
+    '                     XXXXXXX',
+    '                    XXXXXXXX',
+    '                    XXXXXXXX',
+    '                    XX      ',
+    '           XXX       X      ',
+    '          XX X       X      ',
+    '         XX  XX      XX     ',
+    '         X    XXXXXXX X     ',
+    '        XX          XXX     ',
+    '        x                   ',
+    '        x                   ',
+    'xxx     X                   ',
+    'XXX    XX                   ',
+    'XXX  XXX                    ',
+    '  XX X                      ',
+    '   XXX                      ',
+]
+
+const NAME_ART = [
+    ' XXX XXX    XXX XXX        XXX      XXX XXX              ',
+    'XXX   XXX        XXX     XXX XXX    XXX   XXX            ',
+    'XXX   XXX       XXX     XXX   XXX   XXX   XXX            ',
+    'XXX   XXX    XXX XXX     XXX XXX    XXX   XXX            ',
+    'XXX   XXX     XXX       XXX   XXX   XXX   XXX            ',
+    'XXX   XXX    XXX        XXX   XXX   XXX   XXX            ',
+    ' XXX XXX      XXX XXX   XXX   XXX   XXX   XXX            ',
+    '                                                         ',
+    ' XXX XXX       XXX      XXX   XXX    XXX XXX    XXX XXX  ',
+    'XXX   XXX    XXX XXX    XXX   XXX      XXX           XXX ',
+    'XXX   XXX   XXX   XXX    XXX XXX       XXX          XXX  ',
+    ' XXX XXX     XXX XXX       XXX         XXX       XXX XXX ',
+    'XXX   XXX   XXX   XXX      XXX         XXX        XXX    ',
+    'XXX   XXX   XXX   XXX      XXX         XXX       XXX     ',
+    ' XXX XXX    XXX   XXX      XXX       XXX XXX      XXX XXX',
+]
+
+function AsciiBlock({ lines }: { lines: string[] }) {
+    // Bold serif (\mathbf{}) is proportional, so we peg every character to a
+    // fixed cell width to keep the ASCII grid aligned.
+    return (
+        <div className='mb-4 font-bold leading-tight'>
+            {lines.map((line, i) => (
+                <div key={i} className='whitespace-nowrap'>
+                    {Array.from(line).map((ch, j) => (
+                        <span
+                            key={j}
+                            className='inline-block text-center'
+                            style={{ width: '0.7em' }}
+                        >
+                            {ch === ' ' ? '\u00A0' : ch}
+                        </span>
+                    ))}
+                </div>
+            ))}
+        </div>
+    )
+}
+
 export default function HeroSection() {
     return (
-        <section className='relative flex flex-col items-center justify-center pt-24 pb-12 md:pt-36 md:pb-16'>
-            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8 text-center'>
-                {/* Name — \mathbf{Ozan Bayiz} at display size */}
-                <h1
-                    className='font-bold leading-none tracking-tight'
-                    style={{ fontSize: 'clamp(2.25rem, 1.75rem + 2vw, 4rem)' }}
-                >
-                    Ozan Bayiz
-                </h1>
+        <section className='relative flex flex-col items-center justify-center pt-20 pb-10 md:pt-32 md:pb-16'>
+            <div className='relative z-10 flex flex-col items-center gap-6 px-6 md:px-8'>
+                {/* ASCII Art — CMU Serif bold (the \mathbf{} look), forced to a fixed cell so the grid still aligns */}
+                <div className='flex flex-wrap items-center justify-around gap-x-4 text-2xs lg:text-sm'>
+                    <AsciiBlock lines={FACE_ART} />
+                    <AsciiBlock lines={NAME_ART} />
+                </div>
 
                 {/* Divider */}
                 <div className='h-px w-32 bg-foreground' />
