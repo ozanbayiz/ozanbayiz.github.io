@@ -1,7 +1,6 @@
 import FavoritesSection from '@/features/home/components/FavoritesSection'
 import HeroSection from '@/features/home/components/HeroSection'
 import OzanSection from '@/features/home/components/OzanSection'
-import ProjectSection from '@/features/home/components/ProjectSection'
 import Section from '@/features/home/components/Section'
 
 export default function Home() {
@@ -13,11 +12,6 @@ export default function Home() {
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
                 <Section id="about" className="type-warm">
                     <OzanSection />
-                </Section>
-
-                <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
-                <Section id="projects" className="type-sharp">
-                    <ProjectSection />
                 </Section>
 
                 <div className="mx-auto max-w-screen-lg px-6 md:px-8"><div className="h-px w-full bg-foreground" /></div>
