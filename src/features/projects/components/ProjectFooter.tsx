@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import * as React from 'react'
 
-import { ProjectArticleContext } from './ProjectArticleShell'
+import { ProjectMetaContext } from './ProjectArticleShell'
+
+const CURRENT_YEAR = new Date().getFullYear()
 
 export default function ProjectFooter() {
-    const { prev, next } = React.useContext(ProjectArticleContext)
+    const { prev, next } = React.useContext(ProjectMetaContext)
 
     return (
         <footer className='py-16 md:py-20 px-6 md:px-8 mx-auto w-full max-w-screen-md'>
@@ -27,7 +29,7 @@ export default function ProjectFooter() {
                 <div className='h-px w-full bg-foreground mb-16' />
             )}
             <p className='text-xs text-foreground text-center'>
-                ozanbayiz {new Date().getFullYear()}
+                ozanbayiz {CURRENT_YEAR}
                 <span className='animate-blink ml-1'>_</span>
             </p>
         </footer>

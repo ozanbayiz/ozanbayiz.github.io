@@ -1,5 +1,7 @@
 import ExternalLink from '@/shared/ui/external-link'
 
+import { formatProjectDate } from '../utils/dates'
+
 export type HeaderProps = {
     title: string
     description?: string | undefined
@@ -28,7 +30,7 @@ export default function ProjectHeader({
             {(date || authors?.length) ? (
                 <p className='text-sm text-foreground'>
                     {date ? (
-                        <time dateTime={date}><span className="terminal-chrome">{'// '}</span>{new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+                        <time dateTime={date}><span className="terminal-chrome">{'// '}</span>{formatProjectDate(date, { year: 'numeric', month: 'long', day: 'numeric' })}</time>
                     ) : null}
                     {authors?.length ? (
                         <span><span className="terminal-chrome">{' // '}</span>{authors.join(', ')}</span>

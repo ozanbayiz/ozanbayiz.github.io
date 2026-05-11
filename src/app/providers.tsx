@@ -1,11 +1,16 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
-import { ThemeProvider, useTheme } from 'next-themes'
-import { useEffect, useRef } from 'react'
+/**
+ * Theming has two orthogonal axes:
+ *   - light/dark — managed by next-themes (`ThemeProvider`), driven by sunrise/sunset.
+ *     Affects ink mode only; color mode is locked to a fixed theme.
+ *   - ink/color   — managed by `ModeProvider` (style-mode), data-mode on <html>.
+ */
 
-import { useModeContext, ModeProvider } from '@/lib/mode-context'
-import { generatePalette, randomHue } from '@/lib/palette'
+import { ThemeProvider, useTheme } from 'next-themes'
+import { useEffect } from 'react'
+
+import { ModeProvider } from '@/lib/mode-context'
 import { isDaytime } from '@/lib/sun'
 
 /** Sync theme to sunrise/sunset every 60 seconds. */
@@ -22,47 +27,7 @@ function SunThemeEffect() {
     return null
 }
 
-/** Re-randomize accent hue on SPA route changes. IIFE handles first paint. */
-function HueEffect() {
-    const pathname = usePathname()
-    const { mode } = useModeContext()
-    const isFirstMount = useRef(true)
-
-    useEffect(() => {
-        if (isFirstMount.current) {
-            isFirstMount.current = false
-            return
-        }
-        const tag = document.getElementById('dynamic-accents')
-        if (mode === 'ink' || mode === 'clean') {
-            if (tag) tag.innerHTML = ''
-        } else {
-            if (tag) tag.innerHTML = generatePalette(randomHue())
-        }
-    }, [pathname, mode])
-
-    return null
-}
-
 export function Providers({ children }: { children: React.ReactNode }) {
-    useEffect(() => {
-        let frame: number
-        const onMove = (e: MouseEvent) => {
-            cancelAnimationFrame(frame)
-            frame = requestAnimationFrame(() => {
-                const x = (e.clientX / window.innerWidth) * 100
-                const y = (e.clientY / window.innerHeight) * 100
-                document.documentElement.style.setProperty('--mouse-x', `${x}%`)
-                document.documentElement.style.setProperty('--mouse-y', `${y}%`)
-            })
-        }
-        window.addEventListener('mousemove', onMove)
-        return () => {
-            window.removeEventListener('mousemove', onMove)
-            cancelAnimationFrame(frame)
-        }
-    }, [])
-
     return (
         <ThemeProvider
             attribute='class'
@@ -71,7 +36,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         >
             <ModeProvider>
                 <SunThemeEffect />
-                <HueEffect />
                 {children}
             </ModeProvider>
         </ThemeProvider>

@@ -30,6 +30,7 @@ export default function LightboxModal({
     onNext
 }: Props) {
     const containerRef = React.useRef<HTMLDivElement | null>(null)
+    const swipeStartXRef = React.useRef<number>(0)
 
     React.useEffect(() => {
         function onKey(e: KeyboardEvent) {
@@ -104,16 +105,10 @@ export default function LightboxModal({
             <div
                 className="flex-1 min-h-0 min-w-0 flex items-center justify-center px-3 pb-0 sm:pb-3 touch-pan-x overflow-hidden"
                 onTouchStart={(e: React.TouchEvent<HTMLDivElement>) => {
-                    const el = e.currentTarget as HTMLDivElement & {
-                        _swipeX?: number
-                    }
-                    el._swipeX = e.touches[0]?.clientX ?? 0
+                    swipeStartXRef.current = e.touches[0]?.clientX ?? 0
                 }}
                 onTouchEnd={(e: React.TouchEvent<HTMLDivElement>) => {
-                    const el = e.currentTarget as HTMLDivElement & {
-                        _swipeX?: number
-                    }
-                    const startX = el._swipeX ?? 0
+                    const startX = swipeStartXRef.current
                     const endX = e.changedTouches[0]?.clientX ?? startX
                     const dx = endX - startX
                     const threshold = 30

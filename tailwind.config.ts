@@ -21,45 +21,17 @@ export default {
             fontFamily: {
                 sans: ['var(--font-jetbrains-mono)', 'monospace'],
                 mono: ['var(--font-jetbrains-mono)', 'monospace'],
+                display: ['var(--font-silkscreen)', 'monospace'],
             },
             colors: {
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
                 accent1: 'hsl(var(--accent1))',
                 accent2: 'hsl(var(--accent2))',
+                accent3: 'hsl(var(--accent3))',
                 border: 'hsl(var(--foreground))',
                 input: 'hsl(var(--foreground))',
-                ring: 'hsl(var(--foreground))',
-
-                // Keep Shadcn structure mapped to strict palette to avoid crashes if any component uses them implicitly
-                primary: {
-                    DEFAULT: 'hsl(var(--foreground))',
-                    foreground: 'hsl(var(--background))'
-                },
-                card: {
-                    DEFAULT: 'hsl(var(--background))',
-                    foreground: 'hsl(var(--foreground))'
-                },
-                popover: {
-                    DEFAULT: 'hsl(var(--background))',
-                    foreground: 'hsl(var(--foreground))'
-                },
-                secondary: {
-                    DEFAULT: 'hsl(var(--background))',
-                    foreground: 'hsl(var(--foreground))'
-                },
-                muted: {
-                    DEFAULT: 'hsl(var(--background))',
-                    foreground: 'hsl(var(--foreground))'
-                },
-                accent: {
-                    DEFAULT: 'hsl(var(--accent1))',
-                    foreground: 'hsl(var(--background))'
-                },
-                destructive: {
-                    DEFAULT: 'hsl(var(--foreground))',
-                    foreground: 'hsl(var(--background))'
-                }
+                ring: 'hsl(var(--foreground))'
             },
             fontSize: {
                 '2xs': '0.6rem'

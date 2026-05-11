@@ -108,7 +108,7 @@ export default function Figure({
                 style={style}
                 aria-label={alt}
             >
-                <source src={src} type={`video/${src.split('.').pop()}`} />
+                <source src={src} type={`video/${src.split('?')[0]?.split('.').pop() ?? ''}`} />
             </video>
         )
     } else {

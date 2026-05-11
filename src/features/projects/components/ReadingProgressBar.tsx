@@ -34,7 +34,7 @@ export function ReadingProgressBar() {
             aria-label='Reading progress'
         >
             <div
-                className='progress-fill h-full bg-gradient-to-r from-[hsl(226,100%,50%)] via-[hsl(266,100%,50%)] to-[hsl(306,100%,50%)] transition-all duration-150 ease-out'
+                className='progress-fill h-full transition-all duration-150 ease-out bg-[image:linear-gradient(to_right,hsl(var(--g1)),hsl(var(--g2)),hsl(var(--g3)))]'
                 style={{ width: `${progress}%` }}
             />
         </div>

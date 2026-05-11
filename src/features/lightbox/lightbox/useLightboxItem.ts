@@ -18,49 +18,33 @@ type InteractiveProps = {
 }
 
 type LightboxItemResult = {
-    /** Spread onto the clickable element to wire up lightbox interaction */
     interactiveProps: InteractiveProps
-    /** Whether a lightbox context is available */
     active: boolean
 }
 
-/**
- * Hook that encapsulates lightbox registration, cleanup, and interactive props.
- * Use in any component that should register an image with the lightbox.
- */
 export function useLightboxItem({
     src,
     alt,
-    caption
+    caption,
 }: UseLightboxItemArgs): LightboxItemResult {
     const lightbox = useLightboxOptional()
-    const idRef = React.useRef<string | null>(null)
+    const id = React.useId()
 
     React.useEffect(() => {
         if (!lightbox) return
         const args: { src: string; alt?: string; caption?: React.ReactNode } = { src }
         if (alt !== undefined) args.alt = alt
         if (caption !== undefined) args.caption = caption
-        const id = lightbox.registerItem(args)
-        idRef.current = id
+        lightbox.registerItem(args, id)
         return () => {
             lightbox.unregisterItem(id)
-            idRef.current = null
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [src, alt, caption, !!lightbox])
+    }, [src, alt, caption, lightbox, id])
 
     const handleOpen = React.useCallback(() => {
         if (!lightbox) return
-        if (idRef.current) {
-            lightbox.openById(idRef.current)
-        } else {
-            const args: { src: string; alt?: string; caption?: React.ReactNode } = { src }
-            if (alt !== undefined) args.alt = String(alt)
-            if (caption !== undefined) args.caption = caption
-            lightbox.openOrRegister(args)
-        }
-    }, [lightbox, src, alt, caption])
+        lightbox.openById(id)
+    }, [lightbox, id])
 
     const onKeyDown = React.useCallback(
         (e: React.KeyboardEvent) => {
@@ -69,7 +53,7 @@ export function useLightboxItem({
                 handleOpen()
             }
         },
-        [handleOpen]
+        [handleOpen],
     )
 
     const active = !!lightbox
@@ -80,7 +64,7 @@ export function useLightboxItem({
             role: 'button',
             tabIndex: 0,
             onClick: handleOpen,
-            onKeyDown
+            onKeyDown,
         }
     }, [active, handleOpen, onKeyDown])
 

@@ -3,24 +3,13 @@ import ExportedImage from 'next-image-export-optimizer'
 
 import { ModeToggle } from '@/components/common/ModeToggle'
 import { projectsData, type Project } from '@/features/projects'
+import { byDateDesc, formatProjectDate } from '@/features/projects/utils/dates'
 import ExternalLink from '@/shared/ui/external-link'
 
-const byDateDesc = (a?: string, b?: string) => {
-    const ad = a ? Date.parse(a) : 0
-    const bd = b ? Date.parse(b) : 0
-    return bd - ad
-}
-
-function formatDate(date?: string) {
-    if (!date) return null
-    return new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short'
-    })
-}
+const CURRENT_YEAR = new Date().getFullYear()
 
 function ProjectRow({ p }: { p: Project }) {
-    const formattedDate = formatDate(p.date)
+    const formattedDate = formatProjectDate(p.date)
     return (
         <div className='group border-b'>
             <Link href={`/projects/${p.slug}/`} className='flex items-center gap-4 py-4'>
@@ -50,7 +39,7 @@ function Section({ items }: { items: Project[] }) {
 }
 
 export default function ProjectsListPage() {
-    const all = [...projectsData].sort((a, b) => byDateDesc(a.date, b.date))
+    const all = [...projectsData].sort(byDateDesc)
     const cs185 = all.filter(p => p.collection === 'cs185')
     const cs280 = all.filter(p => p.collection === 'cs280')
     const research = all.filter(p => p.collection === 'misc-academic')
@@ -114,7 +103,7 @@ export default function ProjectsListPage() {
             <footer className='py-16 md:py-20 text-center'>
                 <div className='h-px w-full bg-foreground mb-16' />
                 <p className='text-xs text-foreground'>
-                    ozanbayiz {new Date().getFullYear()}
+                    ozanbayiz {CURRENT_YEAR}
                     <span className='animate-blink ml-1'>_</span>
                 </p>
             </footer>

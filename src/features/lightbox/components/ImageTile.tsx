@@ -61,7 +61,7 @@ export default function ImageTile({
                         side={side}
                         className="max-w-[320px]"
                     >
-                        <div className="prose prose-sm prose-neutral dark:prose-invert prose-headings:mb-1 prose-hr:my-2 prose-p:my-0">
+                        <div className="prose prose-sm prose-headings:mb-1 prose-hr:my-2 prose-p:my-0">
                             {children}
                         </div>
                     </TooltipContent>

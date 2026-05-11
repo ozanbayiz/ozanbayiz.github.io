@@ -7,18 +7,30 @@ body {
 }
 
 @layer base {
+    /* Site theme: white bg, black body text, fuchsia headers.
+     * Color mode locks white/black regardless of light/dark. Ink mode
+     * follows light/dark theme (white-day, black-night) and drops accent. */
     :root {
         --background: 0 0% 100%;
         --foreground: 0 0% 0%;
-        --accent1: 266 100% 50%;
-        --accent2: 266 100% 24%;
+        --accent1: 312 100% 50%;     /* fuchsia  #FF00CC */
+        --accent2: 72 100% 50%;      /* chartreuse #CCFF00 */
+        --accent3: 192 100% 50%;     /* cyan     #00CCFF */
     }
 
     .dark {
         --background: 0 0% 0%;
         --foreground: 0 0% 100%;
-        --accent1: 266 100% 50%;
-        --accent2: 266 100% 72%;
+        --accent1: 312 100% 50%;
+        --accent2: 72 100% 50%;
+        --accent3: 192 100% 50%;
+    }
+
+    /* Color mode: lock to white bg + black fg, regardless of light/dark theme. */
+    [data-mode="color"],
+    [data-mode="color"].dark {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 0%;
     }
 }
 
@@ -51,6 +63,27 @@ body {
 
     body {
         @apply bg-background text-foreground;
+        transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Display type — Silkscreen pixel face. Pixel rendering preserves edges. */
+    h1, h2, h3, h4, h5, h6,
+    .font-display {
+        font-family: var(--font-silkscreen), monospace;
+        font-weight: 700;
+        letter-spacing: 0;
+        image-rendering: pixelated;
+    }
+
+    /* Color mode: fancy fuchsia headers. Ink mode falls through to fg. */
+    [data-mode="color"] h1,
+    [data-mode="color"] h2,
+    [data-mode="color"] h3,
+    [data-mode="color"] h4,
+    [data-mode="color"] h5,
+    [data-mode="color"] h6,
+    [data-mode="color"] .font-display {
+        color: hsl(var(--accent1));
     }
 
     /* Ensure anchored headings scroll below the sticky project header */
@@ -76,15 +109,88 @@ body {
 }
 
 ::selection {
-    background: hsl(var(--accent1) / 0.3);
-    color: hsl(var(--foreground));
+    background: hsl(var(--foreground));
+    color: hsl(var(--background));
 }
 
 html {
     scroll-behavior: smooth;
 }
 
-/* Glow utilities (kept for project pages) */
+/* ── Link interactivity ───────────────────────────────────────────
+ * Color stays static (fg) so contrast remains AA-safe across every
+ * (bg, fg) pair. Motion lives in underline thickness + weight swap. */
+
+.flex-link,
+.flex-link-group {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition:
+        text-decoration-color 0.2s ease,
+        text-decoration-thickness 0.2s ease,
+        font-weight 0.2s ease;
+}
+
+.flex-link:hover,
+.flex-link:focus-visible,
+.group:hover .flex-link-group,
+.group:focus-visible .flex-link-group {
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+    font-weight: 700;
+}
+
+/* Backward-compat aliases — old gradient-* selectors route to flex-* */
+.gradient-link { @apply flex-link; }
+.gradient-link-group { @apply flex-link-group; }
+
+/* Prose links inherit the same flex-link motion */
+.prose a:not([id]):not(.no-gradient) {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: text-decoration-thickness 0.2s ease, font-weight 0.2s ease;
+}
+
+.prose a:not([id]):not(.no-gradient):hover,
+.prose a:not([id]):not(.no-gradient):focus-visible {
+    text-decoration-thickness: 2px;
+    font-weight: 700;
+}
+
+/* Card border — ink hairline by default, hard 3px box-shadow on hover.
+ * Pixel-accurate aesthetic match for Silkscreen. */
+.flex-border-hover,
+.flex-border-group {
+    position: relative;
+    border: 1px solid hsl(var(--foreground) / 0.2);
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.flex-border-hover:hover,
+.group:hover .flex-border-group,
+.flex-border-hover:focus-visible,
+.group:focus-visible .flex-border-group {
+    border-color: hsl(var(--foreground));
+    box-shadow: 4px 4px 0 hsl(var(--foreground));
+}
+
+/* Backward-compat */
+.gradient-border-hover { @apply flex-border-hover; }
+.gradient-border-group { @apply flex-border-group; }
+
+/* ASCII art — JetBrains Mono Extra Bold (boldest weight), fg color. */
+.ascii-gradient {
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-weight: 800;
+    color: hsl(var(--foreground));
+}
+
+/* Glow utilities — driven by accent1 (fuchsia). Disabled in ink mode. */
 @layer utilities {
     .glow-accent {
         box-shadow: 0 0 20px hsl(var(--accent1) / 0.3), 0 0 60px hsl(var(--accent1) / 0.1);
@@ -108,158 +214,15 @@ html {
     }
 }
 
-/* Scroll-triggered reveal animations */
-.reveal-up {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.reveal-up.revealed {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-.reveal-scale {
-    opacity: 0;
-    transform: scale(0.95);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.reveal-scale.revealed {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* ASCII art gradient */
-.ascii-gradient {
-    background: linear-gradient(
-        135deg,
-        hsl(var(--g1, 226 100% 50%)),
-        hsl(var(--g2, 266 100% 50%)),
-        hsl(var(--g3, 306 100% 50%)),
-        hsl(var(--g4, 346 100% 50%)),
-        hsl(var(--g5, 26 100% 50%)),
-        hsl(var(--g1, 226 100% 50%))
-    );
-    background-size: 300% 300%;
-    background-position: var(--mouse-x, 50%) var(--mouse-y, 50%);
-    transition: background-position 0.3s ease;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Gradient text for links — static by default, animates on hover */
-.gradient-link,
-.gradient-link-group {
-    background: linear-gradient(
-        135deg,
-        hsl(var(--g1, 226 100% 50%)),
-        hsl(var(--g2, 266 100% 50%)),
-        hsl(var(--g3, 306 100% 50%)),
-        hsl(var(--g4, 346 100% 50%)),
-        hsl(var(--g5, 26 100% 50%)),
-        hsl(var(--g1, 226 100% 50%))
-    );
-    background-size: 300% 300%;
-    background-position: var(--mouse-x, 50%) var(--mouse-y, 50%);
-    transition: background-position 0.3s ease, filter 0.15s ease;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.gradient-link:hover {
-    filter: brightness(1.2);
-}
-
-.group:hover .gradient-link-group {
-    filter: brightness(1.2);
-}
-
-/* Gradient border for cards — fades in on hover */
-.gradient-border-hover,
-.gradient-border-group {
-    position: relative;
-}
-
-.gradient-border-hover::after,
-.gradient-border-group::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(
-        135deg,
-        hsl(var(--g1, 226 100% 50%)),
-        hsl(var(--g2, 266 100% 50%)),
-        hsl(var(--g3, 306 100% 50%)),
-        hsl(var(--g4, 346 100% 50%)),
-        hsl(var(--g5, 26 100% 50%)),
-        hsl(var(--g1, 226 100% 50%))
-    );
-    background-size: 300% 300%;
-    background-position: var(--mouse-x, 50%) var(--mouse-y, 50%);
-    transition: background-position 0.3s ease, opacity 0.3s ease;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 5;
-}
-
-.gradient-border-hover:hover::after {
-    opacity: 1;
-}
-
-.group:hover .gradient-border-group::after {
-    opacity: 1;
-}
-
-/* Gradient for MDX prose links */
-.prose a:not([id]):not(.no-gradient) {
-    background: linear-gradient(
-        135deg,
-        hsl(var(--g1, 226 100% 50%)),
-        hsl(var(--g2, 266 100% 50%)),
-        hsl(var(--g3, 306 100% 50%)),
-        hsl(var(--g4, 346 100% 50%)),
-        hsl(var(--g5, 26 100% 50%)),
-        hsl(var(--g1, 226 100% 50%))
-    );
-    background-size: 300% 300%;
-    background-position: var(--mouse-x, 50%) var(--mouse-y, 50%);
-    transition: background-position 0.3s ease, filter 0.15s ease;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.prose a:not([id]):not(.no-gradient):hover {
-    filter: brightness(1.2);
-}
-
-/* Reduced motion: static centered gradient */
+/* Reduced motion: drop transitions */
 @media (prefers-reduced-motion: reduce) {
-    .ascii-gradient,
-    .gradient-link,
-    .gradient-link-group,
-    .gradient-border-hover::after,
-    .gradient-border-group::after,
-    .prose a:not([id]):not(.no-gradient) {
-        background-position: 50% 50%;
+    .flex-link,
+    .flex-link-group,
+    .prose a:not([id]):not(.no-gradient),
+    .flex-border-hover,
+    .flex-border-group,
+    body {
         transition: none;
-    }
-
-    .gradient-link:hover,
-    .group:hover .gradient-link-group,
-    .prose a:not([id]):not(.no-gradient):hover {
-        filter: brightness(1.1);
     }
 }
 
@@ -299,43 +262,8 @@ html {
     animation: blink 1s step-end infinite;
 }
 
-/* ── Ink mode: pure B&W, no color at all ─────────────────────────── */
-
-[data-mode="ink"] .ascii-gradient,
-[data-mode="ink"] .gradient-link,
-[data-mode="ink"] .gradient-link-group,
-[data-mode="ink"] .prose a:not([id]):not(.no-gradient) {
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-    -webkit-text-fill-color: currentColor;
-}
-
-[data-mode="ink"] .gradient-link,
-[data-mode="ink"] .prose a:not([id]):not(.no-gradient) {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-}
-
-[data-mode="ink"] .gradient-link:hover,
-[data-mode="ink"] .prose a:not([id]):not(.no-gradient):hover {
-    filter: none;
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 4px;
-}
-
-[data-mode="ink"] .group:hover .gradient-link-group {
-    filter: none;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-}
-
-[data-mode="ink"] .gradient-border-hover::after,
-[data-mode="ink"] .gradient-border-group::after {
-    display: none;
-}
+/* ── Ink mode: pure B&W, no accent color, no glow ─────────────────
+ * Bg/fg fall through to globals.css :root or .dark (light/dark theme). */
 
 [data-mode="ink"] .glow-accent,
 [data-mode="ink"] .glow-accent-sm,
@@ -358,11 +286,6 @@ html {
     color: hsl(var(--foreground));
 }
 
-[data-mode="ink"] .gradient-border-hover:hover,
-[data-mode="ink"] .group:hover .gradient-border-group {
-    box-shadow: 3px 3px 0 hsl(var(--foreground));
-}
-
 [data-mode="ink"] .bg-accent1 {
     background-color: hsl(var(--foreground));
 }
@@ -382,75 +305,3 @@ html {
 [data-mode="ink"] .hover\:border-accent1:hover {
     border-color: hsl(var(--foreground));
 }
-
-/* ── Clean mode: serif, no terminal chrome, accent1 = foreground ── */
-
-[data-mode="clean"] {
-    --accent1: var(--foreground);
-}
-
-[data-mode="clean"] body {
-    font-family: var(--font-baskervville), 'Baskerville', 'Georgia', serif;
-}
-
-[data-mode="clean"] .ascii-gradient,
-[data-mode="clean"] .gradient-link,
-[data-mode="clean"] .gradient-link-group,
-[data-mode="clean"] .prose a:not([id]):not(.no-gradient) {
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-    -webkit-text-fill-color: currentColor;
-}
-
-[data-mode="clean"] .gradient-link,
-[data-mode="clean"] .prose a:not([id]):not(.no-gradient) {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-}
-
-[data-mode="clean"] .gradient-link:hover,
-[data-mode="clean"] .group:hover .gradient-link-group,
-[data-mode="clean"] .prose a:not([id]):not(.no-gradient):hover {
-    filter: none;
-}
-
-[data-mode="clean"] .gradient-border-hover::after,
-[data-mode="clean"] .gradient-border-group::after,
-[data-mode="clean"] .animate-blink,
-[data-mode="clean"] .terminal-chrome {
-    display: none;
-}
-
-[data-mode="clean"] .glow-accent,
-[data-mode="clean"] .glow-accent-sm,
-[data-mode="clean"] .glow-accent-lg,
-[data-mode="clean"] .border-glow-accent,
-[data-mode="clean"] .hover\:glow-accent-sm:hover {
-    box-shadow: none;
-}
-[data-mode="clean"] .text-glow-accent {
-    text-shadow: none;
-}
-
-[data-mode="clean"] ::selection {
-    background: hsl(var(--foreground));
-    color: hsl(var(--background));
-}
-
-[data-mode="clean"] .progress-fill {
-    background: hsl(var(--foreground)) !important;
-}
-
-/* Clean mode: bump body text one step for readability */
-[data-mode="clean"] .text-sm {
-    font-size: 1rem;        /* text-base */
-    line-height: 1.5rem;
-}
-[data-mode="clean"] .text-xs {
-    font-size: 0.875rem;    /* text-sm */
-    line-height: 1.25rem;
-}
-
-/* KaTeX CSS handled via app/layout.tsx import */

@@ -3,11 +3,12 @@ import ExportedImage from 'next-image-export-optimizer'
 
 import { LightboxProvider } from '@/features/lightbox'
 import { projectsData } from '@/features/projects'
-import InlineToc from '@/features/projects/components/InlineToc'
+import ProjectArticleShell from '@/features/projects/components/ProjectArticleShell'
 import ProjectHeader from '@/features/projects/components/ProjectHeader'
-import ProjectMetaSetter from '@/features/projects/components/ProjectMetaSetter'
-import { SidebarToc } from '@/features/projects/components/SidebarToc'
+import InlineToc from '@/features/projects/components/Toc/InlineToc'
+import { SidebarToc } from '@/features/projects/components/Toc/SidebarToc'
 import ProjectsMdx from '@/features/projects/mdx/ProjectsMdx'
+import { byDateDesc } from '@/features/projects/utils/dates'
 
 type Params = { slug: string }
 
@@ -17,18 +18,12 @@ export function generateStaticParams() {
         .map(p => ({ slug: p.slug! }))
 }
 
-const byDateDesc = (a?: string, b?: string) => {
-    const ad = a ? Date.parse(a) : 0
-    const bd = b ? Date.parse(b) : 0
-    return bd - ad
-}
-
 export default async function ProjectPage({ params }: { params: Promise<Params> }) {
     const { slug } = await params
     const project = projectsData.find(p => p.slug === slug)
     if (!project) return notFound()
 
-    const sorted = [...projectsData].sort((a, b) => byDateDesc(a.date, b.date))
+    const sorted = [...projectsData].sort(byDateDesc)
     const idx = sorted.findIndex(p => p.slug === slug)
     const prevProject = idx > 0 ? sorted[idx - 1] : null
     const nextProject = idx < sorted.length - 1 ? sorted[idx + 1] : null
@@ -39,12 +34,11 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
     const showHero = !project.hideHero && heroSrc
 
     return (
-        <>
-            <ProjectMetaSetter
-                title={project.shortTitle ?? project.title}
-                prev={prev}
-                next={next}
-            />
+        <ProjectArticleShell
+            title={project.shortTitle ?? project.title}
+            prev={prev}
+            next={next}
+        >
             {showHero ? (
                 <div className='w-full aspect-video max-h-[50vh] overflow-hidden relative'>
                     <ExportedImage
@@ -85,6 +79,6 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                     </LightboxProvider>
                 </div>
             </div>
-        </>
+        </ProjectArticleShell>
     )
 }

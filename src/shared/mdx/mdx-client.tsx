@@ -2,6 +2,8 @@
 
 import React from 'react'
 
+import MdxLoadError from './MdxLoadError'
+
 import type { Heading } from '@/types/content'
 import type { ComponentType } from 'react'
 
@@ -20,46 +22,34 @@ type NamespacedProps = BaseProps & { collection?: string }
 
 export default function MdxClient({ loaders, slug, collection, onToc }: NamespacedProps) {
   const [Comp, setComp] = React.useState<ComponentType<Record<string, unknown>> | null>(null)
+  const [error, setError] = React.useState(false)
 
   React.useEffect(() => {
     const key = collection ? `${collection}/${slug}` : slug
     const load = loaders[key] ?? loaders[slug]
-    if (!load) return
+    if (!load) {
+      setError(true)
+      return
+    }
     let mounted = true
+    setError(false)
     load()
       .then((mod: MdxModule) => {
         if (!mounted) return
         setComp(() => mod.default)
-        if (mod.headings) {
-          onToc?.(mod.headings)
-          try {
-            window.dispatchEvent(new CustomEvent('mdx:headings', { detail: mod.headings }))
-          } catch {}
-        }
-        try {
-          window.dispatchEvent(new CustomEvent('mdx:content:loaded', { detail: { slug } }))
-          if (typeof window !== 'undefined' && 'requestAnimationFrame' in window) {
-            requestAnimationFrame(() => {
-              try {
-                window.dispatchEvent(
-                  new CustomEvent('mdx:content:loaded', { detail: { slug, raf: true } })
-                )
-              } catch {}
-            })
-          }
-        } catch {}
+        onToc?.(mod.headings ?? [])
       })
       .catch(() => {
+        if (mounted) setError(true)
       })
     return () => {
       mounted = false
     }
   }, [loaders, slug, collection, onToc])
 
+  if (error) return <MdxLoadError slug={slug} />
   if (!Comp) return null
   return <Comp />
 }
 
 export type { Heading } from '@/types/content'
-
-

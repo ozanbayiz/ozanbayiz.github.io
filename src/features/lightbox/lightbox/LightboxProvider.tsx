@@ -18,11 +18,9 @@ type RegisterArgs = {
 }
 
 type LightboxContextValue = {
-  // Registration
-  registerItem: (args: RegisterArgs) => string
+  registerItem: (args: RegisterArgs, id: string) => void
   unregisterItem: (id: string) => void
 
-  // Controls
   openAt: (index: number) => void
   openById: (id: string) => void
   openOrRegister: (args: RegisterArgs) => void
@@ -30,7 +28,6 @@ type LightboxContextValue = {
   prev: () => void
   close: () => void
 
-  // State
   isOpen: boolean
   currentIndex: number
   items: LightboxItem[]
@@ -48,8 +45,13 @@ export function useLightboxOptional(): LightboxContextValue | null {
   return React.useContext(LightboxContext)
 }
 
-function generateId(src: string): string {
-  return `${src}::${Math.random().toString(36).slice(2)}`
+function createLightboxItem(args: RegisterArgs, id: string): LightboxItem {
+  return {
+    id,
+    src: args.src,
+    ...(args.alt !== undefined ? { alt: args.alt } : {}),
+    ...(args.caption !== undefined ? { caption: args.caption } : {}),
+  }
 }
 
 export default function LightboxProvider({ children }: { children: React.ReactNode }) {
@@ -57,18 +59,8 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
   const [isOpen, setIsOpen] = React.useState(false)
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
-  const registerItem = React.useCallback((args: RegisterArgs) => {
-    const id = generateId(args.src)
-    setItems(prev => [
-      ...prev,
-      {
-        id,
-        src: args.src,
-        ...(args.alt !== undefined ? { alt: args.alt } : {}),
-        ...(args.caption !== undefined ? { caption: args.caption } : {})
-      }
-    ])
-    return id
+  const registerItem = React.useCallback((args: RegisterArgs, id: string) => {
+    setItems(prev => (prev.some(it => it.id === id) ? prev : [...prev, createLightboxItem(args, id)]))
   }, [])
 
   const unregisterItem = React.useCallback((id: string) => {
@@ -88,7 +80,6 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     setIsOpen(true)
   }, [items])
 
-  // Ensure the clicked image always opens, registering on the fly if needed
   const openOrRegister = React.useCallback((args: RegisterArgs) => {
     setItems(prev => {
       const existingIdx = prev.findIndex(it => it.src === args.src)
@@ -97,16 +88,7 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
         setIsOpen(true)
         return prev
       }
-      const id = generateId(args.src)
-      const next: LightboxItem[] = [
-        ...prev,
-        {
-          id,
-          src: args.src,
-          ...(args.alt !== undefined ? { alt: args.alt } : {}),
-          ...(args.caption !== undefined ? { caption: args.caption } : {})
-        }
-      ]
+      const next: LightboxItem[] = [...prev, createLightboxItem(args, args.src)]
       setCurrentIndex(next.length - 1)
       setIsOpen(true)
       return next
@@ -123,7 +105,6 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     setCurrentIndex(idx => (items.length === 0 ? 0 : (idx - 1 + items.length) % items.length))
   }, [items.length])
 
-  // Lock body scroll when open
   React.useEffect(() => {
     if (!isOpen) return
     const html = document.documentElement
@@ -136,12 +117,10 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     const prevBodyWidth = body.style.width
     const prevScrollY = window.scrollY
 
-    // Robust scroll lock across browsers/iOS
     html.style.overflow = 'hidden'
     body.style.overflow = 'hidden'
     html.style.setProperty('overscroll-behavior', 'none')
     body.style.setProperty('overscroll-behavior', 'none')
-    // Prevent iOS rubber-band and maintain layout
     body.style.position = 'fixed'
     body.style.width = '100%'
     body.style.top = `-${prevScrollY}px`
@@ -170,7 +149,7 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     close,
     isOpen,
     currentIndex,
-    items
+    items,
   }), [registerItem, unregisterItem, openAt, openById, openOrRegister, next, prev, close, isOpen, currentIndex, items])
 
   return (
@@ -180,5 +159,3 @@ export default function LightboxProvider({ children }: { children: React.ReactNo
     </LightboxContext.Provider>
   )
 }
-
-

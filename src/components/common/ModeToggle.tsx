@@ -4,7 +4,7 @@ import { useMounted } from '@/hooks/useMounted'
 import { useModeContext } from '@/lib/mode-context'
 import { cn } from '@/lib/utils'
 
-const LABELS = { ink: 'b&w', color: 'color', clean: 'clean' } as const
+const LABELS = { ink: 'b&w', color: 'color' } as const
 
 export function ModeToggle({ className }: { className?: string }) {
     const { mode, cycleMode } = useModeContext()
@@ -14,12 +14,12 @@ export function ModeToggle({ className }: { className?: string }) {
         <button
             onClick={cycleMode}
             className={cn(
-                'text-xs uppercase tracking-widest transition-colors hover:text-accent1',
+                'text-xs uppercase tracking-widest transition-colors',
                 className
             )}
-            aria-label={`Style mode: ${mode}. Click to cycle.`}
+            aria-label={`Style mode: ${mode}. Click to toggle.`}
         >
-            [{mounted ? LABELS[mode] : LABELS.ink}]
+            [{mounted ? LABELS[mode] : LABELS.color}]
         </button>
     )
 }

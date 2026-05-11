@@ -1,9 +1,8 @@
 import './globals.css'
 
-import { Inter, JetBrains_Mono, Baskervville } from 'next/font/google'
+import { Inter, JetBrains_Mono, Silkscreen } from 'next/font/google'
 
 import { Providers } from '@/app/providers'
-import { HUE_BOOTSTRAP_IIFE } from '@/lib/hue-script'
 import { MODE_BOOTSTRAP_IIFE } from '@/lib/mode-script'
 import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
@@ -19,11 +18,11 @@ const jetBrainsMono = JetBrains_Mono({
     subsets: ['latin']
 })
 
-const baskervville = Baskervville({
-    variable: '--font-baskervville',
+const silkscreen = Silkscreen({
+    variable: '--font-silkscreen',
     subsets: ['latin'],
-    weight: ['400'],
-    style: ['normal', 'italic'],
+    weight: ['400', '700'],
+    display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -61,9 +60,8 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${inter.variable} ${jetBrainsMono.variable} ${baskervville.variable} antialiased overflow-x-hidden`}>
+            <body className={`${inter.variable} ${jetBrainsMono.variable} ${silkscreen.variable} antialiased overflow-x-hidden`}>
                 <script dangerouslySetInnerHTML={{ __html: MODE_BOOTSTRAP_IIFE }} />
-                <script dangerouslySetInnerHTML={{ __html: HUE_BOOTSTRAP_IIFE }} />
                 <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
                 <Providers>{children}</Providers>
             </body>

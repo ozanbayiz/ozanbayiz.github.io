@@ -1,22 +1,22 @@
-import Link from 'next/link'
+'use client'
 
+import Link from 'next/link'
+import { useRef } from 'react'
+
+import SectionHeading from '@/components/common/SectionHeading'
 import { projectsData } from '@/features/projects'
+import { byDateDesc, formatProjectDate } from '@/features/projects/utils/dates'
+import { useScrollParallax } from '@/hooks/useScrollParallax'
 
 export default function ProjectSection() {
-    const featured = [...projectsData]
-        .filter(p => p.featured)
-        .sort(
-            (a, b) =>
-                (Date.parse(b.date ?? '') || 0) -
-                (Date.parse(a.date ?? '') || 0)
-        )
+    const featured = [...projectsData].filter(p => p.featured).sort(byDateDesc)
+    const listRef = useRef<HTMLDivElement>(null)
+    useScrollParallax(listRef, -0.02)
 
     return (
         <div className="w-full">
             <div className="mb-4 flex items-baseline justify-between">
-                <h2 className="text-sm font-bold uppercase tracking-widest">
-                    Projects
-                </h2>
+                <SectionHeading>projects</SectionHeading>
                 <Link
                     href="/projects/"
                     prefetch={false}
@@ -26,7 +26,7 @@ export default function ProjectSection() {
                 </Link>
             </div>
 
-            <div className="border-t">
+            <div ref={listRef} className="border-t" style={{ willChange: 'transform' }}>
                 {featured.map((project) => (
                     <Link
                         key={project.slug}
@@ -38,14 +38,7 @@ export default function ProjectSection() {
                             {project.title}
                         </span>
                         <span className="shrink-0 text-xs text-foreground">
-                            {project.date
-                                ? new Date(
-                                      project.date
-                                  ).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      year: 'numeric'
-                                  })
-                                : ''}
+                            {formatProjectDate(project.date) ?? ''}
                         </span>
                     </Link>
                 ))}

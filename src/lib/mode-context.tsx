@@ -2,11 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
-import { useMounted } from '@/hooks/useMounted'
-
-export type StyleMode = 'ink' | 'color' | 'clean'
-
-const CYCLE: StyleMode[] = ['ink', 'color', 'clean']
+export type StyleMode = 'ink' | 'color'
 
 type ModeContextValue = {
     mode: StyleMode
@@ -15,19 +11,20 @@ type ModeContextValue = {
 }
 
 const ModeContext = createContext<ModeContextValue>({
-    mode: 'ink',
+    mode: 'color',
     setMode: () => {},
-    cycleMode: () => {}
+    cycleMode: () => {},
 })
 
 export function ModeProvider({ children }: { children: React.ReactNode }) {
-    const mounted = useMounted()
-    const [mode, setModeState] = useState<StyleMode>('ink')
+    const [mode, setModeState] = useState<StyleMode>('color')
 
-    // Sync from localStorage on mount
     useEffect(() => {
         const stored = localStorage.getItem('style-mode')
-        if (stored === 'color' || stored === 'clean') setModeState(stored)
+        if (stored === 'ink' || stored === 'color') {
+            setModeState(stored)
+            document.documentElement.dataset.mode = stored
+        }
     }, [])
 
     const setMode = useCallback((m: StyleMode) => {
@@ -38,17 +35,12 @@ export function ModeProvider({ children }: { children: React.ReactNode }) {
 
     const cycleMode = useCallback(() => {
         setModeState(prev => {
-            const next = CYCLE[(CYCLE.indexOf(prev) + 1) % CYCLE.length]!
+            const next: StyleMode = prev === 'ink' ? 'color' : 'ink'
             localStorage.setItem('style-mode', next)
             document.documentElement.dataset.mode = next
             return next
         })
     }, [])
-
-    // Keep data attribute in sync (for SSR recovery)
-    useEffect(() => {
-        if (mounted) document.documentElement.dataset.mode = mode
-    }, [mode, mounted])
 
     return (
         <ModeContext.Provider value={useMemo(() => ({ mode, setMode, cycleMode }), [mode, setMode, cycleMode])}>

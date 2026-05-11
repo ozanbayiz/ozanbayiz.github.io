@@ -4,60 +4,72 @@ import * as React from 'react'
 
 import { useActiveSection } from '../hooks/useActiveSection'
 import { useTableOfContents } from '../hooks/useTableOfContents'
-import { TocItem } from '../utils/toc'
 
 import ProjectFooter from './ProjectFooter'
 import ProjectTopBar from './ProjectTopBar'
 import { ReadingProgressBar } from './ReadingProgressBar'
 
+import type { TocItem } from '../utils/toc'
+import type { Heading } from '@/types/content'
+
 export type ProjectNav = { slug: string; title: string } | null
 
-type ProjectArticleContextType = {
+type TocContextValue = {
     toc: TocItem[]
     activeId: string | null
     navigateTo: (id: string) => void
-    contentRef: React.RefObject<HTMLDivElement | null>
+    setHeadings: (headings: Heading[]) => void
+}
+
+type MetaContextValue = {
     title: string
     prev: ProjectNav
     next: ProjectNav
-    setMeta: (meta: { title: string; prev: ProjectNav; next: ProjectNav }) => void
 }
 
-export const ProjectArticleContext = React.createContext<ProjectArticleContextType>({
+export const ProjectTocContext = React.createContext<TocContextValue>({
     toc: [],
     activeId: null,
     navigateTo: () => {},
-    contentRef: { current: null },
+    setHeadings: () => {},
+})
+
+export const ProjectMetaContext = React.createContext<MetaContextValue>({
     title: '',
     prev: null,
     next: null,
-    setMeta: () => {}
 })
 
-export default function ProjectArticleShell({ children }: { children: React.ReactNode }) {
-    const contentRef = React.useRef<HTMLDivElement>(null)
+type ShellProps = {
+    title: string
+    prev: ProjectNav
+    next: ProjectNav
+    children: React.ReactNode
+}
 
-    const { toc, allIds, expandPath } = useTableOfContents({ contentRef })
+export default function ProjectArticleShell({ title, prev, next, children }: ShellProps) {
+    const [headings, setHeadings] = React.useState<Heading[]>([])
+    const { toc, allIds } = useTableOfContents(headings)
+    const { activeId, navigateTo } = useActiveSection({ sectionIds: allIds })
 
-    const { activeId, navigateTo } = useActiveSection({
-        sectionIds: allIds,
-        onActiveChange: expandPath
-    })
+    const tocValue = React.useMemo<TocContextValue>(
+        () => ({ toc, activeId, navigateTo, setHeadings }),
+        [toc, activeId, navigateTo],
+    )
 
-    const [meta, setMeta] = React.useState<{ title: string; prev: ProjectNav; next: ProjectNav }>({
-        title: '',
-        prev: null,
-        next: null
-    })
+    const metaValue = React.useMemo<MetaContextValue>(
+        () => ({ title, prev, next }),
+        [title, prev, next],
+    )
 
     return (
-        <ProjectArticleContext.Provider value={{ toc, activeId, navigateTo, contentRef, ...meta, setMeta }}>
-            <ProjectTopBar />
-            <ReadingProgressBar />
-            <div ref={contentRef} className='min-h-screen'>
-                {children}
-            </div>
-            <ProjectFooter />
-        </ProjectArticleContext.Provider>
+        <ProjectMetaContext.Provider value={metaValue}>
+            <ProjectTocContext.Provider value={tocValue}>
+                <ProjectTopBar />
+                <ReadingProgressBar />
+                <div className='min-h-screen'>{children}</div>
+                <ProjectFooter />
+            </ProjectTocContext.Provider>
+        </ProjectMetaContext.Provider>
     )
 }

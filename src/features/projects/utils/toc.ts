@@ -1,4 +1,3 @@
-// Shared types for Table of Contents
 export type TocItem = {
     id: string
     title: string
@@ -11,15 +10,11 @@ export type Heading = {
     level: number
 }
 
-/**
- * Generic tree walker - replaces all duplicate walk functions
- * Traverses the TOC tree and collects results from the visitor function
- */
 export function walkToc<T>(
     nodes: TocItem[],
     visitor: (node: TocItem, parent: TocItem | null, depth: number) => T | void,
     parent: TocItem | null = null,
-    depth = 0
+    depth = 0,
 ): T[] {
     const results: T[] = []
     for (const node of nodes) {
@@ -32,50 +27,10 @@ export function walkToc<T>(
     return results
 }
 
-/**
- * Get all IDs from the TOC tree (flattened)
- */
 export function getAllIds(toc: TocItem[]): string[] {
-    return walkToc(toc, (node) => node.id).filter(Boolean)
+    return walkToc(toc, node => node.id).filter(Boolean)
 }
 
-/**
- * Build a map from each ID to its parent ID (or null for root items)
- */
-export function buildIdToParentMap(toc: TocItem[]): Record<string, string | null> {
-    const map: Record<string, string | null> = {}
-    walkToc(toc, (node, parent) => {
-        if (node.id) map[node.id] = parent?.id ?? null
-    })
-    return map
-}
-
-/**
- * Get the chain of ancestor IDs for a given ID (excluding the ID itself)
- */
-export function getAncestorChain(id: string, idToParent: Record<string, string | null>): string[] {
-    const chain: string[] = []
-    let current = idToParent[id]
-    while (current) {
-        chain.unshift(current)
-        current = idToParent[current]
-    }
-    return chain
-}
-
-/**
- * Check if an item or any of its descendants has the given active ID
- */
-export function hasActiveDescendant(item: TocItem, activeId: string | null): boolean {
-    if (!activeId) return false
-    if (item.id === activeId) return true
-    return item.children?.some(child => hasActiveDescendant(child, activeId)) ?? false
-}
-
-/**
- * Convert flat headings array to nested TOC tree structure
- * Only includes h2 and h3 headings, with h3s nested under h2s
- */
 export function headingsToToc(headings: Heading[]): TocItem[] {
     const root: TocItem[] = []
     const stack: { level: number; node: TocItem }[] = []
@@ -98,4 +53,3 @@ export function headingsToToc(headings: Heading[]): TocItem[] {
 
     return root
 }
-
