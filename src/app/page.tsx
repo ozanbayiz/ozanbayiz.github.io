@@ -2,7 +2,6 @@ import { Divider, PageDivider } from '@/components/common/Divider'
 import FavoritesSection from '@/features/home/components/favorites/FavoritesSection'
 import HeroSection from '@/features/home/components/HeroSection'
 import OzanSection from '@/features/home/components/OzanSection'
-import ProjectSection from '@/features/home/components/ProjectSection'
 import Section from '@/features/home/components/Section'
 
 const CURRENT_YEAR = new Date().getFullYear()
@@ -16,11 +15,6 @@ export default function Home() {
                 <PageDivider />
                 <Section id="about">
                     <OzanSection />
-                </Section>
-
-                <PageDivider />
-                <Section id="projects">
-                    <ProjectSection />
                 </Section>
 
                 <PageDivider />
