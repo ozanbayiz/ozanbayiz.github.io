@@ -14,8 +14,12 @@ type Props = {
 }
 
 export default function InventorySlot({ item, variant, isActive, onSelect, onHover }: Props) {
+    const label = `${item.title} by ${item.creator} (${item.year})`
     return (
         <button
+            type='button'
+            aria-label={label}
+            aria-pressed={isActive}
             className={cn(
                 'relative bg-background overflow-hidden',
                 variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
@@ -27,8 +31,9 @@ export default function InventorySlot({ item, variant, isActive, onSelect, onHov
         >
             <ExportedImage
                 src={item.cover}
-                alt={item.title}
+                alt=''
                 fill
+                aria-hidden='true'
                 className={cn(
                     'object-cover transition-[filter] duration-200',
                     isActive ? '' : 'grayscale',

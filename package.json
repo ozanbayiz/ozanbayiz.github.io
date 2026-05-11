@@ -14,7 +14,7 @@
         "lint:fix": "oxlint --deny correctness --fix",
         "format": "prettier . --write",
         "format:check": "prettier . --check",
-        "typecheck": "tsc --noEmit",
+        "typecheck": "pnpm prebuild && tsc --noEmit",
         "predeploy": "pnpm run build",
         "deploy": "gh-pages -d out",
         "depcheck": "depcheck",

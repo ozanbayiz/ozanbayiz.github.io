@@ -11,7 +11,12 @@ type Props = {
 
 export default function InspectionPanel({ activeItem }: Props) {
     return (
-        <div className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <div
+            role='region'
+            aria-label='Selected favorite'
+            aria-live='polite'
+            className="sticky top-0 md:top-20 z-20 bg-background max-h-[calc(100vh-6rem)] overflow-y-auto"
+        >
             <p className="text-2xs font-bold uppercase tracking-widest mb-2 bg-background">
                 {'>'} INSPECT
             </p>

@@ -6,12 +6,32 @@ import Section from '@/features/home/components/Section'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
+const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Ozan Bayiz',
+    url: 'https://ozanbayiz.github.io',
+    email: 'mailto:ozanbayiz@berkeley.edu',
+    affiliation: {
+        '@type': 'CollegeOrUniversity',
+        name: 'UC Berkeley'
+    },
+    sameAs: [
+        'https://github.com/ozanbayiz',
+        'https://linkedin.com/in/ozanbayiz'
+    ]
+}
+
 export default function Home() {
     return (
         <>
+            <script
+                type='application/ld+json'
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+            />
             <HeroSection />
 
-            <main className="relative">
+            <main id='main' className="relative">
                 <PageDivider />
                 <Section id="about">
                     <OzanSection />
