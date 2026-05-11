@@ -190,6 +190,17 @@ html {
     color: hsl(var(--foreground));
 }
 
+/* Filled-rectangle section — locks to black bg + white fg by swapping the
+ * fg/bg CSS vars locally, so descendants (borders, dividers, etc.) flip
+ * coherently. In the white-on-black page mode the vars already match, so
+ * the section blends in with the page (no-op visually). */
+.section-fill {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
 /* Glow utilities — driven by accent1 (fuchsia). Disabled in ink mode. */
 @layer utilities {
     .glow-accent {
