@@ -56,8 +56,6 @@ export default function SocialLinksBar({ variant }: SocialLinksBarProps) {
                 </svg>
             </ExternalLink>
 
-            <span className="mx-1 h-4 w-px bg-foreground" />
-
             <a
                 className={
                     variant === 'gradient'

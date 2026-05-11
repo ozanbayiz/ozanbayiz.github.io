@@ -228,9 +228,6 @@ export default function HeroSection() {
                     </div>
                 </div>
 
-                {/* Divider */}
-                <div className="h-px w-32 bg-foreground" />
-
                 {/* Subtitle */}
                 <p className="text-sm text-foreground">
                     CS @ Berkeley

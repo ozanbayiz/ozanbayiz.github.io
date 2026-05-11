@@ -1,6 +1,5 @@
 import ExportedImage from 'next-image-export-optimizer'
 
-import { Divider } from '@/components/common/Divider'
 import { cn } from '@/lib/utils'
 
 import type { ActiveItem } from './types'
@@ -20,7 +19,7 @@ export default function InspectionPanel({ activeItem }: Props) {
             <p className="text-2xs font-bold uppercase tracking-widest mb-2 bg-background">
                 {'>'} INSPECT
             </p>
-            <div className="border border-foreground p-3 md:p-4">
+            <div className="p-3 md:p-4">
                 {activeItem ? (
                     <div
                         key={activeItem.item.title}
@@ -39,7 +38,6 @@ export default function InspectionPanel({ activeItem }: Props) {
                                 sizes="(min-width: 768px) 40vw, 80px"
                             />
                         </div>
-                        <Divider className="hidden md:block" />
                         <div className="flex flex-col justify-center md:justify-start">
                             <p className="text-sm font-bold">{activeItem.item.title}</p>
                             <p className="text-xs">{activeItem.item.creator}, {activeItem.item.year}</p>

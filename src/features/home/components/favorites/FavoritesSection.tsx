@@ -2,7 +2,6 @@
 
 import { useRef, useState } from 'react'
 
-import { Divider } from '@/components/common/Divider'
 import SectionHeading from '@/components/common/SectionHeading'
 import { useScrollParallax } from '@/hooks/useScrollParallax'
 
@@ -34,7 +33,6 @@ export default function FavoritesSection() {
     return (
         <div className="w-full flex flex-col space-y-6">
             <SectionHeading>favorites</SectionHeading>
-            <Divider />
             <div className="flex flex-col md:flex-row md:gap-8">
                 <div
                     ref={inventoryRef}
