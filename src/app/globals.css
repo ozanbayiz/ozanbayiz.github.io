@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-    font-family: var(--font-jetbrains-mono), monospace;
+    font-family: var(--font-xits), serif;
 }
 
 @layer base {
@@ -34,28 +34,6 @@ body {
     }
 }
 
-/* Math (KaTeX) sizing and wrapping helpers */
-@layer utilities {
-    .math-wrap .katex-display {
-        overflow: visible;
-        max-width: 100%;
-    }
-
-    .math-wrap .katex {
-        white-space: normal;
-        overflow-wrap: anywhere;
-        word-break: break-word;
-        max-width: 100%;
-    }
-}
-
-/* Ensure display math ($$...$$) is centered in prose content */
-.prose .katex-display {
-    display: block;
-    text-align: center;
-    margin: 1em 0;
-}
-
 @layer base {
     * {
         @apply border-border;
@@ -66,13 +44,12 @@ body {
         transition: background-color 0.4s ease, color 0.4s ease;
     }
 
-    /* Display type — Silkscreen pixel face. Pixel rendering preserves edges. */
+    /* Display type — Gothic Textura Prescius blackletter. */
     h1, h2, h3, h4, h5, h6,
     .font-display {
-        font-family: var(--font-silkscreen), monospace;
+        font-family: var(--font-gothic), serif;
         font-weight: 700;
         letter-spacing: 0;
-        image-rendering: pixelated;
     }
 
     /* Color mode: fancy fuchsia headers. Ink mode falls through to fg. */
@@ -147,23 +124,8 @@ html {
 .gradient-link { @apply flex-link; }
 .gradient-link-group { @apply flex-link-group; }
 
-/* Prose links inherit the same flex-link motion */
-.prose a:not([id]):not(.no-gradient) {
-    color: inherit;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
-    transition: text-decoration-thickness 0.2s ease, font-weight 0.2s ease;
-}
-
-.prose a:not([id]):not(.no-gradient):hover,
-.prose a:not([id]):not(.no-gradient):focus-visible {
-    text-decoration-thickness: 2px;
-    font-weight: 700;
-}
-
 /* Card border — ink hairline by default, hard 3px box-shadow on hover.
- * Pixel-accurate aesthetic match for Silkscreen. */
+ * Hard-edged shadow matches the manuscript-rule aesthetic. */
 .flex-border-hover,
 .flex-border-group {
     position: relative;
@@ -183,21 +145,15 @@ html {
 .gradient-border-hover { @apply flex-border-hover; }
 .gradient-border-group { @apply flex-border-group; }
 
-/* ASCII art — JetBrains Mono Extra Bold (boldest weight), fg color. */
+/* ASCII art — IBM Plex Mono Bold (boldest weight), fg color.
+ * Plex Mono caps at 700, so extra density comes from stroking the
+ * glyph outlines and tightening the character grid. */
 .ascii-gradient {
-    font-family: var(--font-jetbrains-mono), monospace;
-    font-weight: 800;
-    color: hsl(var(--foreground));
-}
-
-/* Filled-rectangle section — locks to black bg + white fg by swapping the
- * fg/bg CSS vars locally, so descendants (borders, dividers, etc.) flip
- * coherently. In the white-on-black page mode the vars already match, so
- * the section blends in with the page (no-op visually). */
-.section-fill {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
-    background-color: hsl(var(--background));
+    font-family: var(--font-plex-mono), monospace;
+    font-weight: 700;
+    -webkit-text-stroke: 0.05em currentColor;
+    letter-spacing: -0.08em;
+    line-height: 0.95;
     color: hsl(var(--foreground));
 }
 
@@ -229,7 +185,6 @@ html {
 @media (prefers-reduced-motion: reduce) {
     .flex-link,
     .flex-link-group,
-    .prose a:not([id]):not(.no-gradient),
     .flex-border-hover,
     .flex-border-group,
     body {
@@ -307,10 +262,6 @@ html {
 
 [data-mode="ink"] .focus-visible\:outline-accent1:focus-visible {
     outline-color: hsl(var(--foreground));
-}
-
-[data-mode="ink"] .progress-fill {
-    background: hsl(var(--foreground)) !important;
 }
 
 [data-mode="ink"] .hover\:border-accent1:hover {

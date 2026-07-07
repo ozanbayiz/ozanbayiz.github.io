@@ -1,25 +1,9 @@
 import bundleAnalyzer from '@next/bundle-analyzer'
-import createMDX from '@next/mdx'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeKatex from 'rehype-katex'
-import rehypeSlug from 'rehype-slug'
-import remarkFrontmatter from 'remark-frontmatter'
-import remarkGfm from 'remark-gfm'
-import remarkCollectHeadings from './src/shared/mdx/plugins/remark-collect-headings'
-import remarkMath from 'remark-math'
 
 import type { NextConfig } from 'next'
 
 const withBundleAnalyzer = bundleAnalyzer({
     enabled: process.env.ANALYZE === 'true'
-})
-
-const withMDX = createMDX({
-    extension: /\.mdx?$/,
-    options: {
-        remarkPlugins: [remarkFrontmatter, remarkGfm, remarkMath, remarkCollectHeadings],
-        rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }], rehypeKatex]
-    }
 })
 
 const nextConfig: NextConfig = {
@@ -43,4 +27,4 @@ const nextConfig: NextConfig = {
     trailingSlash: true
 }
 
-export default withBundleAnalyzer(withMDX(nextConfig))
+export default withBundleAnalyzer(nextConfig)

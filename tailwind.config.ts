@@ -1,6 +1,5 @@
 import type { Config } from 'tailwindcss'
 import animate from 'tailwindcss-animate'
-import typography from '@tailwindcss/typography'
 
 export default {
     darkMode: ['class'],
@@ -19,9 +18,10 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['var(--font-jetbrains-mono)', 'monospace'],
-                mono: ['var(--font-jetbrains-mono)', 'monospace'],
-                display: ['var(--font-silkscreen)', 'monospace'],
+                sans: ['var(--font-xits)', 'serif'],
+                mono: ['var(--font-plex-mono)', 'monospace'],
+                display: ['var(--font-gothic)', 'serif'],
+                script: ['var(--font-calligra)', 'cursive'],
             },
             colors: {
                 background: 'hsl(var(--background))',
@@ -60,5 +60,5 @@ export default {
     variants: {
         fill: ['hover', 'focus']
     },
-    plugins: [animate, typography]
+    plugins: [animate]
 } satisfies Config

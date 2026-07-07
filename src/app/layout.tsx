@@ -1,6 +1,6 @@
 import './globals.css'
 
-import { Inter, JetBrains_Mono, Silkscreen } from 'next/font/google'
+import localFont from 'next/font/local'
 
 import { Providers } from '@/app/providers'
 import { MODE_BOOTSTRAP_IIFE } from '@/lib/mode-script'
@@ -8,21 +8,40 @@ import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
 
 import type { Metadata } from 'next'
 
-const inter = Inter({
-    variable: '--font-inter',
-    subsets: ['latin']
+const xits = localFont({
+    src: [
+        { path: '../fonts/XITS-Regular.woff2', weight: '400', style: 'normal' },
+        { path: '../fonts/XITS-Italic.woff2', weight: '400', style: 'italic' },
+        { path: '../fonts/XITS-Bold.woff2', weight: '700', style: 'normal' },
+        { path: '../fonts/XITS-BoldItalic.woff2', weight: '700', style: 'italic' }
+    ],
+    variable: '--font-xits',
+    display: 'swap'
 })
 
-const jetBrainsMono = JetBrains_Mono({
-    variable: '--font-jetbrains-mono',
-    subsets: ['latin']
+const plexMono = localFont({
+    src: [
+        { path: '../fonts/IBMPlexMono-Text.woff2', weight: '400', style: 'normal' },
+        { path: '../fonts/IBMPlexMono-TextItalic.woff2', weight: '400', style: 'italic' },
+        { path: '../fonts/IBMPlexMono-Bold.woff2', weight: '700', style: 'normal' }
+    ],
+    variable: '--font-plex-mono',
+    display: 'swap'
 })
 
-const silkscreen = Silkscreen({
-    variable: '--font-silkscreen',
-    subsets: ['latin'],
-    weight: ['400', '700'],
-    display: 'swap',
+const gothic = localFont({
+    src: [
+        { path: '../fonts/GothicTexturaPrescius-Regular.woff2', weight: '400', style: 'normal' },
+        { path: '../fonts/GothicTexturaPrescius-Bold.woff2', weight: '700', style: 'normal' }
+    ],
+    variable: '--font-gothic',
+    display: 'swap'
+})
+
+const calligra = localFont({
+    src: '../fonts/Calligra.woff2',
+    variable: '--font-calligra',
+    display: 'swap'
 })
 
 const SITE_NAME = 'Ozan Bayiz'
@@ -67,7 +86,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en' suppressHydrationWarning>
-            <body className={`${inter.variable} ${jetBrainsMono.variable} ${silkscreen.variable} antialiased overflow-x-hidden`}>
+            <body className={`${xits.variable} ${plexMono.variable} ${gothic.variable} ${calligra.variable} font-sans antialiased overflow-x-hidden`}>
                 <a
                     href='#main'
                     className='sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-background focus:text-foreground focus:border focus:border-foreground focus:px-3 focus:py-2'

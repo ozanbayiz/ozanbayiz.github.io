@@ -1,7 +1,8 @@
-import FavoritesSection from '@/features/home/components/favorites/FavoritesSection'
-import HeroSection from '@/features/home/components/HeroSection'
-import OzanSection from '@/features/home/components/OzanSection'
-import Section from '@/features/home/components/Section'
+import { footer } from '@/features/home/content'
+import AboutSection from '@/features/home/sections/About'
+import FavoritesSection from '@/features/home/sections/Favorites'
+import HeroSection from '@/features/home/sections/Hero'
+import { Section } from '@/features/home/ui'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -32,7 +33,7 @@ export default function Home() {
 
             <main id='main' className="relative">
                 <Section id="about">
-                    <OzanSection />
+                    <AboutSection />
                 </Section>
 
                 <Section id="favorites" className="pb-8 md:pb-10">
@@ -40,9 +41,12 @@ export default function Home() {
                 </Section>
 
                 <footer className="py-16 md:py-20 text-center">
-                    <div className="container mx-auto max-w-screen-lg px-6 md:px-8">
+                    <div className="container mx-auto max-w-screen-lg px-6 md:px-8 flex flex-col items-center gap-2">
+                        <p className="font-script text-5xl md:text-6xl leading-none text-foreground">
+                            {footer.signature}
+                        </p>
                         <p className="text-xs text-foreground">
-                            ozanbayiz {CURRENT_YEAR}
+                            {CURRENT_YEAR}
                             <span className="animate-blink ml-1">
                                 _
                             </span>
