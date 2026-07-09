@@ -28,13 +28,15 @@ const plexMono = localFont({
     display: 'swap'
 })
 
-/* QT Fraktur (QualiType collection, OFL/GPL) — the site's blackletter.
- * Single weight; declared at 400 and 700 so bold requests reuse the
+/* Chomsky (Fredrick Brennan, OFL) — the site's blackletter: an
+ * Old-English-style revival modeled on the New York Times nameplate,
+ * so every letterform (C, z, …) reads conventionally to modern eyes.
+ * Single weight, declared at 400 and 700 so bold requests reuse the
  * real outlines instead of synthesizing a faux bold. */
 const gothic = localFont({
     src: [
-        { path: '../fonts/QTFraktur.woff2', weight: '400', style: 'normal' },
-        { path: '../fonts/QTFraktur.woff2', weight: '700', style: 'normal' }
+        { path: '../fonts/Chomsky.woff2', weight: '400', style: 'normal' },
+        { path: '../fonts/Chomsky.woff2', weight: '700', style: 'normal' }
     ],
     variable: '--font-gothic',
     display: 'swap'
