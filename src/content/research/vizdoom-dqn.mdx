@@ -1,18 +1,3 @@
----
-title: "VizDoom DQN"
-shortTitle: "VizDoom DQN"
-description: "Double DQN with frozen pretrained vision encoders (AIMv2, V-JEPA 2), PCA whitening, and optional dueling architecture for VizDoom FPS environments."
-thumbnail: "/projects/vizdoom-dqn/thumbnail.png"
-heroImage: "/projects/vizdoom-dqn/thumbnail.png"
-gitUrl: "https://github.com/ozanbayiz/vizdoom-dqn"
-date: "2026-02-15"
----
-
-Personal project, February 2026
-
-<SectionDivider />
-
-<a id="overview" />
 ## Overview
 
 This project trains a Double DQN agent to play first-person shooter scenarios in
@@ -33,7 +18,6 @@ makes training fast, memory-efficient, and stable.
 
 <SectionDivider />
 
-<a id="key-findings" />
 ## Key Findings
 
 - **AIMv2 works well** — reaches mean evaluation return ~6.0 on DefendTheCenter after 500k steps with consistent performance across seeds.
@@ -43,7 +27,6 @@ makes training fast, memory-efficient, and stable.
 
 <SectionDivider />
 
-<a id="encoder-comparison" />
 ## Encoder Comparison: AIMv2 vs V-JEPA 2
 
 AIMv2-Large significantly outperforms V-JEPA 2-Large on this task.
@@ -56,7 +39,6 @@ and VizDoom's low frame rate (frame skip 4 produces temporally sparse clips).
 
 <SectionDivider />
 
-<a id="encoders" />
 ## Vision Encoders
 
 Two pretrained encoders are supported:
@@ -74,7 +56,6 @@ yielding a single 1024-dimensional vector per observation.
 
 <SectionDivider />
 
-<a id="feature-pipeline" />
 ## Feature Pipeline
 
 Raw encoder outputs are high-dimensional (1024-d) and not whitened.
@@ -83,7 +64,6 @@ encodes them in batches, and fits a PCA whitening transform that projects from 1
 
 <SectionDivider />
 
-<a id="q-network" />
 ## Q-Network
 
 The default Q-network is a 2-layer MLP with hidden size 256. The output has one value per discrete action. An optional dueling variant separates value and advantage estimation:
@@ -94,14 +74,12 @@ $$
 
 <SectionDivider />
 
-<a id="training" />
 ## Training
 
 The agent uses Double DQN: the online network selects the action, the target network evaluates it. The target network is updated via Polyak averaging ($\theta^- \leftarrow \tau \, \theta + (1 - \tau) \, \theta^-$) after each gradient step. Epsilon-greedy exploration with linear annealing fills a replay buffer of 100k transitions.
 
 <SectionDivider />
 
-<a id="environment" />
 ## Environment
 
 The agent trains on VizDoom's DefendTheCenter scenario through a Gymnasium wrapper.
@@ -111,7 +89,6 @@ The agent stands at the center of a circular room and must shoot approaching ene
 
 <SectionDivider />
 
-<a id="results" />
 ## Results
 
 All experiments use DefendTheCenter with frame skip 4,
@@ -120,24 +97,21 @@ Evaluation runs 20 greedy episodes every 5k steps.
 
 ---
 
-<a id="training-curves" />
 ### Training Curves
 
-<Figure src="/projects/vizdoom-dqn/training_curve.png" alt="Evaluation return over 500k training steps on DefendTheCenter with AIMv2-Large encoder, two seeds" caption="Evaluation return over training for the best configuration (AIMv2-Large, $\tau = 0.001$) across two seeds." />
+<Figure src="/projects/vizdoom-dqn/training_curve.png" alt="Evaluation return over 500k training steps on DefendTheCenter with AIMv2-Large encoder, two seeds" caption="Evaluation return over training for the best configuration (AIMv2-Large, τ = 0.001) across two seeds." />
 
 ---
 
-<a id="target-update-ablation" />
 ### Ablation: Target Update Rate
 
 Slower target network updates ($\tau = 0.001$) produce slightly higher and more stable
 evaluation returns compared to the default ($\tau = 0.005$).
 
-<Figure src="/projects/vizdoom-dqn/tau_ablation.png" alt="Evaluation return comparison between tau=0.005 and tau=0.001" caption="Target network update rate ablation. $\tau = 0.001$ (blue) achieves higher peak performance and lower variance than $\tau = 0.005$ (red)." />
+<Figure src="/projects/vizdoom-dqn/tau_ablation.png" alt="Evaluation return comparison between tau=0.005 and tau=0.001" caption="Target network update rate ablation. τ = 0.001 (blue) achieves higher peak performance and lower variance than τ = 0.005 (red)." />
 
 ---
 
-<a id="dueling-comparison" />
 ### Standard vs Dueling Q-Network
 
 The dueling architecture runs did not complete 500k steps during the experiment window.
@@ -149,7 +123,6 @@ though the dueling runs were still improving at termination.
 
 <SectionDivider />
 
-<a id="hyperparameters" />
 ## Hyperparameters
 
 | Parameter | Value |

@@ -6,6 +6,12 @@ const withBundleAnalyzer = bundleAnalyzer({
     enabled: process.env.ANALYZE === 'true'
 })
 
+/* Research report MDX (src/content/research/*.mdx) is NOT bundled —
+ * it's read from disk and compiled server-side at build/request time by
+ * src/app/research/[slug]/page.tsx via @mdx-js/mdx `evaluate`. (The
+ * @next/mdx webpack loader mis-resolves the react-server JSX runtime in
+ * dev on next ≤16.2.10 — evaluate sidesteps the bundler entirely.) */
+
 const nextConfig: NextConfig = {
     reactStrictMode: true,
     images: {

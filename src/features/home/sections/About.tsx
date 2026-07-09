@@ -1,36 +1,20 @@
-'use client'
-
-/* About: bio paragraphs + circular photo on gentle counter-parallax.
+/* About: bio paragraphs + circular photo.
  * Text and photo live in ../content.tsx. */
 
 import ExportedImage from 'next-image-export-optimizer'
-import { useRef } from 'react'
-
-import { useScrollParallax } from '@/hooks/useScrollParallax'
 
 import { about } from '../content'
 import { SectionHeading } from '../ui'
 
 /* ── Style knobs ─────────────────────────────────────────────────── */
-const PHOTO_SIZE = 280 // px, circular crop
-const PARALLAX_TEXT = -0.03
-const PARALLAX_PHOTO = 0.05
+const PHOTO_SIZE = 280 // px, square crop
 
 export default function AboutSection() {
-    const photoRef = useRef<HTMLDivElement>(null)
-    const textRef = useRef<HTMLDivElement>(null)
-    useScrollParallax(photoRef, PARALLAX_PHOTO)
-    useScrollParallax(textRef, PARALLAX_TEXT)
-
     return (
         <div className="w-full flex flex-col space-y-6">
             <SectionHeading>{about.heading}</SectionHeading>
             <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
-                <div
-                    ref={textRef}
-                    className="col-span-1 flex flex-col justify-center md:col-span-7"
-                    style={{ willChange: 'transform' }}
-                >
+                <div className="col-span-1 flex flex-col justify-center md:col-span-7">
                     {about.paragraphs.map((paragraph, i) => (
                         <p
                             key={i}
@@ -40,13 +24,11 @@ export default function AboutSection() {
                         </p>
                     ))}
                 </div>
-                <div
-                    ref={photoRef}
-                    className="col-span-1 flex flex-col items-center justify-center md:col-span-5"
-                    style={{ willChange: 'transform' }}
-                >
+                {/* md:items-end pins the photo to the box's right padding
+                 * edge, mirroring the text's left edge — symmetric insets. */}
+                <div className="order-first md:order-none col-span-1 flex flex-col items-center md:items-end justify-center md:col-span-5">
                     <div
-                        className="relative overflow-hidden rounded-full"
+                        className="relative overflow-hidden"
                         style={{ height: PHOTO_SIZE, width: PHOTO_SIZE }}
                     >
                         <ExportedImage

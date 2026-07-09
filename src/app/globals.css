@@ -3,34 +3,34 @@
 @tailwind utilities;
 
 body {
-    font-family: var(--font-xits), serif;
+    font-family: var(--font-plex-mono), monospace;
 }
 
 @layer base {
-    /* Site theme: white bg, black body text, fuchsia headers.
-     * Color mode locks white/black regardless of light/dark. Ink mode
-     * follows light/dark theme (white-day, black-night) and drops accent. */
+    /* Single theme: light, with colors — white bg, black body text,
+     * fuchsia section headings. (The former dark theme and ink/color
+     * mode system were removed 2026-07; .section-fill still swaps these
+     * vars locally for the black-rectangle sections.) */
     :root {
         --background: 0 0% 100%;
         --foreground: 0 0% 0%;
+        /* Base (brand) accents — max-chroma; for backgrounds, borders,
+         * glows, and other non-text uses where AA text contrast doesn't
+         * apply. */
         --accent1: 312 100% 50%;     /* fuchsia  #FF00CC */
         --accent2: 72 100% 50%;      /* chartreuse #CCFF00 */
         --accent3: 192 100% 50%;     /* cyan     #00CCFF */
-    }
-
-    .dark {
-        --background: 0 0% 0%;
-        --foreground: 0 0% 100%;
-        --accent1: 312 100% 50%;
-        --accent2: 72 100% 50%;
-        --accent3: 192 100% 50%;
-    }
-
-    /* Color mode: lock to white bg + black fg, regardless of light/dark theme. */
-    [data-mode="color"],
-    [data-mode="color"].dark {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 0%;
+        /* Text-safe accent variants. Each accent has a "dark" mode
+         * (comfortable on white — set here) and a "light" mode
+         * (comfortable on black — swapped in by .section-fill below).
+         * Use var(--accentN-text) for any colored TEXT and the right
+         * variant applies automatically per surface.
+         * Palette digits: 0/2/8/B/C/D/F only (no 6 — user preference).
+         * Note: dark cyan is 4.0:1 — fine for large text and UI
+         * indicators (WCAG 3:1), not for body-size text on white. */
+        --accent1-text: 316 100% 36.7%; /* dark fuchsia  #BB0088, 6.1:1 on white */
+        --accent2-text: 105 100% 26.7%; /* dark chartreuse #228800, 4.6:1 on white */
+        --accent3-text: 196 100% 36.7%; /* dark cyan     #0088BB, 4.0:1 on white */
     }
 }
 
@@ -41,10 +41,9 @@ body {
 
     body {
         @apply bg-background text-foreground;
-        transition: background-color 0.4s ease, color 0.4s ease;
     }
 
-    /* Display type — Gothic Textura Prescius blackletter. */
+    /* Display type — QT Fraktur blackletter. */
     h1, h2, h3, h4, h5, h6,
     .font-display {
         font-family: var(--font-gothic), serif;
@@ -52,16 +51,15 @@ body {
         letter-spacing: 0;
     }
 
-    /* Color mode: fancy fuchsia headers. Ink mode falls through to fg. */
-    [data-mode="color"] h1,
-    [data-mode="color"] h2,
-    [data-mode="color"] h3,
-    [data-mode="color"] h4,
-    [data-mode="color"] h5,
-    [data-mode="color"] h6,
-    [data-mode="color"] .font-display {
-        color: hsl(var(--accent1));
-    }
+    /* Accent system — sections own colors; two colors also carry a
+     * site-wide function:
+     *   fuchsia    #FF00CC — the "ozanbayiz?" section: heading + links
+     *   cyan       #00CCFF — the research section: heading + card hover;
+     *                        also neutral hover feedback site-wide
+     *   chartreuse #CCFF00 — reserved for favorites' return;
+     *                        also the highlighter: ::selection + <mark>
+     * Document (paper) pages stay monochrome. Colored links hover in
+     * their own color; neutral links hover cyan. */
 
     /* Ensure anchored headings scroll below the sticky project header */
     :is(h1, h2, h3, h4, h5, h6)[id] {
@@ -85,13 +83,19 @@ body {
     overflow: hidden;
 }
 
+/* Chartreuse = the highlighter: selecting text runs a highlighter pen
+ * over it. Black text on #CCFF00 is high-contrast on white and on the
+ * black fills alike. */
 ::selection {
-    background: hsl(var(--foreground));
-    color: hsl(var(--background));
+    background: hsl(var(--accent2));
+    color: hsl(0 0% 0%);
 }
 
 html {
     scroll-behavior: smooth;
+    /* With classic (non-overlay) scrollbars, reserve a matching gutter on
+     * the left so centered content stays visually centered in the window. */
+    scrollbar-gutter: stable both-edges;
 }
 
 /* ── Link interactivity ───────────────────────────────────────────
@@ -111,11 +115,13 @@ html {
         font-weight 0.2s ease;
 }
 
+/* Cyan = neutral interaction feedback (text-safe variant, so it stays
+ * visible on white and on the black fills alike). */
 .flex-link:hover,
 .flex-link:focus-visible,
 .group:hover .flex-link-group,
 .group:focus-visible .flex-link-group {
-    text-decoration-color: currentColor;
+    text-decoration-color: hsl(var(--accent3-text));
     text-decoration-thickness: 2px;
     font-weight: 700;
 }
@@ -123,6 +129,62 @@ html {
 /* Backward-compat aliases — old gradient-* selectors route to flex-* */
 .gradient-link { @apply flex-link; }
 .gradient-link-group { @apply flex-link-group; }
+
+/* ── Link personalities ──────────────────────────────────────────────
+ * Base .flex-link is quiet: invisible at rest, underline + bold on hover.
+ * Compose modifiers to imbue a link with personality at will:
+ *
+ *   color   .link-accent     — fuchsia    #FF00CC
+ *           .link-chartreuse — chartreuse #CCFF00 (black fill only —
+ *           .link-cyan       — cyan       #00CCFF   near-invisible on white)
+ *   marker  .link-marked     — hairline underline at rest
+ *   motion  .link-glow       — glow on hover, in the link's own color
+ *                              (pair with a color: "link-cyan link-glow")
+ *           .link-box        — hard offset box on hover (card aesthetic)
+ *
+ * Fuchsia is borderline AA as small text on white; all three colors read
+ * best on the black fill. Everything falls back to plain fg in ink mode. */
+
+.link-marked {
+    text-decoration-color: hsl(var(--foreground) / 0.4);
+}
+
+/* Color personalities use the text-safe variants — automatically dark
+ * on white surfaces and light on black fills (see --accentN-text). */
+.link-accent {
+    color: hsl(var(--accent1-text));
+}
+
+.link-chartreuse {
+    color: hsl(var(--accent2-text));
+}
+
+.link-cyan {
+    color: hsl(var(--accent3-text));
+}
+
+.link-glow:hover,
+.link-glow:focus-visible {
+    text-shadow: 0 0 18px currentColor;
+}
+
+.link-box:hover,
+.link-box:focus-visible {
+    box-shadow: 2px 2px 0 currentColor;
+}
+
+/* Colored links hover-underline in their own color (section purity
+ * beats the neutral cyan hover). Must come after the .flex-link hover
+ * rule — equal specificity, later wins. */
+.link-accent:hover,
+.link-accent:focus-visible,
+.link-chartreuse:hover,
+.link-chartreuse:focus-visible,
+.link-cyan:hover,
+.link-cyan:focus-visible {
+    text-decoration-color: currentColor;
+}
+
 
 /* Card border — ink hairline by default, hard 3px box-shadow on hover.
  * Hard-edged shadow matches the manuscript-rule aesthetic. */
@@ -133,17 +195,36 @@ html {
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
+/* Cyan on hover — interaction feedback, striking atop the black fills. */
 .flex-border-hover:hover,
 .group:hover .flex-border-group,
 .flex-border-hover:focus-visible,
 .group:focus-visible .flex-border-group {
-    border-color: hsl(var(--foreground));
-    box-shadow: 4px 4px 0 hsl(var(--foreground));
+    border-color: hsl(var(--accent3));
+    box-shadow: 4px 4px 0 hsl(var(--accent3));
 }
 
 /* Backward-compat */
 .gradient-border-hover { @apply flex-border-hover; }
 .gradient-border-group { @apply flex-border-group; }
+
+/* Filled-rectangle section — locks to black bg + white fg by swapping the
+ * fg/bg CSS vars locally, so descendants (text, links, borders) flip
+ * coherently. Apply per-section via <Section fill> (inset rectangle,
+ * contained in the content column — not full-bleed). */
+.section-fill {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    /* On black, accent text = the full-bodied BASE colors — the user
+     * finds lighter variants pastel/washed, and every base passes AA on
+     * black anyway (fuchsia 6.1:1, chartreuse 17.9:1, cyan 11.1:1).
+     * The darkened --accentN-text values at :root exist for white. */
+    --accent1-text: 312 100% 50%;   /* fuchsia    #FF00CC, 6.1:1 on black */
+    --accent2-text: 72 100% 50%;    /* chartreuse #CCFF00, 17.9:1 on black */
+    --accent3-text: 192 100% 50%;   /* cyan       #00CCFF, 11.1:1 on black */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
 
 /* ASCII art — IBM Plex Mono Bold (boldest weight), fg color.
  * Plex Mono caps at 700, so extra density comes from stroking the
@@ -192,6 +273,121 @@ html {
     }
 }
 
+/* ── Paper — research report typography ──────────────────────────────
+ * A document, not a poster: XITS serif body AND serif headings, all
+ * monochrome, like a LaTeX paper. The page title (outside .paper) is
+ * the single blackletter moment, in plain foreground. Identity lives
+ * at the edges: script letterhead, mono metadata/captions, signature.
+ * The only color in the reading path is the chartreuse <mark>. */
+
+.paper {
+    font-family: var(--font-xits), serif;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+}
+
+.paper p {
+    margin: 0.9em 0;
+}
+
+.paper h2,
+.paper h3 {
+    font-family: var(--font-xits), serif;
+    color: hsl(var(--foreground));
+    font-weight: 700;
+}
+
+/* Heading margins own ALL section spacing (SectionDivider renders
+ * nothing) — keep them tight. */
+.paper h2 {
+    font-size: 1.5rem;
+    margin: 0.9em 0 0.4em;
+}
+
+.paper h3 {
+    font-size: 1.2rem;
+    margin: 0.9em 0 0.35em;
+}
+
+/* The highlighter — for a report's single load-bearing sentence. */
+.paper mark {
+    background: hsl(var(--accent2));
+    color: hsl(0 0% 0%);
+    padding: 0 0.15em;
+}
+
+.paper ul,
+.paper ol {
+    margin: 0.9em 0;
+    padding-left: 1.5em;
+}
+
+.paper ul { list-style: disc; }
+.paper ol { list-style: decimal; }
+.paper li { margin: 0.3em 0; }
+
+.paper figure {
+    margin: 1.3em 0;
+}
+
+.paper figcaption {
+    font-family: var(--font-plex-mono), monospace;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    text-align: center;
+    opacity: 0.7;
+    margin-top: 0.6em;
+}
+
+.paper table {
+    font-family: var(--font-plex-mono), monospace;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    border-collapse: collapse;
+    margin: 1.5em 0;
+    display: block;
+    overflow-x: auto;
+}
+
+.paper th,
+.paper td {
+    border: 1px solid hsl(var(--foreground) / 0.25);
+    padding: 0.4em 0.75em;
+    text-align: left;
+}
+
+.paper th {
+    font-weight: 700;
+    background: hsl(var(--foreground) / 0.05);
+}
+
+.paper code {
+    font-family: var(--font-plex-mono), monospace;
+    font-size: 0.85em;
+}
+
+.paper blockquote {
+    border-left: 2px solid hsl(var(--foreground) / 0.3);
+    padding-left: 1em;
+    margin: 1.2em 0;
+    font-style: italic;
+}
+
+/* Markdown `---` renders as whitespace, not a drawn rule — consistent
+ * with SectionDivider and the site's no-rules policy. */
+.paper hr {
+    border: 0;
+    height: 0;
+    margin: 1.5rem 0;
+}
+
+/* Display math can be wide — scroll it, never the page. */
+.paper .katex-display {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.4em 0;
+}
+
 /* Hero entry animations */
 @keyframes fade-in-up {
     from {
@@ -228,42 +424,3 @@ html {
     animation: blink 1s step-end infinite;
 }
 
-/* ── Ink mode: pure B&W, no accent color, no glow ─────────────────
- * Bg/fg fall through to globals.css :root or .dark (light/dark theme). */
-
-[data-mode="ink"] .glow-accent,
-[data-mode="ink"] .glow-accent-sm,
-[data-mode="ink"] .glow-accent-lg,
-[data-mode="ink"] .border-glow-accent,
-[data-mode="ink"] .hover\:glow-accent-sm:hover {
-    box-shadow: none;
-}
-
-[data-mode="ink"] .text-glow-accent {
-    text-shadow: none;
-}
-
-[data-mode="ink"] ::selection {
-    background: hsl(var(--foreground));
-    color: hsl(var(--background));
-}
-
-[data-mode="ink"] .hover\:text-accent1:hover {
-    color: hsl(var(--foreground));
-}
-
-[data-mode="ink"] .bg-accent1 {
-    background-color: hsl(var(--foreground));
-}
-
-[data-mode="ink"] .border-accent1 {
-    border-color: hsl(var(--foreground));
-}
-
-[data-mode="ink"] .focus-visible\:outline-accent1:focus-visible {
-    outline-color: hsl(var(--foreground));
-}
-
-[data-mode="ink"] .hover\:border-accent1:hover {
-    border-color: hsl(var(--foreground));
-}

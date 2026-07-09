@@ -2,8 +2,8 @@ import type { Config } from 'tailwindcss'
 import animate from 'tailwindcss-animate'
 
 export default {
-    darkMode: ['class'],
     content: [
+        './src/*.tsx', // src-root files (mdx-components.tsx) — easy to miss
         './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -18,7 +18,8 @@ export default {
         },
         extend: {
             fontFamily: {
-                sans: ['var(--font-xits)', 'serif'],
+                sans: ['var(--font-plex-mono)', 'monospace'],
+                serif: ['var(--font-xits)', 'serif'],
                 mono: ['var(--font-plex-mono)', 'monospace'],
                 display: ['var(--font-gothic)', 'serif'],
                 script: ['var(--font-calligra)', 'cursive'],
@@ -29,6 +30,11 @@ export default {
                 accent1: 'hsl(var(--accent1))',
                 accent2: 'hsl(var(--accent2))',
                 accent3: 'hsl(var(--accent3))',
+                /* Text-safe variants: dark on white surfaces, light inside
+                 * .section-fill (the vars swap per surface). */
+                'accent1-text': 'hsl(var(--accent1-text))',
+                'accent2-text': 'hsl(var(--accent2-text))',
+                'accent3-text': 'hsl(var(--accent3-text))',
                 border: 'hsl(var(--foreground))',
                 input: 'hsl(var(--foreground))',
                 ring: 'hsl(var(--foreground))'

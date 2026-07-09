@@ -1,0 +1,165 @@
+## Overview
+
+We imagine an intelligent tutoring system as a lightweight **pedagogical policy**
+steering a foundation-model **interaction layer**: the high-level policy decides
+*what to teach next* over a knowledge graph, and the interaction layer executes
+each teaching turn. This paper focuses on the high-level policy. We train it as
+a Decision Transformer over a Deep Knowledge Tracing world model, instantiate
+two reward shapes grounded in the learning sciences, and put every comparison
+through a four-diagnostic screening protocol before believing it.
+
+<Figure src="/projects/offline-rl-teaching/system-figure.png" alt="Two-policy intelligent tutoring system diagram" caption="The two-policy tutoring system. The high-level pedagogical policy (this paper) selects knowledge-graph nodes; the low-level interaction policy (future work) executes teaching turns with the student." />
+
+The result is deliberately negative: <mark>the diagnostics caught every
+comparison between a pedagogically-grounded policy and the immediate-correctness
+baseline</mark>, on both datasets — for reasons ranging from algebraic degeneracy
+in a reward formula to dependence on the world model's calibration regime. The
+paper offers no positive claim about either reward shape. Its contribution is
+the screening protocol itself, paired with a specification of the data
+infrastructure a faithful evaluation would require.
+
+<SectionDivider />
+
+## Setup
+
+Real students appear only as logged data: two primary-school mathematics
+interaction logs. **XES3G5M** (18,066 students, 5.1M interactions, 1,175
+knowledge components in a four-level hierarchy — the 865 leaf KCs form the
+action space) is the primary dataset; **Junyi Academy** (16.2M interactions,
+1,326 exercises) is the cross-dataset reproduction target. A K=5 ensemble of
+Deep Knowledge Tracing LSTMs is fit to each log — reaching test AUC 0.851 on
+XES3G5M but only validation AUC 0.762 on Junyi, a gap that becomes load-bearing
+— and wrapped as a Gym-like environment: the state concatenates the reference
+member's hidden vector with an ensemble-disagreement scalar, and transitions
+sample synthetic correctness labels from the ensemble mean.
+
+<Figure src="/projects/offline-rl-teaching/training-loop.png" alt="World-model training loop diagram" caption="The world-model loop: the Decision Transformer selects a topic, the DKT ensemble returns predicted correctness, a belief update, and an uncertainty estimate; the reward is computed under one of the candidate shapes." />
+
+Offline trajectories (10,000 per dataset, horizon 50) come from an ε-myopic-greedy
+behavior policy (ε = 0.5) rolled out in the world model; Decision Transformers
+(~1.13M parameters) are trained on them with a MOPO pessimism penalty swept over
+λ ∈ {0.5, 1.0, 2.0}. The pipeline chains real students → world model → synthetic
+trajectories → policy → off-policy evaluation on real test states — and every
+link introduces shift. That is precisely why the evaluation needs screening.
+
+<SectionDivider />
+
+## Reward shapes
+
+The standard reward in RL-for-tutoring is **immediate correctness** — teach what
+the student is most likely to already know:
+
+$$
+r^{\text{IMM}}(s_t, a_t) := \bar{p}_t(a_t) = \frac{1}{K}\sum_{i=1}^{K} \hat{p}_t^{(i)}(a_t).
+$$
+
+The learning sciences have argued for thirty years that this is the wrong
+target. We instantiate two alternatives from distinct traditions. From
+*Preparation for Future Learning*, a **preparedness-gain** reward — the belief
+change a teaching action induces on the taught topic's sibling neighborhood:
+
+$$
+r^{\text{PFL-GAIN}}(s_t, a_t, s_{t+1}) := \frac{1}{|\mathcal{N}(a_t)|}\sum_{k \in \mathcal{N}(a_t)} \bigl[\, \bar{p}_{t+1}(k) - \bar{p}_t(k) \,\bigr].
+$$
+
+From *Productive Failure* and the desirable-difficulty literature, a
+**boundary-of-capability** reward that targets the moderate-difficulty band:
+
+$$
+r^{\text{PF-DIFF}}(s_t, a_t) := -\bigl|\, r^{\text{IMM}}(s_t, a_t) - p^{\star} \,\bigr|, \qquad p^{\star} = 0.5.
+$$
+
+A fourth candidate, **SIB-MEAN** — predicted correctness averaged over the taught
+topic's sibling neighborhood — serves as a neighborhood-smoothed baseline
+alongside IMM.
+
+<SectionDivider />
+
+## The screening protocol
+
+Four diagnostics wrap every comparison. Each is a reapplication of standard
+offline-RL or empirical practice — applied as a screening protocol at the
+reward-design stage, rather than after results are reported.
+
+1. **Cumulative-return correlation precondition** — a candidate reward whose
+   return-to-go ranks trajectories like the baseline's produces a mechanically
+   equivalent return-conditioned policy, regardless of its formula. Computed in
+   five minutes, before any training.
+2. **Action-overlap check** — a policy whose actions are out-of-distribution
+   under the logged data inherits inflated FQE from circular Q-bootstrapping;
+   we compare the policy's argmax distribution against the empirical teacher.
+3. **Pairwise inter-policy diagnostic** — catches the case where
+   differently-rewarded policies are individually plausible but mutually
+   identical.
+4. **Cross-dataset check** — a comparison must survive a dataset switch before
+   it counts as evidence about the policies rather than the world model.
+
+The diagnostics are backed by three off-policy estimators (FQE, WIS, DualDICE),
+each rank-validated on a tractable HMM toy environment before use, and a 20-seed
+FQE bootstrap matched to policy-class variance — a 5-seed pilot returned
+t = 1.34 on a comparison the 20-seed bootstrap returned t = +5.41 on,
+motivating the budget.
+
+<SectionDivider />
+
+## What the diagnostics caught
+
+The precondition fired before a single policy was trained:
+
+| Candidate reward | Corr. with IMM return | Verdict |
+| --- | --- | --- |
+| SIB-MEAN | +0.9956 | Fails (positive collapse) |
+| PF-DIFF (p* = 0.5) | −0.9959 | Fails (negative collapse) |
+| PF-DIFF (p* = 0.85) | −0.9325 | Borderline |
+| PFL-GAIN | −0.1305 | Passes (orthogonal) |
+
+SIB-MEAN collapses into the baseline because XES3G5M's curriculum tree groups
+siblings by *similarity*, not prerequisite direction. PF-DIFF at p* = 0.5 is
+algebraically anti-correlated with the baseline under myopic-greedy behavior —
+a consequence of the formula we did not anticipate, caught before training.
+
+<Figure src="/projects/offline-rl-teaching/results-fqe.png" alt="Two-panel FQE bootstrap results" caption="20-seed FQE bootstrap on real test states (±1σ). A: on XES3G5M, DT(PF-diff) lands in the empirical teacher's band — exposed by the action-overlap diagnostic as Q-bootstrap inflation. B: on Junyi, the PF-diff vs. Imm ranking inverts, and the five differently-rewarded DTs collapse to a single policy (99.6%+ pairwise argmax agreement)." />
+
+Three catches stand out. On XES3G5M, DT(PF-DIFF) reached the empirical teacher's
+FQE band (2.714 ± 0.235 vs. 2.679 ± 0.025; the +0.036 difference is below the
+~0.10 minimum detectable effect at 20 seeds) — but the action-overlap diagnostic
+showed **0% argmax agreement** with the teacher, 100% zero-overlap on top-5
+sets, and a median teacher probability at the DT's argmax *below uniform*:
+Q-bootstrap inflation on actions the logged data never covers, worse than CQL,
+the canonical example of the pathology. On Junyi, the same comparison
+**inverted sign** (Welch t from +9.86 to −48.30): the ranking measured the
+world model's calibration regime, not teaching quality. And the pairwise
+diagnostic collapsed all five differently-rewarded Junyi policies into one —
+the bootstrap was measuring FQE evaluation noise on a single underlying policy.
+Two isolation experiments (filtering trajectories to the top-10% return slice;
+dropping the MOPO penalty 4×) left policies unchanged at 99.2% argmax
+agreement, converging on **action-space flatness** as the load-bearing
+structural cause across both datasets.
+
+<SectionDivider />
+
+## The data infrastructure a faithful evaluation needs
+
+Each catch traces to a missing piece of data infrastructure, which the paper
+names as the prerequisites for the next attempt:
+
+- **A directed prerequisite graph** — PFL's transfer construct needs edges
+  *a → b*; both benchmarks expose only similarity-curated hierarchies.
+- **A transfer-aligned action structure** — hierarchical actions (stay-on-node
+  vs. advance) instead of flat 865/1,326-way argmaxes.
+- **A post-intervention transfer assessment** — PFL's actual metric, absent
+  from every offline pipeline.
+- **A behavioral anchor outside synthetic trajectories** — real-teacher logs,
+  so evaluation has a fulcrum outside the world model.
+
+<SectionDivider />
+
+## Takeaway
+
+Offline RL for education inherits every known OPE failure mode, and the
+standard benchmarks cannot currently support the comparisons the field wants
+to make. Cheap diagnostics applied *before* training — correlation
+preconditions, action-overlap checks, replication across datasets — catch
+results that would otherwise ship as positive findings. The screening protocol
+is the contribution; the catalogue of catches is the specification for what to
+build next.

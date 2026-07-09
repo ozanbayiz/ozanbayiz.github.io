@@ -5,9 +5,8 @@
  * titles, notes) live in ../data/favorites.ts. */
 
 import ExportedImage from 'next-image-export-optimizer'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 
-import { useScrollParallax } from '@/hooks/useScrollParallax'
 import { cn } from '@/lib/utils'
 
 import { favorites } from '../content'
@@ -17,8 +16,6 @@ import { SectionHeading } from '../ui'
 import type { FavoriteItem } from '../data/favorites'
 
 /* ── Style knobs ─────────────────────────────────────────────────── */
-const PARALLAX_INVENTORY = -0.03
-const PARALLAX_INSPECTION = 0.05
 /* Fixed image-area height keeps layout stable when switching between
  * 2:3 movie posters and 1:1 album covers (both rendered via object-contain). */
 const COVER_BOX_MOBILE = 'h-[96px] w-[64px]'
@@ -52,7 +49,7 @@ function InventorySlot({
             className={cn(
                 'relative bg-background overflow-hidden',
                 variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
-                isActive ? 'ring-2 ring-accent1 z-10' : '',
+                isActive ? 'ring-2 ring-accent3 z-10' : '',
             )}
             onClick={onSelect}
             onMouseEnter={onHover}
@@ -171,10 +168,6 @@ function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
 
 export default function FavoritesSection() {
     const [activeItem, setActiveItem] = useState<ActiveItem>(null)
-    const inventoryRef = useRef<HTMLDivElement>(null)
-    const inspectionRef = useRef<HTMLDivElement>(null)
-    useScrollParallax(inventoryRef, PARALLAX_INVENTORY)
-    useScrollParallax(inspectionRef, PARALLAX_INSPECTION)
 
     const handleSelect: SelectHandler = (item, variant) => {
         setActiveItem(prev => (prev?.item === item ? null : { item, variant }))
@@ -196,11 +189,7 @@ export default function FavoritesSection() {
         <div className="w-full flex flex-col space-y-6">
             <SectionHeading>{favorites.heading}</SectionHeading>
             <div className="flex flex-col md:flex-row md:gap-8">
-                <div
-                    ref={inventoryRef}
-                    className="md:w-[55%] flex flex-col gap-6"
-                    style={{ willChange: 'transform' }}
-                >
+                <div className="md:w-[55%] flex flex-col gap-6">
                     {panels.map(p => (
                         <InventoryPanel
                             key={p.dataTitle}
@@ -215,11 +204,7 @@ export default function FavoritesSection() {
                     ))}
                 </div>
 
-                <div
-                    ref={inspectionRef}
-                    className="order-first md:order-none mb-4 md:mb-0 md:w-[45%]"
-                    style={{ willChange: 'transform' }}
-                >
+                <div className="order-first md:order-none mb-4 md:mb-0 md:w-[45%]">
                     <InspectionPanel activeItem={activeItem} />
                 </div>
             </div>

@@ -1,20 +1,3 @@
----
-title: "VISTA: Vision Intersectional Sparse Trait Analysis"
-shortTitle: "VISTA"
-description: "Probed Vision Encoders with linear classifiers and trained patch-level SAEs to discover interpretable sparse dictionary features (SDFs) defining demographic traits, revealing the heavy influence of reconstruction error in SAE-based debiasing."
-thumbnail: "/projects/vista/thumbnail.png"
-heroImage: "/projects/vista/thumbnail.png"
-gitUrl: "https://github.com/ozanbayiz/vista"
-date: "2025-05-11"
-pdfUrl: "https://drive.google.com/file/d/1GGZpM5Wz_wwaz6jEWMMBS_Ixga-qs3XV/view?usp=drive_link"
-featured: true
----
-
-UC Berkeley, Spring 2025
-
-<SectionDivider />
-
-<a id="abstract" />
 ## Abstract
 
 Prior work has shown that suppressing demographic features in Sparse Autoencoders (SAEs) can "debias" Vision-Language Models. **VISTA's central finding: this effect is largely an artifact of SAE reconstruction error, not targeted concept removal.** Simply passing activations through an SAE without modifying any features triggers nearly the same drop in demographic focus as specifically suppressing identified demographic features.
@@ -23,7 +6,6 @@ VISTA investigates how sensitive demographic attributes (race, age, gender) are 
 
 <SectionDivider />
 
-<a id="stereotypes" />
 ## Stereotypes as Semantic Features
 
 When examining the discovered SDFs, we found that vision encoders heavily proxy demographic attributes using cultural attire and stylistic markers — features detached from base physiological traits.
@@ -33,13 +15,12 @@ When examining the discovered SDFs, we found that vision encoders heavily proxy 
 <Figure src="/projects/vista/stereotype_feature2.png" alt="Beards activate a race-associated feature" caption="Another SDF treats prominent facial hair styles as primary indicators for demographic traits." />
 </ImageGrid>
 
-Some SDFs successfully isolate purely semantic objects entirely divorced from demographics:
+Some SDFs isolate oddly specific semantic archetypes, entirely divorced from demographics:
 
-<Figure src="/projects/vista/neckbeard_feature.jpg" alt="A feature associated with sunglasses" caption="Some SDFs successfully isolate purely semantic objects like sunglasses, entirely divorced from demographics."/>
+<Figure src="/projects/vista/neckbeard_feature.jpg" alt="Discord screenshot of a labmate reacting to a newly discovered feature, showing its top-activating image strip" caption="Feature discovery in practice: a labmate's live reaction to the 'neckbeard' SDF and its top-activating images." />
 
 <SectionDivider />
 
-<a id="linear-probing" />
 ## Establishing the Baseline: Linear Probing
 
 Our first step is to confirm that demographic information is linearly decodable from standard VE latents. We compute the spatial mean across the patch dimension of the vision encoder output, yielding a single vector per image:
@@ -50,7 +31,7 @@ $$
 
 Using the **FairFace dataset** (structurally balanced across seven race groups, genders, and age brackets), we trained linear classifiers to extract these traits.
 
-<Figure src="/projects/vista/LP_training.png" alt="Linear probing pipeline" caption="Visual representation of the Linear Probing pipeline. Max-pooled spatial features are fed into linear classifiers to predict demographics." />
+<Figure src="/projects/vista/LP_training.png" alt="Linear probing pipeline" caption="Visual representation of the Linear Probing pipeline. Mean-pooled spatial features are fed into linear classifiers to predict demographics." />
 
 Despite the spatial collapse from mean-pooling, the probes recovered demographic labels with dramatic accuracy well above random chance, unequivocally demonstrating that VE latents deeply entangle sensitive traits.
 
@@ -58,7 +39,6 @@ Despite the spatial collapse from mean-pooling, the probes recovered demographic
 
 <SectionDivider />
 
-<a id="sae-training" />
 ## Decomposing Activations with Sparse Autoencoders
 
 To move from prediction to interpretability, VISTA uses **BatchTopK SAEs** mapping a $d$-dimensional input to a $4d$-dimensional sparse code:
@@ -81,7 +61,6 @@ To isolate demographic-specific SDFs from the thousands of learned dictionary fe
 
 <SectionDivider />
 
-<a id="causal-interventions" />
 ## Causal Interventions & Methodologies
 
 Having identified target SDFs, VISTA performs causal mediation analysis during the VLM's generative inference. We intercept the vision encoder output before it hits the language modeling head, applying six distinct intervention regimes.
@@ -95,7 +74,6 @@ Having identified target SDFs, VISTA performs causal mediation analysis during t
 
 <SectionDivider />
 
-<a id="evaluation-findings" />
 ## Evaluation & Key Discoveries
 
 We subjected the modified VLMs to free-form **Image Captioning** (measuring the Demographic Classification Rate, DCR, and BERTScore semantic preservation) and **Visual Question Answering (VQA)**.
@@ -105,7 +83,6 @@ The most striking insight: the **SAE Passthrough** baseline — passing latents 
 
 <SectionDivider />
 
-<a id="conclusion" />
 ## Conclusion
 
 VISTA underscores that while Sparse Autoencoders offer a mesmerizing window into the black-box representations of Vision-Language Models, utilizing them directly for active debiasing is incredibly fraught. Interventions must be rigidly baselined against reconstruction loss, as the simple act of sparse compression strips away demographic subtleties.

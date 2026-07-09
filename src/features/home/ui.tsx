@@ -7,27 +7,36 @@ type SectionProps = {
     id?: string
     className?: string
     containerClassName?: string
+    /** Wrap the content in an inset black rectangle (.section-fill) —
+     * contained within the content column, not full-bleed. */
+    fill?: boolean
 }
 
-export function Section({ children, id, className, containerClassName }: SectionProps) {
+export function Section({ children, id, className, containerClassName, fill }: SectionProps) {
     return (
-        <section id={id} className={cn('py-16 md:py-20', className)}>
+        <section id={id} className={cn('py-8 md:py-10', className)}>
             <div className={cn('container mx-auto max-w-screen-lg px-6 md:px-8', containerClassName)}>
-                {children}
+                {fill ? (
+                    <div className="section-fill p-6 md:p-10">{children}</div>
+                ) : (
+                    children
+                )}
             </div>
         </section>
     )
 }
 
 /**
- * Section label rendered in blackletter display type.
- * Lowercase-led — all-caps textura is illegible; blackletter capitals are
- * decorative initials only.
- * Inherits foreground color so contrast is AA-safe across every (bg, fg) pair.
+ * Section label in blackletter display type, in the section's own color
+ * (each homepage section owns a hue: ozanbayiz? = fuchsia [default],
+ * research = cyan via className, favorites = chartreuse when it returns).
+ * Document pages stay monochrome.
+ * Title-case is fine — Prescius capitals stay legible; avoid full
+ * `uppercase` transforms, which trade away the textura rhythm.
  */
 export function SectionHeading({ children, className }: { children: React.ReactNode; className?: string }) {
     return (
-        <h2 className={cn('font-display text-4xl md:text-5xl', className)}>
+        <h2 className={cn('font-display text-4xl md:text-5xl text-accent1-text', className)}>
             {children}
         </h2>
     )

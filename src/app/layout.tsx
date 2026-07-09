@@ -2,12 +2,10 @@ import './globals.css'
 
 import localFont from 'next/font/local'
 
-import { Providers } from '@/app/providers'
-import { MODE_BOOTSTRAP_IIFE } from '@/lib/mode-script'
-import { THEME_BOOTSTRAP_IIFE } from '@/lib/theme-script'
-
 import type { Metadata } from 'next'
 
+/* Kept available as `font-serif` (e.g. for math-heavy article pages);
+ * not preloaded — browsers only fetch it where it's actually used. */
 const xits = localFont({
     src: [
         { path: '../fonts/XITS-Regular.woff2', weight: '400', style: 'normal' },
@@ -16,7 +14,8 @@ const xits = localFont({
         { path: '../fonts/XITS-BoldItalic.woff2', weight: '700', style: 'italic' }
     ],
     variable: '--font-xits',
-    display: 'swap'
+    display: 'swap',
+    preload: false
 })
 
 const plexMono = localFont({
@@ -29,10 +28,13 @@ const plexMono = localFont({
     display: 'swap'
 })
 
+/* QT Fraktur (QualiType collection, OFL/GPL) — the site's blackletter.
+ * Single weight; declared at 400 and 700 so bold requests reuse the
+ * real outlines instead of synthesizing a faux bold. */
 const gothic = localFont({
     src: [
-        { path: '../fonts/GothicTexturaPrescius-Regular.woff2', weight: '400', style: 'normal' },
-        { path: '../fonts/GothicTexturaPrescius-Bold.woff2', weight: '700', style: 'normal' }
+        { path: '../fonts/QTFraktur.woff2', weight: '400', style: 'normal' },
+        { path: '../fonts/QTFraktur.woff2', weight: '700', style: 'normal' }
     ],
     variable: '--font-gothic',
     display: 'swap'
@@ -85,7 +87,7 @@ export default function RootLayout({
     children: React.ReactNode
 }>) {
     return (
-        <html lang='en' suppressHydrationWarning>
+        <html lang='en'>
             <body className={`${xits.variable} ${plexMono.variable} ${gothic.variable} ${calligra.variable} font-sans antialiased overflow-x-hidden`}>
                 <a
                     href='#main'
@@ -93,9 +95,7 @@ export default function RootLayout({
                 >
                     Skip to content
                 </a>
-                <script dangerouslySetInnerHTML={{ __html: MODE_BOOTSTRAP_IIFE }} />
-                <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_IIFE }} />
-                <Providers>{children}</Providers>
+                {children}
             </body>
         </html>
     )
