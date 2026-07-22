@@ -11,9 +11,9 @@ const PHOTO_SIZE = 280 // px, square crop
 
 export default function AboutSection() {
     return (
-        <div className="w-full flex flex-col space-y-6">
+        <div className="w-full flex flex-col space-y-4">
             <SectionHeading>{about.heading}</SectionHeading>
-            <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
                 <div className="col-span-1 flex flex-col justify-center md:col-span-7">
                     {about.paragraphs.map((paragraph, i) => (
                         <p

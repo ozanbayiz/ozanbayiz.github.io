@@ -21,6 +21,10 @@ export type ResearchEntry = {
     tldr: string
     /** Card/cover image (public path). */
     cover?: string
+    /** Hero plate atop the report page — rendered as captioned figures.
+     * Defaults to the cover (caption-less); two images render side by
+     * side (e.g. a pair of gameplay gifs). */
+    hero?: { src: string; caption?: string }[]
     /* Document actions — the predictable suite every project may carry.
      * Rendered as an icon-chip toolbar in the page letterhead, always in
      * this order: Code · PDF · Demo. Just set the URLs that exist. */
@@ -39,10 +43,15 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             year: '2026',
             tldr: 'Decision Transformer tutoring policies over a knowledge-tracing world model, screened by a four-diagnostic OPE protocol — every comparison between pedagogically-grounded reward shapes and the immediate-correctness baseline was caught, each catch tracing to a concrete data-infrastructure gap.',
             cover: '/projects/offline-rl-teaching/system-figure.png',
+            hero: [
+                {
+                    src: '/projects/offline-rl-teaching/system-figure.png',
+                    caption:
+                        'The two-policy tutoring system. The high-level pedagogical policy (this paper) selects knowledge-graph nodes; the low-level interaction policy (future work) executes teaching turns with the student.'
+                }
+            ],
             pdf: '/projects/offline-rl-teaching/paper.pdf'
         },
-        /* Parked until their artifacts clear the quality bar — re-enable
-         * by uncommenting (pages, MDX, and images are all preserved).
         {
             slug: 'vizdoom-dqn',
             title: 'Frozen Vision Encoders for Deep RL in VizDoom',
@@ -50,8 +59,20 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             year: '2026',
             tldr: 'Double DQN over frozen self-supervised vision features (AIMv2, V-JEPA 2) with PCA whitening — decoupling representation from policy learning makes training fast, memory-efficient, and stable.',
             cover: '/projects/vizdoom-dqn/thumbnail.png',
+            hero: [
+                {
+                    src: '/projects/vizdoom-dqn/gameplay_trained.gif',
+                    caption: 'Trained agent (500k steps). Return: 5.'
+                },
+                {
+                    src: '/projects/vizdoom-dqn/gameplay_best.gif',
+                    caption: 'Best recorded episode. Return: 9.'
+                }
+            ],
             code: 'https://github.com/ozanbayiz/vizdoom-dqn'
         },
+        /* Parked until its artifacts clear the quality bar — re-enable
+         * by uncommenting (page, MDX, and images are all preserved).
         {
             slug: 'vista',
             title: 'VISTA: Vision Intersectional Sparse Trait Analysis',

@@ -32,16 +32,23 @@ export default function Home() {
             <HeroSection />
 
             <main id='main' className="relative">
-                <Section id="about" fill>
+                {/* pt/pb overrides tighten the seams above and below. */}
+                <Section id="about" fill className="pt-4 md:pt-5 pb-4 md:pb-5">
                     <AboutSection />
                 </Section>
 
                 {/* From here down the page goes full-bleed black: a small
                   * white gap after the about rectangle, then .section-fill
                   * (and its light accent variants) through the footer. */}
-                <div className="section-fill mt-8 md:mt-10">
+                <div className="section-fill mt-4 md:mt-5">
                 <Section id="research">
-                    <ResearchSection />
+                    {/* Match the horizontal inset of the about rectangle's
+                      * `p-6 md:p-10` so both section headings share one
+                      * left edge (this section's black is the full-bleed
+                      * wrapper, not an inset .section-fill box). */}
+                    <div className="px-6 md:px-10">
+                        <ResearchSection />
+                    </div>
                 </Section>
 
                 {/* Favorites parked for now — re-add with:

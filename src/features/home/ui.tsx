@@ -17,7 +17,7 @@ export function Section({ children, id, className, containerClassName, fill }: S
         <section id={id} className={cn('py-8 md:py-10', className)}>
             <div className={cn('container mx-auto max-w-screen-lg px-6 md:px-8', containerClassName)}>
                 {fill ? (
-                    <div className="section-fill p-6 md:p-10">{children}</div>
+                    <div className="section-fill p-5 md:p-7">{children}</div>
                 ) : (
                     children
                 )}

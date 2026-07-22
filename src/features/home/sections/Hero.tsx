@@ -53,13 +53,13 @@ function SocialLinksBar() {
 
 export default function HeroSection() {
     return (
-        <section className="relative flex flex-col items-center justify-center pt-16 pb-4 md:pt-20 md:pb-5">
-            <div className="relative z-10 flex flex-col items-center gap-6 px-6 md:px-8">
+        <section className="relative flex flex-col items-center justify-center pt-8 pb-1 md:pt-10">
+            <div className="relative z-10 flex flex-col items-center gap-3 px-6 md:px-8">
                 {/* ASCII art — the centerpiece */}
                 <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
-                    <div className="flex flex-wrap items-center justify-around gap-x-4">
-                        <pre className="ascii-gradient mb-4">{ascii.spider}</pre>
-                        <pre className="ascii-gradient mb-4">{ascii.name}</pre>
+                    <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-2">
+                        <pre className="ascii-gradient">{ascii.spider}</pre>
+                        <pre className="ascii-gradient">{ascii.name}</pre>
                     </div>
                 </div>
 

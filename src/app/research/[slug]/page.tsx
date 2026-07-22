@@ -142,11 +142,14 @@ export default async function ResearchReportPage({
 
     return (
         <main className="container mx-auto max-w-screen-md px-6 md:px-8 py-8 md:py-10">
-            {/* Letterhead — the site signs its pages in script. */}
+            {/* Letterhead — quiet mono utility link. Navigation speaks in
+             * the UI voice; Calligra signs only once, at the footer. */}
             <nav>
-                <Link href="/" className="text-foreground inline-flex items-center gap-2">
-                    <span aria-hidden className="font-mono text-lg md:text-xl leading-none">←</span>
-                    <span className="font-script text-2xl md:text-3xl leading-none">ozanbayiz</span>
+                <Link
+                    href="/"
+                    className="font-mono text-sm text-foreground/70 transition-colors hover:text-accent3-text"
+                >
+                    ← ozanbayiz
                 </Link>
             </nav>
 
@@ -157,6 +160,32 @@ export default async function ResearchReportPage({
             </header>
 
             <article className="paper">
+                {/* Hero plate — opens the document with the entry's hero
+                 * figures (default: its caption-less cover). Lives inside
+                 * .paper so figcaptions pick up the house caption style.
+                 * Single images are height-capped so the plate stays a
+                 * band, not a wall. */}
+                {(() => {
+                    const heroFigures = entry.hero ?? (entry.cover ? [{ src: entry.cover }] : [])
+                    if (heroFigures.length === 0) return null
+                    const single = heroFigures.length === 1
+                    return (
+                        <div className={single ? 'mt-4 [&_figure]:my-0' : 'mt-4 grid gap-4 sm:grid-cols-2 [&_figure]:my-0'}>
+                            {heroFigures.map(figure => (
+                                <figure key={figure.src}>
+                                    <img
+                                        src={figure.src}
+                                        alt=""
+                                        decoding="async"
+                                        className={single ? 'mx-auto max-h-72 w-auto md:max-h-80' : undefined}
+                                    />
+                                    {figure.caption && <figcaption>{figure.caption}</figcaption>}
+                                </figure>
+                            ))}
+                        </div>
+                    )
+                })()}
+
                 <Report components={mdxComponents} />
             </article>
 
