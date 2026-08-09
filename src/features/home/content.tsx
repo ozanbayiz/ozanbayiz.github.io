@@ -61,10 +61,6 @@ XXX   XXX   XXX   XXX      XXX         XXX       XXX
 `,
 }
 
-export const hero = {
-    subtitle: 'UC Berkeley Computer Vision',
-}
-
 /* ── Social links (icons defined in sections/Hero.tsx) ─────────────── */
 
 export type SocialIcon = 'github' | 'linkedin' | 'cv'
@@ -87,31 +83,32 @@ export const socials: {
 
 export const about: {
     heading: string
-    photo: { src: string; alt: string }
+    /** Shown uncropped in a white figure card; `caption` renders beneath. */
+    photo: { src: string; alt: string; caption?: string }
     paragraphs: ReactNode[]
 } = {
     heading: 'ozanbayiz?',
-    photo: { src: '/ozan_bair.png', alt: 'Ozan Bayiz' },
+    photo: {
+        src: '/ozan_rumi.jpg',
+        alt: 'Ozan Bayiz at the Mevlâna Museum',
+        caption: 'Figure 1. Rumi and I.'
+    },
     paragraphs: [
         <>
-            I&apos;m a 5th-year MS student in EECS at UC Berkeley, advised
+            I am a 5th-year MS student in EECS at UC Berkeley, advised
             by Professor{' '}
             <a href="https://nargesnorouzi.me/" className="flex-link link-accent">
                 Narges Norouzi
             </a>
-            . I work on video understanding in service of AI for education.
+            . I work on video understanding in service of AI for education, and am also the Head GSI for{' '}
+            <a href="https://eecs189.org/" className="flex-link link-accent">
+                EECS 189/289A
+            </a>
+            . Previously, I was a student researcher at Google.
         </>,
         <>
             My research interests include representation learning, multimodal
-            integration, and data-efficient RL.
-        </>,
-        <>
-            Previously, I was head TA for{' '}
-            <a href="https://eecs189.org/" className="flex-link link-accent">
-                EECS 189/289A
-            </a>{' '}
-            (Intro. to ML) and a student researcher on Google&apos;s XR
-            Perception team.
+            fusion, and data-efficient learning.
         </>,
         <>
             I remain eternally grateful for{' '}

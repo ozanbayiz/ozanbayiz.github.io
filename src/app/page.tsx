@@ -2,7 +2,7 @@ import { footer } from '@/features/home/content'
 import AboutSection from '@/features/home/sections/About'
 import HeroSection from '@/features/home/sections/Hero'
 import ResearchSection from '@/features/home/sections/Research'
-import { Section } from '@/features/home/ui'
+import { CONTENT_INSET_X, Section } from '@/features/home/ui'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -31,22 +31,34 @@ export default function Home() {
             />
             <HeroSection />
 
-            <main id='main' className="relative">
-                {/* pt/pb overrides tighten the seams above and below. */}
-                <Section id="about" fill className="pt-4 md:pt-5 pb-4 md:pb-5">
+            <main id='main' className="relative flex grow flex-col">
+                {/* py-stack: both gaps around the rectangle are seams, not
+                  * full section breaks — the hero's own bottom space plus a
+                  * seam above, and the surface change below. Keeping them
+                  * equal stops the rectangle from looking like it drifted
+                  * down the page. */}
+                <Section id="about" fill className="py-stack">
                     <AboutSection />
                 </Section>
 
-                {/* From here down the page goes full-bleed black: a small
-                  * white gap after the about rectangle, then .section-fill
-                  * (and its light accent variants) through the footer. */}
-                <div className="section-fill mt-4 md:mt-5">
-                <Section id="research">
-                    {/* Match the horizontal inset of the about rectangle's
-                      * `p-6 md:p-10` so both section headings share one
-                      * left edge (this section's black is the full-bleed
-                      * wrapper, not an inset .section-fill box). */}
-                    <div className="px-6 md:px-10">
+                {/* From here down the page goes full-bleed black: the
+                  * section rhythm supplies the white gap after the about
+                  * rectangle, then .section-fill (and its light accent
+                  * variants) run through the footer. `grow` keeps the black
+                  * running to the bottom on tall viewports instead of
+                  * stopping and showing white beneath. */}
+                <div className="section-fill grow">
+                {/* py-inset-y, not py-section: this section sits INSIDE a
+                  * filled region, so its vertical space is that region's
+                  * interior padding. Using the section rhythm here stacked
+                  * on top of the region's own edge and left a dead band. */}
+                <Section id="research" className="py-inset-y">
+                    {/* Same horizontal inset as the about rectangle, from one
+                      * shared constant — this section's black is the page
+                      * background, not its own box, so the padding has to
+                      * be applied here to land on the same left edge. The
+                      * vertical rhythm comes from the Section's py-section. */}
+                    <div className={CONTENT_INSET_X}>
                         <ResearchSection />
                     </div>
                 </Section>
@@ -55,16 +67,10 @@ export default function Home() {
                     <Section id="favorites"><FavoritesSection /></Section>
                     (component: sections/Favorites.tsx, data: data/favorites.ts) */}
 
-                <footer className="py-10 md:py-12 text-center">
-                    <div className="container mx-auto max-w-screen-lg px-6 md:px-8 flex flex-col items-center gap-2">
+                <footer className="pb-section text-center">
+                    <div className="container mx-auto max-w-screen-lg px-inset-x">
                         <p className="font-script text-5xl md:text-6xl leading-none text-foreground">
-                            {footer.signature}
-                        </p>
-                        <p className="text-xs text-foreground">
-                            {CURRENT_YEAR}
-                            <span className="animate-blink ml-1">
-                                _
-                            </span>
+                            {footer.signature} {CURRENT_YEAR}
                         </p>
                     </div>
                 </footer>

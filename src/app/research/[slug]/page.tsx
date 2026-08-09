@@ -83,7 +83,7 @@ function DocumentActions({ entry }: { entry: ResearchEntry }) {
     const actions = DOCUMENT_ACTIONS.filter(action => entry[action.key])
     if (actions.length === 0) return null
     return (
-        <span className="flex flex-wrap items-center gap-4">
+        <span className="flex flex-wrap items-center gap-stack">
             {actions.map(action => (
                 <a
                     key={action.key}
@@ -141,7 +141,7 @@ export default async function ResearchReportPage({
     const Report = await compileReport(slug)
 
     return (
-        <main className="container mx-auto max-w-screen-md px-6 md:px-8 py-8 md:py-10">
+        <main className="container mx-auto max-w-screen-md px-inset-x py-section">
             {/* Letterhead — quiet mono utility link. Navigation speaks in
              * the UI voice; Calligra signs only once, at the footer. */}
             <nav>
@@ -154,7 +154,7 @@ export default async function ResearchReportPage({
             </nav>
 
             {/* Title, with the document-action toolbar directly beneath. */}
-            <header className="mt-6 mb-3 flex flex-col gap-3">
+            <header className="mt-stack flex flex-col gap-stack">
                 <h1 className="text-4xl md:text-5xl leading-tight">{entry.title}</h1>
                 <DocumentActions entry={entry} />
             </header>
@@ -170,7 +170,7 @@ export default async function ResearchReportPage({
                     if (heroFigures.length === 0) return null
                     const single = heroFigures.length === 1
                     return (
-                        <div className={single ? 'mt-4 [&_figure]:my-0' : 'mt-4 grid gap-4 sm:grid-cols-2 [&_figure]:my-0'}>
+                        <div className={single ? 'mt-stack [&_figure]:my-0' : 'mt-stack grid gap-stack sm:grid-cols-2 [&_figure]:my-0'}>
                             {heroFigures.map(figure => (
                                 <figure key={figure.src}>
                                     <img
@@ -189,7 +189,7 @@ export default async function ResearchReportPage({
                 <Report components={mdxComponents} />
             </article>
 
-            <footer className="mt-14 text-center">
+            <footer className="mt-section text-center">
                 <Link href="/" className="font-script text-4xl leading-none text-foreground">
                     ozanbayiz
                 </Link>

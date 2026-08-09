@@ -1,9 +1,9 @@
-/* Hero: ASCII art (spider + name), display subtitle, social links.
- * Text/art/links live in ../content.tsx. */
+/* Hero: ASCII art (spider + name) and social links.
+ * Art/links live in ../content.tsx. */
 
 import ExternalLink from '@/shared/ui/external-link'
 
-import { ascii, hero, socials } from '../content'
+import { ascii, socials } from '../content'
 
 import type { SocialIcon } from '../content'
 import type { ReactNode } from 'react'
@@ -30,7 +30,7 @@ const SOCIAL_ICONS: Record<SocialIcon, ReactNode> = {
 
 function SocialLinksBar() {
     return (
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-stack">
             {socials.links.map(link => (
                 <ExternalLink
                     key={link.href}
@@ -53,19 +53,16 @@ function SocialLinksBar() {
 
 export default function HeroSection() {
     return (
-        <section className="relative flex flex-col items-center justify-center pt-8 pb-1 md:pt-10">
-            <div className="relative z-10 flex flex-col items-center gap-3 px-6 md:px-8">
-                {/* ASCII art — the centerpiece */}
+        <section className="relative flex flex-col items-center justify-center pt-section">
+            <div className="relative z-10 flex flex-col items-center gap-stack px-inset-x">
+                {/* ASCII art — the centerpiece. No subtitle beneath: the
+                 * name carries the hero alone (no taglines, no pedigree). */}
                 <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
-                    <div className="flex flex-wrap items-center justify-around gap-x-4 gap-y-2">
+                    <div className="flex flex-wrap items-center justify-around gap-x-stack gap-y-inline">
                         <pre className="ascii-gradient">{ascii.spider}</pre>
                         <pre className="ascii-gradient">{ascii.name}</pre>
                     </div>
                 </div>
-
-                <p className="font-display text-3xl md:text-4xl leading-none text-foreground">
-                    {hero.subtitle}
-                </p>
 
                 <SocialLinksBar />
             </div>

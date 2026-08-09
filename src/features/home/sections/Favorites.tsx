@@ -89,7 +89,7 @@ function InventoryPanel({
 }) {
     return (
         <div>
-            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+            <p className="text-2xs font-bold uppercase tracking-widest mb-inline">
                 {label} [{items.length}/{items.length}]
             </p>
             <div className={cn('grid gap-px bg-foreground border border-foreground', cols)}>
@@ -118,10 +118,10 @@ function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
             aria-live='polite'
             className="sticky top-4 md:top-20 z-20 bg-background"
         >
-            <p className="text-2xs font-bold uppercase tracking-widest mb-2">
+            <p className="text-2xs font-bold uppercase tracking-widest mb-inline">
                 {'>'} INSPECT
             </p>
-            <div className="p-3 md:p-4 flex flex-row md:flex-col gap-3 min-h-[140px] md:min-h-[440px]">
+            <div className="p-stack flex flex-row md:flex-col gap-stack min-h-[140px] md:min-h-[440px]">
                 <div className={`relative shrink-0 ${COVER_BOX_MOBILE} ${COVER_BOX_DESKTOP}`}>
                     {activeItem ? (
                         <ExportedImage
@@ -143,14 +143,14 @@ function InspectionPanel({ activeItem }: { activeItem: ActiveItem }) {
                     {activeItem ? (
                         <div
                             key={`${activeItem.variant}-${activeItem.item.title}`}
-                            className="animate-in fade-in duration-200 flex flex-col gap-1"
+                            className="animate-in fade-in duration-200 flex flex-col gap-inline"
                         >
                             <p className="text-sm font-bold leading-tight">{activeItem.item.title}</p>
                             <p className="text-xs leading-tight text-foreground">
                                 {activeItem.item.creator} <span aria-hidden className="opacity-50">·</span> {activeItem.item.year}
                             </p>
                             {activeItem.item.note && (
-                                <p className="text-xs mt-2 leading-relaxed text-foreground">{'// '}{activeItem.item.note}</p>
+                                <p className="text-xs mt-inline leading-relaxed text-foreground">{'// '}{activeItem.item.note}</p>
                             )}
                         </div>
                     ) : (
@@ -186,10 +186,10 @@ export default function FavoritesSection() {
     })
 
     return (
-        <div className="w-full flex flex-col space-y-6">
+        <div className="w-full flex flex-col gap-stack">
             <SectionHeading>{favorites.heading}</SectionHeading>
-            <div className="flex flex-col md:flex-row md:gap-8">
-                <div className="md:w-[55%] flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row md:gap-inset-x">
+                <div className="md:w-[55%] flex flex-col gap-stack">
                     {panels.map(p => (
                         <InventoryPanel
                             key={p.dataTitle}
@@ -204,7 +204,7 @@ export default function FavoritesSection() {
                     ))}
                 </div>
 
-                <div className="order-first md:order-none mb-4 md:mb-0 md:w-[45%]">
+                <div className="order-first md:order-none mb-stack md:mb-0 md:w-[45%]">
                     <InspectionPanel activeItem={activeItem} />
                 </div>
             </div>

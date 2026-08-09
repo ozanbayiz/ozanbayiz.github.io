@@ -33,7 +33,7 @@ const Figure = ({ src, alt, caption }: { src: string; alt: string; caption?: str
 )
 
 const ImageGrid = ({ children }: { children: ReactNode }) => (
-    <div className="my-6 grid gap-4 sm:grid-cols-2 [&_figure]:my-0">{children}</div>
+    <div className="my-stack grid gap-stack sm:grid-cols-2 [&_figure]:my-0">{children}</div>
 )
 
 export const mdxComponents: MDXComponents = {

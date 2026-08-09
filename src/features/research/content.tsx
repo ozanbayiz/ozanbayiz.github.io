@@ -41,7 +41,7 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             title: 'When Offline RL Cannot Evaluate Teaching: A Diagnostic Case Study',
             context: 'UC Berkeley · CS 185/285',
             year: '2026',
-            tldr: 'Decision Transformer tutoring policies over a knowledge-tracing world model, screened by a four-diagnostic OPE protocol — every comparison between pedagogically-grounded reward shapes and the immediate-correctness baseline was caught, each catch tracing to a concrete data-infrastructure gap.',
+            tldr: 'A four-diagnostic screening protocol for offline RL in education — and the catalogue of comparisons it caught before they could ship as findings.',
             cover: '/projects/offline-rl-teaching/system-figure.png',
             hero: [
                 {
@@ -57,7 +57,7 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             title: 'Frozen Vision Encoders for Deep RL in VizDoom',
             context: 'Personal research',
             year: '2026',
-            tldr: 'Double DQN over frozen self-supervised vision features (AIMv2, V-JEPA 2) with PCA whitening — decoupling representation from policy learning makes training fast, memory-efficient, and stable.',
+            tldr: 'Double DQN on frozen AIMv2 and V-JEPA 2 features: the agent never learns to see, only to act — and one encoder diverges spectacularly.',
             cover: '/projects/vizdoom-dqn/thumbnail.png',
             hero: [
                 {

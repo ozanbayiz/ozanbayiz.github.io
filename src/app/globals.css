@@ -6,6 +6,39 @@ body {
     font-family: var(--font-plex-mono), monospace;
 }
 
+/* ── SPACING SCALE ────────────────────────────────────────────────────
+ * Every layout gap on this site comes from one of five tokens, exposed
+ * as Tailwind spacing (px-inset-x, py-section, gap-stack, …). Each has
+ * exactly one job. A raw number in a spacing class is a bug.
+ *
+ *   inline    gaps inside a cluster — icon rows, year under signature
+ *   stack     between stacked siblings; padding inside small cards
+ *   inset-x   HORIZONTAL padding: content column, filled boxes, grid gaps
+ *   inset-y   VERTICAL padding inside filled regions
+ *   section   vertical rhythm between major page blocks
+ *
+ * The tokens are responsive in themselves, so no `md:` spacing variants
+ * appear anywhere. Roominess is asymmetric on purpose: vertical space is
+ * cheap on a phone (scrolling is free) and stays generous at every width,
+ * while inset-x stays modest below 768px so the mono text column keeps a
+ * readable measure. To make the site airier or tighter, edit these five
+ * values — nothing else. */
+:root {
+    --space-inline: 0.5rem;   /* 8px */
+    --space-stack: 1rem;      /* 16px */
+    --space-inset-x: 1.5rem;  /* 24px */
+    --space-inset-y: 2rem;    /* 32px */
+    --space-section: 3rem;    /* 48px */
+}
+
+@media (min-width: 768px) {
+    :root {
+        --space-inset-x: 2.5rem;  /* 40px */
+        --space-inset-y: 2.5rem;  /* 40px */
+        --space-section: 4rem;    /* 64px */
+    }
+}
+
 @layer base {
     /* Single theme: light, with colors — white bg, black body text,
      * fuchsia section headings. (The former dark theme and ink/color
@@ -76,12 +109,6 @@ body {
     }
 }
 
-.clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
 
 /* Chartreuse = the highlighter: selecting text runs a highlighter pen
  * over it. Black text on #CCFF00 is high-contrast on white and on the
@@ -222,6 +249,19 @@ html {
     --accent1-text: 312 100% 50%;   /* fuchsia    #FF00CC, 6.1:1 on black */
     --accent2-text: 72 100% 50%;    /* chartreuse #CCFF00, 17.9:1 on black */
     --accent3-text: 192 100% 50%;   /* cyan       #00CCFF, 11.1:1 on black */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
+/* White card on a black fill — the inverse inset. Flips the surface
+ * to white/black but deliberately does NOT restore the darkened
+ * :root accents: the accent vars stay inherited from the surrounding
+ * .section-fill, so links keep the full-bodied fuchsia (#FF00CC).
+ * That is a 3.4:1 ratio on white — chosen for the look; keep it to
+ * short link runs, not body copy. */
+.section-card {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
 }

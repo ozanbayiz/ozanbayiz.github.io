@@ -41,6 +41,18 @@ export default {
             },
             fontSize: {
                 '2xs': '0.6rem'
+            },
+            /* The spacing scale — five semantic steps, each with one job.
+             * Values (and their responsive behaviour) live in :root in
+             * globals.css; see the SPACING SCALE comment there. Use these
+             * instead of numeric spacing utilities: px-inset-x, py-section,
+             * gap-stack, gap-inline. A raw number is a bug. */
+            spacing: {
+                inline: 'var(--space-inline)',
+                stack: 'var(--space-stack)',
+                'inset-x': 'var(--space-inset-x)',
+                'inset-y': 'var(--space-inset-y)',
+                section: 'var(--space-section)'
             }
         },
         borderRadius: {
