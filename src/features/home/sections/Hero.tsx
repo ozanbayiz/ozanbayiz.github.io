@@ -30,19 +30,21 @@ const SOCIAL_ICONS: Record<SocialIcon, ReactNode> = {
 
 function SocialLinksBar() {
     return (
-        <div className="flex items-center gap-stack">
-            {socials.links.map(link => (
-                <ExternalLink
-                    key={link.href}
-                    href={link.href}
-                    aria-label={link.label}
-                    icon
-                    className="text-foreground transition-colors hover:text-accent3-text"
-                >
-                    {SOCIAL_ICONS[link.icon]}
-                </ExternalLink>
-            ))}
-            <a className="gradient-link text-sm" href={`mailto:${socials.email}`}>
+        <div className="flex flex-col items-center gap-stack sm:flex-row">
+            <div className="flex items-center gap-stack">
+                {socials.links.map(link => (
+                    <ExternalLink
+                        key={link.href}
+                        href={link.href}
+                        aria-label={link.label}
+                        icon
+                        className="text-foreground transition-colors hover:text-accent3-text"
+                    >
+                        {SOCIAL_ICONS[link.icon]}
+                    </ExternalLink>
+                ))}
+            </div>
+            <a className="gradient-link whitespace-nowrap text-sm" href={`mailto:${socials.email}`}>
                 {socials.emailDisplay}
             </a>
         </div>
