@@ -7,36 +7,29 @@ body {
 }
 
 /* ── SPACING SCALE ────────────────────────────────────────────────────
- * Every layout gap on this site comes from one of five tokens, exposed
- * as Tailwind spacing (px-inset-x, py-section, gap-stack, …). Each has
+ * Every layout gap on this site comes from one of four tokens, exposed
+ * as Tailwind spacing (px-inset, py-seam, gap-stack, …). Each has
  * exactly one job. A raw number in a spacing class is a bug.
  *
- *   inline    gaps inside a cluster — icon rows, year under signature
- *   stack     between stacked siblings; padding inside small cards
- *   inset-x   HORIZONTAL padding: content column, filled boxes, grid gaps
- *   inset-y   VERTICAL padding inside filled regions
- *   section   vertical rhythm between major page blocks
+ *   inline  8px      gaps inside a cluster — icon rows, caption offset
+ *   stack   16px     between stacked siblings; card padding; grid gaps
+ *   inset   24→32px  interior padding of filled regions + the page gutter
+ *   seam    48→64px  the band between major page blocks — ALL of them
  *
- * The tokens are responsive in themselves, so no `md:` spacing variants
- * appear anywhere. Roominess is asymmetric on purpose: vertical space is
- * cheap on a phone (scrolling is free) and stays generous at every width,
- * while inset-x stays modest below 768px so the mono text column keeps a
- * readable measure. To make the site airier or tighter, edit these five
- * values — nothing else. */
+ * The scale is a ×2 ladder (8/16/32/64 at the desktop ceiling). The two
+ * large tokens interpolate linearly from a 390px-viewport floor to a
+ * 1024px ceiling — 1024 because that is where the content column
+ * (max-w-screen-lg) stops growing, so spacing and measure max out
+ * together. slope = (ceiling − floor) / (1024 − 390); the small tokens
+ * stay constant (a 1–2px fluid range is sub-pixel jitter). At every
+ * width the four values are distinct and strictly ordered, and
+ * seam = 2 × inset exactly. To make the site airier or tighter, edit
+ * these four values — nothing else. */
 :root {
-    --space-inline: 0.5rem;   /* 8px */
-    --space-stack: 1rem;      /* 16px */
-    --space-inset-x: 1.5rem;  /* 24px */
-    --space-inset-y: 2rem;    /* 32px */
-    --space-section: 3rem;    /* 48px */
-}
-
-@media (min-width: 768px) {
-    :root {
-        --space-inset-x: 2.5rem;  /* 40px */
-        --space-inset-y: 2.5rem;  /* 40px */
-        --space-section: 4rem;    /* 64px */
-    }
+    --space-inline: 0.5rem;                                  /*  8px */
+    --space-stack: 1rem;                                     /* 16px */
+    --space-inset: clamp(1.5rem, 1.192rem + 1.262vw, 2rem);  /* 24 → 32px */
+    --space-seam: clamp(3rem, 2.385rem + 2.524vw, 4rem);     /* 48 → 64px */
 }
 
 @layer base {
@@ -96,7 +89,7 @@ body {
 
     /* Ensure anchored headings scroll below the sticky project header */
     :is(h1, h2, h3, h4, h5, h6)[id] {
-        scroll-margin-top: 4rem;
+        scroll-margin-top: var(--space-seam);
     }
 
     /* Classless media responsiveness */
@@ -152,10 +145,6 @@ html {
     text-decoration-thickness: 2px;
     font-weight: 700;
 }
-
-/* Backward-compat aliases — old gradient-* selectors route to flex-* */
-.gradient-link { @apply flex-link; }
-.gradient-link-group { @apply flex-link-group; }
 
 /* ── Link personalities ──────────────────────────────────────────────
  * Base .flex-link is quiet: invisible at rest, underline + bold on hover.
@@ -230,10 +219,6 @@ html {
     border-color: hsl(var(--accent3));
     box-shadow: 4px 4px 0 hsl(var(--accent3));
 }
-
-/* Backward-compat */
-.gradient-border-hover { @apply flex-border-hover; }
-.gradient-border-group { @apply flex-border-group; }
 
 /* Filled-rectangle section — locks to black bg + white fg by swapping the
  * fg/bg CSS vars locally, so descendants (text, links, borders) flip

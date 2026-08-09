@@ -1,25 +1,14 @@
 /* Shared section chrome: the outer wrapper and the blackletter heading. */
 
 import { cn } from '@/lib/utils'
+import { CONTENT_INSET_X, Container } from '@/shared/ui/container'
 
-/**
- * The padding that defines the page's content column, in one place.
- *
- * Two things use it: the inset black rectangle rendered by `<Section fill>`,
- * and the research section's wrapper in app/page.tsx (whose black is the
- * full-bleed page background rather than its own box). They must agree or
- * the two section headings sit on different left edges — which is exactly
- * the drift this constant exists to prevent. Import it; don't retype it.
- *
- * See the SPACING SCALE note in globals.css.
- *
- * Only the HORIZONTAL half is shared, because only it is alignment-critical.
- * Vertical padding belongs to the filled box alone: a section whose black is
- * the page background already gets its vertical rhythm from `py-section`, and
- * adding `py-inset-y` on top of that stacks into a conspicuous gap.
- */
-export const CONTENT_INSET_X = 'px-inset-x'
-export const CONTENT_INSET = `${CONTENT_INSET_X} py-inset-y`
+export { CONTENT_INSET_X }
+
+/** The square interior frame of a filled region — one inset on all four
+ * sides. Its horizontal half IS the content column's CONTENT_INSET_X,
+ * which is what keeps a fill-box's content on the page's left edge. */
+export const CONTENT_INSET = 'p-inset'
 
 type SectionProps = {
     children: React.ReactNode
@@ -31,28 +20,22 @@ type SectionProps = {
     fill?: boolean
 }
 
+/**
+ * A Section has no intrinsic vertical rhythm; the page composes seams.
+ * Every major block carries its own `pt-seam` (and the about rectangle
+ * both `py-seam`, because both of its bands must be white) — pass the
+ * seam classes via className. See the rhythm comment in app/page.tsx.
+ */
 export function Section({ children, id, className, containerClassName, fill }: SectionProps) {
     return (
-        <section id={id} className={cn('py-section', className)}>
-            <div
-                className={cn(
-                    'container mx-auto max-w-screen-lg',
-                    /* No page gutter on phones: the black rectangle runs
-                     * edge to edge, which removes one level of horizontal
-                     * nesting (page gutter + box padding + card padding was
-                     * eating a third of a 390px screen). The box keeps its
-                     * own CONTENT_INSET, so the black still frames the cards.
-                     * The gutter returns at md, where the width exists. */
-                    'px-0 md:px-inset-x',
-                    containerClassName
-                )}
-            >
+        <section id={id} className={className}>
+            <Container width="lg" gutter="md" className={containerClassName}>
                 {fill ? (
                     <div className={cn('section-fill', CONTENT_INSET)}>{children}</div>
                 ) : (
                     children
                 )}
-            </div>
+            </Container>
         </section>
     )
 }

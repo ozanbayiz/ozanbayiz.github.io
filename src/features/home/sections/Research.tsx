@@ -12,7 +12,9 @@ export default function ResearchSection() {
         <div className="w-full flex flex-col gap-stack">
             {/* Cyan heading — light variant on the black region. */}
             <SectionHeading className="text-accent3-text">{research.heading}</SectionHeading>
-            <div className="grid grid-cols-1 gap-inset-x md:grid-cols-2">
+            {/* gap-stack: cards separated by exactly their own interior
+              * padding — a tight, uniform block-grid. */}
+            <div className="grid grid-cols-1 gap-stack md:grid-cols-2">
                 {/* Each card is its own black rectangle — .section-fill
                   * swaps bg/fg locally, so text and borders flip. */}
                 {research.entries.map(entry => (
