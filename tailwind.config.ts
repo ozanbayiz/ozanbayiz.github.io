@@ -12,6 +12,10 @@ export default {
         './src/content/**/*.{md,mdx,js,ts,jsx,tsx}'
     ],
     theme: {
+        container: {
+            center: true,
+            padding: '1rem'
+        },
         extend: {
             fontFamily: {
                 sans: ['var(--font-plex-mono)', 'monospace'],
@@ -38,16 +42,17 @@ export default {
             fontSize: {
                 '2xs': '0.6rem'
             },
-            /* The spacing scale — four semantic steps, each with one job.
-             * Values (and their fluid behaviour) live in :root in
+            /* The spacing scale — five semantic steps, each with one job.
+             * Values (and their responsive behaviour) live in :root in
              * globals.css; see the SPACING SCALE comment there. Use these
-             * instead of numeric spacing utilities: px-inset, py-seam,
+             * instead of numeric spacing utilities: px-inset-x, py-section,
              * gap-stack, gap-inline. A raw number is a bug. */
             spacing: {
                 inline: 'var(--space-inline)',
                 stack: 'var(--space-stack)',
-                inset: 'var(--space-inset)',
-                seam: 'var(--space-seam)'
+                'inset-x': 'var(--space-inset-x)',
+                'inset-y': 'var(--space-inset-y)',
+                section: 'var(--space-section)'
             }
         },
         borderRadius: {

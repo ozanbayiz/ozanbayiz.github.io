@@ -2,10 +2,7 @@
 
 /* Favorites: inventory grids (movies, music) + sticky inspection panel.
  * Panel labels live in ../content.tsx; the items themselves (covers,
- * titles, notes) live in ../data/favorites.ts.
- * TODO before un-parking: migrate to the four-token spacing scale —
- * the gap-inset-x/min-h classes here predate the inset/seam rename,
- * and the removed tokens are now silent no-ops. */
+ * titles, notes) live in ../data/favorites.ts. */
 
 import ExportedImage from 'next-image-export-optimizer'
 import { useState } from 'react'

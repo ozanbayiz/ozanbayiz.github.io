@@ -16,7 +16,6 @@ import remarkMath from 'remark-math'
 
 import { research } from '@/features/research/content'
 import { mdxComponents } from '@/mdx-components'
-import { Container } from '@/shared/ui/container'
 
 import type { ResearchEntry } from '@/features/research/content'
 import type { Metadata } from 'next'
@@ -142,12 +141,7 @@ export default async function ResearchReportPage({
     const Report = await compileReport(slug)
 
     return (
-        /* Documents keep their gutter at every width (no full-bleed) and
-         * read at the narrower md measure — both stated as Container
-         * props, not retyped. py-seam: one seam above the letterhead,
-         * one below the signature. */
-        <main className="py-seam">
-        <Container width="md" gutter="always">
+        <main className="container mx-auto max-w-screen-md px-inset-x py-section">
             {/* Letterhead — quiet mono utility link. Navigation speaks in
              * the UI voice; Calligra signs only once, at the footer. */}
             <nav>
@@ -183,7 +177,7 @@ export default async function ResearchReportPage({
                                         src={figure.src}
                                         alt=""
                                         decoding="async"
-                                        className={single ? 'mx-auto max-h-80 w-auto' : undefined}
+                                        className={single ? 'mx-auto max-h-72 w-auto md:max-h-80' : undefined}
                                     />
                                     {figure.caption && <figcaption>{figure.caption}</figcaption>}
                                 </figure>
@@ -195,12 +189,11 @@ export default async function ResearchReportPage({
                 <Report components={mdxComponents} />
             </article>
 
-            <footer className="mt-seam text-center">
+            <footer className="mt-section text-center">
                 <Link href="/" className="font-script text-4xl leading-none text-foreground">
                     ozanbayiz
                 </Link>
             </footer>
-        </Container>
         </main>
     )
 }

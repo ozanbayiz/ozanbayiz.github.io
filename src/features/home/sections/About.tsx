@@ -13,12 +13,7 @@ const PHOTO_H = 1050
 export default function AboutSection() {
     return (
         <div className="w-full flex flex-col">
-            {/* gap-y-stack: when the grid collapses to one column on a
-              * phone, the photo card and the paragraph cards are stacked
-              * siblings — they take the same 16px gap as the paragraphs
-              * among themselves. At md the columns sit one inset apart,
-              * matching the frame around them. */}
-            <div className="grid grid-cols-1 gap-x-inset gap-y-stack md:grid-cols-12">
+            <div className="grid grid-cols-1 gap-inset-x md:grid-cols-12">
                 <div className="col-span-1 flex flex-col justify-center gap-stack md:col-span-7">
                     {about.paragraphs.map((paragraph, i) => (
                         <p

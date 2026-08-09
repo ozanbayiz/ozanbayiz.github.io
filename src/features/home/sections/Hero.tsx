@@ -30,8 +30,8 @@ const SOCIAL_ICONS: Record<SocialIcon, ReactNode> = {
 
 function SocialLinksBar() {
     return (
-        <div className="flex flex-col items-center gap-x-stack gap-y-inline sm:flex-row">
-            <div className="flex items-center gap-inline">
+        <div className="flex flex-col items-center gap-stack sm:flex-row">
+            <div className="flex items-center gap-stack">
                 {socials.links.map(link => (
                     <ExternalLink
                         key={link.href}
@@ -44,7 +44,7 @@ function SocialLinksBar() {
                     </ExternalLink>
                 ))}
             </div>
-            <a className="flex-link whitespace-nowrap text-sm" href={`mailto:${socials.email}`}>
+            <a className="gradient-link whitespace-nowrap text-sm" href={`mailto:${socials.email}`}>
                 {socials.emailDisplay}
             </a>
         </div>
@@ -55,12 +55,12 @@ function SocialLinksBar() {
 
 export default function HeroSection() {
     return (
-        <section className="relative flex flex-col items-center justify-center pt-seam">
-            <div className="relative z-10 flex flex-col items-center gap-stack px-inset">
+        <section className="relative flex flex-col items-center justify-center pt-section">
+            <div className="relative z-10 flex flex-col items-center gap-stack px-inset-x">
                 {/* ASCII art — the centerpiece. No subtitle beneath: the
                  * name carries the hero alone (no taglines, no pedigree). */}
                 <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
-                    <div className="flex flex-wrap items-center justify-around gap-inline">
+                    <div className="flex flex-wrap items-center justify-around gap-x-stack gap-y-inline">
                         <pre className="ascii-gradient">{ascii.spider}</pre>
                         <pre className="ascii-gradient">{ascii.name}</pre>
                     </div>
