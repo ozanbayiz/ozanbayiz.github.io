@@ -11,15 +11,14 @@ import { cn } from '@/lib/utils'
  * the two section headings sit on different left edges — which is exactly
  * the drift this constant exists to prevent. Import it; don't retype it.
  *
- * See the SPACING SCALE note in globals.css.
- *
- * Only the HORIZONTAL half is shared, because only it is alignment-critical.
- * Vertical padding belongs to the filled box alone: a section whose black is
- * the page background already gets its vertical rhythm from `py-section`, and
- * adding `py-inset-y` on top of that stacks into a conspicuous gap.
+ * See the SPACING SCALE note in globals.css. Since the inset size is the
+ * same on every side and at every width, the full frame is just p-inset;
+ * CONTENT_INSET_X exists for the research section, whose vertical frame
+ * is applied at the Section level instead (its black is the page
+ * background, not its own box).
  */
-export const CONTENT_INSET_X = 'px-inset-x'
-export const CONTENT_INSET = `${CONTENT_INSET_X} py-inset-y`
+export const CONTENT_INSET_X = 'px-inset'
+export const CONTENT_INSET = 'p-inset'
 
 type SectionProps = {
     children: React.ReactNode
@@ -33,7 +32,7 @@ type SectionProps = {
 
 export function Section({ children, id, className, containerClassName, fill }: SectionProps) {
     return (
-        <section id={id} className={cn('py-section', className)}>
+        <section id={id} className={cn('py-seam', className)}>
             <div
                 className={cn(
                     'container mx-auto max-w-screen-lg',
@@ -43,7 +42,7 @@ export function Section({ children, id, className, containerClassName, fill }: S
                      * eating a third of a 390px screen). The box keeps its
                      * own CONTENT_INSET, so the black still frames the cards.
                      * The gutter returns at md, where the width exists. */
-                    'px-0 md:px-inset-x',
+                    'px-0 md:px-inset',
                     containerClassName
                 )}
             >

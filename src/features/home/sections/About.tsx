@@ -13,7 +13,7 @@ const PHOTO_H = 1050
 export default function AboutSection() {
     return (
         <div className="w-full flex flex-col">
-            <div className="grid grid-cols-1 gap-inset-x md:grid-cols-12">
+            <div className="grid grid-cols-1 gap-inset md:grid-cols-12">
                 <div className="col-span-1 flex flex-col justify-center gap-stack md:col-span-7">
                     {about.paragraphs.map((paragraph, i) => (
                         <p

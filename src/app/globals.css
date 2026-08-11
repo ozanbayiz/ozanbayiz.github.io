@@ -7,36 +7,26 @@ body {
 }
 
 /* ── SPACING SCALE ────────────────────────────────────────────────────
- * Every layout gap on this site comes from one of five tokens, exposed
- * as Tailwind spacing (px-inset-x, py-section, gap-stack, …). Each has
+ * Every layout gap on this site comes from one of four sizes, exposed
+ * as Tailwind spacing (p-inset, py-seam, gap-stack, …). Each has
  * exactly one job. A raw number in a spacing class is a bug.
  *
- *   inline    gaps inside a cluster — icon rows, year under signature
+ *   inline    gaps inside a cluster — icon rows
  *   stack     between stacked siblings; padding inside small cards
- *   inset-x   HORIZONTAL padding: content column, filled boxes, grid gaps
- *   inset-y   VERTICAL padding inside filled regions
- *   section   vertical rhythm between major page blocks
+ *   inset     the frame inside EVERY black area — same on all sides,
+ *             same at all widths, so the rectangles always match
+ *   seam      the white band wherever one major block meets another
  *
- * The tokens are responsive in themselves, so no `md:` spacing variants
- * appear anywhere. Roominess is asymmetric on purpose: vertical space is
- * cheap on a phone (scrolling is free) and stays generous at every width,
- * while inset-x stays modest below 768px so the mono text column keeps a
- * readable measure. To make the site airier or tighter, edit these five
- * values — nothing else. */
+ * All sizes sit on the Fibonacci list 8·16·24·40·64 (8+16=24, 16+24=40,
+ * 24+40=64) — neighboring sizes relate near the golden ratio. seam is
+ * the one size that breathes: 24px on phones growing smoothly to 40px
+ * where the 1024px content column stops widening. To make the site
+ * airier or tighter, edit these four values — nothing else. */
 :root {
     --space-inline: 0.5rem;   /* 8px */
     --space-stack: 1rem;      /* 16px */
-    --space-inset-x: 1.5rem;  /* 24px */
-    --space-inset-y: 2rem;    /* 32px */
-    --space-section: 3rem;    /* 48px */
-}
-
-@media (min-width: 768px) {
-    :root {
-        --space-inset-x: 2.5rem;  /* 40px */
-        --space-inset-y: 2.5rem;  /* 40px */
-        --space-section: 4rem;    /* 64px */
-    }
+    --space-inset: 1.5rem;    /* 24px */
+    --space-seam: clamp(1.5rem, 0.885rem + 2.524vw, 2.5rem);  /* 24→40px */
 }
 
 @layer base {

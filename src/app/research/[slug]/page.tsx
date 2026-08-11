@@ -141,7 +141,7 @@ export default async function ResearchReportPage({
     const Report = await compileReport(slug)
 
     return (
-        <main className="container mx-auto max-w-screen-md px-inset-x py-section">
+        <main className="container mx-auto max-w-screen-md px-inset py-seam">
             {/* Letterhead — quiet mono utility link. Navigation speaks in
              * the UI voice; Calligra signs only once, at the footer. */}
             <nav>
@@ -189,7 +189,7 @@ export default async function ResearchReportPage({
                 <Report components={mdxComponents} />
             </article>
 
-            <footer className="mt-section text-center">
+            <footer className="mt-seam text-center">
                 <Link href="/" className="font-script text-4xl leading-none text-foreground">
                     ozanbayiz
                 </Link>

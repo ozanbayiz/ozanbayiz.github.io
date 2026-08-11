@@ -188,7 +188,7 @@ export default function FavoritesSection() {
     return (
         <div className="w-full flex flex-col gap-stack">
             <SectionHeading>{favorites.heading}</SectionHeading>
-            <div className="flex flex-col md:flex-row md:gap-inset-x">
+            <div className="flex flex-col md:flex-row md:gap-inset">
                 <div className="md:w-[55%] flex flex-col gap-stack">
                     {panels.map(p => (
                         <InventoryPanel

@@ -55,8 +55,8 @@ function SocialLinksBar() {
 
 export default function HeroSection() {
     return (
-        <section className="relative flex flex-col items-center justify-center pt-section">
-            <div className="relative z-10 flex flex-col items-center gap-stack px-inset-x">
+        <section className="relative flex flex-col items-center justify-center pt-seam">
+            <div className="relative z-10 flex flex-col items-center gap-stack px-inset">
                 {/* ASCII art — the centerpiece. No subtitle beneath: the
                  * name carries the hero alone (no taglines, no pedigree). */}
                 <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">

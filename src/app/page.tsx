@@ -32,12 +32,10 @@ export default function Home() {
             <HeroSection />
 
             <main id='main' className="relative flex grow flex-col">
-                {/* py-stack: both gaps around the rectangle are seams, not
-                  * full section breaks — the hero's own bottom space plus a
-                  * seam above, and the surface change below. Keeping them
-                  * equal stops the rectangle from looking like it drifted
-                  * down the page. */}
-                <Section id="about" fill className="py-stack">
+                {/* Default py-seam: the white bands above and below the
+                  * rectangle are the same size, so it sits centered
+                  * between the hero and the black region. */}
+                <Section id="about" fill>
                     <AboutSection />
                 </Section>
 
@@ -48,16 +46,14 @@ export default function Home() {
                   * running to the bottom on tall viewports instead of
                   * stopping and showing white beneath. */}
                 <div className="section-fill grow">
-                {/* py-inset-y, not py-section: this section sits INSIDE a
-                  * filled region, so its vertical space is that region's
-                  * interior padding. Using the section rhythm here stacked
-                  * on top of the region's own edge and left a dead band. */}
-                <Section id="research" className="py-inset-y">
+                {/* py-inset: the same 24px frame every black area gets,
+                  * so this region's top edge matches the about rectangle's
+                  * frame exactly. */}
+                <Section id="research" className="py-inset">
                     {/* Same horizontal inset as the about rectangle, from one
                       * shared constant — this section's black is the page
                       * background, not its own box, so the padding has to
-                      * be applied here to land on the same left edge. The
-                      * vertical rhythm comes from the Section's py-section. */}
+                      * be applied here to land on the same left edge. */}
                     <div className={CONTENT_INSET_X}>
                         <ResearchSection />
                     </div>
@@ -67,8 +63,8 @@ export default function Home() {
                     <Section id="favorites"><FavoritesSection /></Section>
                     (component: sections/Favorites.tsx, data: data/favorites.ts) */}
 
-                <footer className="pb-section text-center">
-                    <div className="container mx-auto max-w-screen-lg px-inset-x">
+                <footer className="pb-seam text-center">
+                    <div className="container mx-auto max-w-screen-lg px-inset">
                         <p className="font-script text-5xl md:text-6xl leading-none text-foreground">
                             {footer.signature} {CURRENT_YEAR}
                         </p>
