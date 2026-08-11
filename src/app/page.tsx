@@ -65,7 +65,7 @@ export default function Home() {
 
                 <footer className="pb-seam text-center">
                     <div className="container mx-auto max-w-screen-lg px-inset">
-                        <p className="font-script text-5xl md:text-6xl leading-none text-foreground">
+                        <p className="font-script text-4xl leading-none text-foreground">
                             {footer.signature} {CURRENT_YEAR}
                         </p>
                     </div>

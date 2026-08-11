@@ -84,14 +84,25 @@ export const socials: {
 export const about: {
     heading: string
     /** Shown uncropped in a white figure card; `caption` renders beneath. */
-    photo: { src: string; alt: string; caption?: string }
+    photo: { src: string; alt: string; caption?: ReactNode }
     paragraphs: ReactNode[]
 } = {
     heading: 'ozanbayiz?',
     photo: {
         src: '/ozan_rumi.jpg',
         alt: 'Ozan Bayiz at the Mevlâna Museum',
-        caption: 'Figure 1. Rumi and I.'
+        caption: (
+            <>
+                Figure 1.{' '}
+                <a
+                    href="https://en.wikipedia.org/wiki/Rumi"
+                    className="flex-link link-accent"
+                >
+                    Rumi
+                </a>{' '}
+                and Ozan.
+            </>
+        )
     },
     paragraphs: [
         <>
@@ -104,7 +115,8 @@ export const about: {
             <a href="https://eecs189.org/" className="flex-link link-accent">
                 EECS 189/289A
             </a>
-            . Previously, I was a student researcher at Google.
+            . Previously, I was a student researcher on Google&apos;s XR
+            Perception team.
         </>,
         <>
             My research interests include representation learning, multimodal
