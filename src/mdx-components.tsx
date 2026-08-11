@@ -25,9 +25,17 @@ const ExternalLink = ({ href, children }: { href: string; children: ReactNode })
     </a>
 )
 
-const Figure = ({ src, alt, caption }: { src: string; alt: string; caption?: string }) => (
+/* `narrow` caps the image height and centers it — for tall or portrait
+ * figures (e.g. a scatter plot) that would otherwise fill the column. */
+const Figure = ({ src, alt, caption, narrow }: { src: string; alt: string; caption?: string; narrow?: boolean }) => (
     <figure>
-        <img src={src} alt={alt} loading="lazy" decoding="async" />
+        <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            className={narrow ? 'mx-auto max-h-96 w-auto' : undefined}
+        />
         {caption && <figcaption>{caption}</figcaption>}
     </figure>
 )

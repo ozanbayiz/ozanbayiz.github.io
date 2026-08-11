@@ -1,13 +1,13 @@
 ## Overview
 
-This project trains a Double DQN agent to play first-person shooter scenarios in
-<ExternalLink href="https://vizdoom.cs.put.edu.pl/">VizDoom</ExternalLink>,
-an RL research platform built on the Doom engine.
-The agent observes raw RGB frames, encodes them with a frozen pretrained vision transformer,
-and learns Q-values over a small discrete action space.
+This project trains a Double DQN agent to play first-person shooter scenarios
+in <ExternalLink href="https://vizdoom.cs.put.edu.pl/">VizDoom</ExternalLink>,
+an RL research platform built on the Doom engine. The agent sees raw RGB
+frames, encodes them with a frozen pretrained vision transformer, and learns
+Q-values over a small discrete action space.
 
-The design rests on one idea: the agent should not have to learn to see
-and to act at once. Large self-supervised vision models (AIMv2, V-JEPA 2)
+The design rests on one idea: the agent should not have to learn to see and to
+act at the same time. Large self-supervised vision models (AIMv2, V-JEPA 2)
 already turn raw pixels into good features. Freeze one, train a small MLP
 Q-network on top, and training comes out fast, stable, and light on memory.
 
@@ -15,25 +15,26 @@ Q-network on top, and training comes out fast, stable, and light on memory.
 
 ## Key Findings
 
-- **AIMv2 works** — mean evaluation return of ~6 on DefendTheCenter after 500k steps (6.5 and 5.6 across the two seeds).
-- **V-JEPA 2 diverges** — returns never leave zero on either pooling variant, and Q-values run away: past 60 mean / 400 max before the mean-pool run died at 83k steps, past 3,000 mean / 6,000 max over the last-pool run's full 500k. The likely reason: the choppy frame-skip-4 clips look nothing like the video it was pretrained on.
-- **Slower target updates help** — $\tau = 0.001$ gives slightly higher returns than $\tau = 0.005$ (6.5 vs 6.1) and keeps Q-estimates in range (peak mean Q of 8 vs 23).
-- **Dueling is inconclusive** — those runs crashed at 66k and 178k steps; up to there the standard Q-network stayed ahead.
+- **AIMv2 works.** Mean evaluation return of ~6 on DefendTheCenter after 500k steps (6.5 and 5.6 across the two seeds).
+- **V-JEPA 2 diverges.** Returns never leave zero on either pooling variant, and Q-values run away: past 60 mean / 400 max before the mean-pool run died at 83k steps, and past 3,000 mean / 6,000 max over the last-pool run's full 500k. The likely reason: the choppy frame-skip-4 clips look nothing like the video it was pretrained on.
+- **Slower target updates help.** τ = 0.001 gives slightly higher returns than τ = 0.005 (6.5 vs 6.1) and keeps Q-estimates in range (peak mean Q of 8 vs 23).
+- **Dueling is inconclusive.** Those runs crashed at 66k and 178k steps; up to there the standard Q-network stayed ahead.
 
 <SectionDivider />
 
 ## Encoder Comparison: AIMv2 vs V-JEPA 2
 
-AIMv2-Large beats V-JEPA 2-Large outright, and neither V-JEPA 2 pooling
-variant ever leaves zero return. The mean-pool run crashed at 83k steps
-with Q-values already running away (mean above 60, max above 400). The
-last-pool run survived all 500k steps and diverged completely: mean Q
-past 3,000, max past 6,000, returns drifting below zero. The likely
-cause is the frame rate. V-JEPA 2 was pretrained on video; with frame
-skip 4, the eight-frame clips it sees here have frames far apart in
+AIMv2-Large beats V-JEPA 2-Large outright. Neither V-JEPA 2 pooling variant
+ever leaves zero return: the mean-pool run crashed at 83k steps with Q-values
+already running away (mean above 60, max above 400), and the last-pool run
+survived all 500k steps but diverged completely, with mean Q past 3,000, max
+past 6,000, and returns drifting below zero.
+
+The likely cause is the frame rate. V-JEPA 2 was pretrained on video. With
+frame skip 4, the eight-frame clips it sees here have frames far apart in
 time, and the smooth motion it expects is gone.
 
-<Figure src="/projects/vizdoom-dqn/encoder_comparison.png" alt="Mean evaluation return: AIMv2 climbs to about 6 while both V-JEPA 2 pooling variants stay at zero" caption="Mean evaluation return on DefendTheCenter. AIMv2 climbs to ~6; both V-JEPA 2 pooling variants stay at zero — the mean-pool run crashed at 83k steps, the last-pool run completed 500k with Q-values diverging past 3,000." />
+<Figure src="/projects/vizdoom-dqn/encoder_comparison.png" alt="Mean evaluation return: AIMv2 climbs to about 6 while both V-JEPA 2 pooling variants stay at zero" caption="Mean evaluation return on DefendTheCenter. AIMv2 climbs to ~6; both V-JEPA 2 pooling variants stay at zero. The mean-pool run crashed at 83k steps; the last-pool run completed 500k with Q-values diverging past 3,000." />
 
 <SectionDivider />
 
@@ -46,30 +47,28 @@ The code supports two pretrained encoders:
 | AIMv2-Large | Apple | Single 224x224 image | 256 spatial | 1024 |
 | V-JEPA 2-Large | Meta | 8-frame 256x256 clip | Spatiotemporal | 1024 |
 
-Both come from HuggingFace Transformers and stay frozen throughout.
-AIMv2 encodes each frame on its own. V-JEPA 2 reads a sliding window of
-the last 8 frames; the pipeline averages its spatiotemporal patch tokens
-over time, then over space, leaving one 1024-dimensional vector per
-observation.
+Both come from HuggingFace Transformers and stay frozen throughout. AIMv2
+encodes each frame on its own. V-JEPA 2 reads a sliding window of the last 8
+frames; the pipeline averages its spatiotemporal patch tokens over time, then
+over space, leaving one 1024-dimensional vector per observation.
 
 <SectionDivider />
 
 ## Feature Pipeline
 
-Raw encoder outputs are 1024-dimensional and unwhitened. Before training,
-a calibration phase collects observations from a random policy, encodes
-them in batches, and fits a PCA whitening transform: 1024 dimensions down
-to $d = 256$, decorrelated, variance normalized. The whitened features
-then pass through LayerNorm and L2 normalization, and the replay buffer
-stores the result — 256-dimensional unit vectors.
+Raw encoder outputs are 1024-dimensional and unwhitened. Before training, a
+calibration phase collects observations from a random policy, encodes them in
+batches, and fits a PCA whitening transform: 1024 dimensions down to d = 256,
+decorrelated, variance normalized. The whitened features then pass through
+LayerNorm and L2 normalization, and the replay buffer stores the result:
+256-dimensional unit vectors.
 
 <SectionDivider />
 
 ## Q-Network
 
-The Q-network is a 2-layer MLP with hidden size 256, one output per
-action. An optional dueling variant splits state value from action
-advantage:
+The Q-network is a 2-layer MLP with hidden size 256, one output per action. An
+optional dueling variant splits state value from action advantage:
 
 $$
 Q(s, a) = V(s) + A(s, a) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s, a')
@@ -79,20 +78,20 @@ $$
 
 ## Training
 
-The agent uses Double DQN: the online network picks the action, the
-target network scores it. After each gradient step, Polyak averaging
-nudges the target network toward the online one
+The agent uses Double DQN: the online network picks the action, the target
+network scores it. After each gradient step, Polyak averaging nudges the
+target network toward the online one
 ($\theta^- \leftarrow \tau \, \theta + (1 - \tau) \, \theta^-$).
-Epsilon-greedy exploration, annealed linearly, fills a replay buffer of
-100k transitions.
+Epsilon-greedy exploration, annealed linearly, fills a replay buffer of 100k
+transitions.
 
 <SectionDivider />
 
 ## Environment
 
-Training uses VizDoom's DefendTheCenter scenario through a Gymnasium
-wrapper: the agent stands at the center of a circular room, ammunition
-limited, and shoots enemies as they close in.
+Training uses VizDoom's DefendTheCenter scenario through a Gymnasium wrapper:
+the agent stands at the center of a circular room, ammunition limited, and
+shoots enemies as they close in.
 
 <Figure src="/projects/vizdoom-dqn/defend_the_center.png" alt="VizDoom DefendTheCenter scenario screenshot" caption="The DefendTheCenter scenario." />
 
@@ -101,8 +100,8 @@ limited, and shoots enemies as they close in.
 ## Results
 
 All experiments use DefendTheCenter with frame skip 4, a 100k-transition
-replay buffer, batch size 256, and 500k training steps. Evaluation runs
-20 greedy episodes every 5k steps.
+replay buffer, batch size 256, and 500k training steps. Evaluation runs 20
+greedy episodes every 5k steps.
 
 ---
 
@@ -114,19 +113,19 @@ replay buffer, batch size 256, and 500k training steps. Evaluation runs
 
 ### Ablation: Target Update Rate
 
-Slower target updates ($\tau = 0.001$) give slightly higher, steadier
-evaluation returns than the default ($\tau = 0.005$).
+Slower target updates (τ = 0.001) give slightly higher, steadier evaluation
+returns than the default (τ = 0.005).
 
-<Figure src="/projects/vizdoom-dqn/tau_ablation.png" alt="Evaluation return comparison between tau=0.005 and tau=0.001" caption="Target update rate ablation (AIMv2, seed 1). τ = 0.001 ends slightly higher — 6.5 vs 6.1 over the last ten evaluations — and holds its peak mean Q at 8 where the baseline reaches 23." />
+<Figure src="/projects/vizdoom-dqn/tau_ablation.png" alt="Evaluation return comparison between tau=0.005 and tau=0.001" caption="Target update rate ablation (AIMv2, seed 1). τ = 0.001 ends slightly higher (6.5 vs 6.1 over the last ten evaluations) and holds its peak mean Q at 8 where the baseline reaches 23." />
 
 ---
 
 ### Standard vs Dueling Q-Network
 
-The dueling runs never reached 500k steps — they crashed at 66k and
-178k. Up to those points the standard Q-network with $\tau = 0.005$
-stayed ahead of both dueling variants (4.9 vs 3.9 at 178k) — though the
-dueling curves were still rising when they stopped.
+The dueling runs never reached 500k steps; they crashed at 66k and 178k. Up to
+those points the standard Q-network with τ = 0.005 stayed ahead of both
+dueling variants (4.9 vs 3.9 at 178k), though the dueling curves were still
+rising when they stopped.
 
 <Figure src="/projects/vizdoom-dqn/dueling_comparison.png" alt="Mean evaluation return for standard vs dueling Q-networks; dueling runs crashed at 66k and 178k steps" caption="Standard vs dueling Q-network, mean evaluation return. The ×s mark where the dueling runs crashed. The standard network led at both crash points, but neither dueling curve had converged." />
 
@@ -140,12 +139,12 @@ dueling curves were still rising when they stopped.
 | Feature dim (after PCA) | 256 |
 | Q-network hidden size | 256 |
 | Q-network layers | 2 |
-| Learning rate | $1 \times 10^{-4}$ |
-| Discount $\gamma$ | 0.99 |
+| Learning rate | 1e-4 |
+| Discount γ | 0.99 |
 | Replay capacity | 100,000 |
 | Batch size | 256 |
-| Target update $\tau$ | 0.001 |
-| $\epsilon$ schedule | 1.0 $\to$ 0.05 over 50k steps |
+| Target update τ | 0.001 |
+| ε schedule | 1.0 → 0.05 over 50k steps |
 | Warmup steps | 1,000 |
 | PCA calibration steps | 2,000 |
 | Frame skip | 4 |

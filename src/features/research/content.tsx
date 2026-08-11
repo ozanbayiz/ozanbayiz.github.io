@@ -37,6 +37,25 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
     heading: 'Research',
     entries: [
         {
+            slug: 'multilingual-vision-and-text',
+            title: 'A Compositional Analysis of Cross-Lingual Math Reasoning in Efficient Vision-Language Models',
+            context: 'ECCV 2026 · FAILED workshop',
+            year: '2026',
+            tldr: 'Reading a math problem and reasoning about it are separate skills for small vision-language models — separate enough that monolingual scores alone predict cross-lingual accuracy.',
+            cover: '/projects/multilingual-vision-and-text/questions_all_languages.png',
+            hero: [
+                {
+                    src: '/projects/multilingual-vision-and-text/questions_all_languages.png',
+                    caption:
+                        'The same MGSM question rendered as images in five languages. The arithmetic is identical everywhere; the script is not. Latin for En/De/Es, Latin with diacritics for Turkish, ideographic characters for Chinese.'
+                }
+            ],
+            code: 'https://github.com/keremtuzel49/multilingual_vision_and_text'
+            /* pdf: add '/projects/multilingual-vision-and-text/paper.pdf'
+             * once the file lands in public/projects/… — it is referenced
+             * by the writeup but was not in _new_proj. */
+        },
+        {
             slug: 'offline-rl-teaching',
             title: 'When Offline RL Cannot Evaluate Teaching: A Diagnostic Case Study',
             context: 'UC Berkeley · CS 185/285',
@@ -52,6 +71,10 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             ],
             pdf: '/projects/offline-rl-teaching/paper.pdf'
         },
+        /* Parked 2026-08-11 at the author's request — he'd rather not
+         * showcase AI harming anything, even fictitious monsters. The
+         * page, rewritten MDX, and images are all preserved; re-enable
+         * by uncommenting.
         {
             slug: 'vizdoom-dqn',
             title: 'Frozen Vision Encoders for Deep RL in VizDoom',
@@ -71,6 +94,7 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
             ],
             code: 'https://github.com/ozanbayiz/vizdoom-dqn'
         },
+        */
         /* Parked until its artifacts clear the quality bar — re-enable
          * by uncommenting (page, MDX, and images are all preserved).
         {

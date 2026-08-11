@@ -1,0 +1,102 @@
+With Kerem Tuzel (equal contribution). Accepted at{' '}
+<ExternalLink href="https://3rd-failed-workshop-eccv-2026.github.io/">FAILED</ExternalLink>,
+the 3rd Workshop on Fairness and Ethics in AI: facing the ChalLEnge through
+Model Debiasing, at ECCV 2026 in Malmö.
+
+<SectionDivider />
+
+## Overview
+
+Small vision-language models can run on-device, which makes capable AI
+available where cloud models are expensive or unavailable. But to be useful, a
+small VLM has to do two things in sequence: read a question, possibly written
+in one language and possibly rendered as an image, and then reason toward an
+answer, possibly in a different language. Most multilingual benchmarks
+collapse those two steps into a single accuracy number, so when a model fails
+you can't tell which step failed.
+
+We separate them. We evaluate two 4B-parameter VLMs (Gemma 4 E4B and Qwen3.5
+4B) on grade-school math from MGSM in five languages, independently varying
+three things: the input language, the input modality (plain text vs. a
+rendered PNG), and the language the model reasons in. Since standard MGSM
+doesn't include a lower-resource language like Turkish, we translated the full
+250-question test set and release it along with all evaluation code.
+
+The headline: cross-lingual performance is compositional. It decomposes into
+"read the problem" plus "reason about it," and the two pieces are independent
+enough that a two-term linear model predicts held-out cross-lingual accuracy
+remarkably well.
+
+<SectionDivider />
+
+## Setup
+
+Both models run locally, 4-bit quantized, via MLX on Apple Silicon, inference
+only with greedy decoding. Each of the 250 questions appears in two
+modalities: as a plain text string, and as a PNG rendered at 300 DPI.
+Cross-lingual cells get three prompt strategies: **Original** (reason in the
+target language, transfer left implicit), **Translate** (explicitly translate
+first, then solve), and **No-Translate** (solve directly, translation
+forbidden).
+
+The full grid is 5 data languages × 5 reasoning languages × 2 models × 3
+strategies × 2 modalities: 300 conditions and 75,000 question-level
+evaluations.
+
+<SectionDivider />
+
+## What we found
+
+**Vision is much harder than text, and the gap is about reading, not
+reasoning.** Text accuracy averages 86.1% (Gemma) and 83.3% (Qwen) across all
+language pairs. Vision drops to 73.5% and 78.3%. The spread across *data*
+languages in the vision setting is enormous: English images average 86.8% on
+Gemma while Chinese images average 53.2%, a gap of over 30 points. Changing
+the *reasoning* language for a fixed data language moves accuracy by at most
+14 points. The bottleneck is getting the question out of the pixels.
+
+**Cross-lingual accuracy is predictable from monolingual scores.** For each
+cross-lingual cell we ask: can you predict it from the model's
+native-language accuracies alone? For text inputs, source-language text
+ability plus target-language text ability explains the data (LOOCV R² =
+0.693). For image inputs, the source-side predictor shifts to vision:
+source-language *visual* ability plus target-language *text* ability gives
+LOOCV R² = 0.875 over all 120 off-diagonal cells. Swapping in target-language
+vision ability instead makes the model worse, which is the interesting part:
+once the problem has been read off the image, reasoning in the target language
+is a text operation. The model doesn't need to see anymore.
+
+<Figure narrow src="/projects/multilingual-vision-and-text/scatter_vision_prediction.png" alt="Observed vs. predicted cross-lingual vision accuracy" caption="Observed vs. predicted cross-lingual vision accuracy for all 120 off-diagonal cells, both models, all three prompt strategies. The predictor is just two monolingual scores: native vision in the source language and native text in the target language." />
+
+We were suspicious of that 0.875 ourselves, since Gemma's Chinese-image
+cluster sits far below everything else and a line through two clusters can
+look great while saying little. Two checks: adding per-language and per-model
+group controls *strengthens* the target-reasoning coefficient (0.61 → 0.67),
+and deleting every Gemma×Chinese cell outright keeps both predictors highly
+significant with R² = 0.79. The compositional structure isn't an artifact of
+the worst cluster.
+
+**Reasoning in English is a robust default.** For non-English inputs, English
+reasoning is frequently the best or tied-best choice. The tradeoff is
+asymmetric: where native-language reasoning wins, it wins by at most 2.8
+points; where English wins, it can win by up to 9.2 points (Gemma on Chinese
+images). If you're deploying a small VLM and have to pick one reasoning
+language, pick a high-resource one.
+
+**Forcing translation doesn't help.** The explicit translate-then-solve
+pipeline is mildly harmful in the vision setting (Gemma: 73.5% → 71.3%) and
+inconsistent for text. Leaving the transfer strategy implicit is the simplest
+effective choice. Overall, prompt strategy moves accuracy by 2 to 3 points, an
+order of magnitude less than the data language does. Prompting can't paper
+over missing capability.
+
+<SectionDivider />
+
+## Takeaway
+
+For small VLMs, multilingual visual reasoning is two independent capabilities,
+not one: reading the source language from pixels, and reasoning in the target
+language as text. Training coverage in one channel does not substitute for the
+other. If you want a model to solve Turkish math problems photographed from a
+worksheet, it needs Turkish visual-language data *and* strong text reasoning
+somewhere, and no prompting trick closes either gap.
