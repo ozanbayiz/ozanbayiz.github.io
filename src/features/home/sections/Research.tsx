@@ -10,9 +10,9 @@ import { SectionHeading } from '../ui'
 export default function ResearchSection() {
     return (
         <div className="w-full flex flex-col gap-stack">
-            {/* Cyan heading — light variant on the black region. */}
-            <SectionHeading className="text-accent3-text">{research.heading}</SectionHeading>
-            <div className="grid grid-cols-1 gap-inset-x md:grid-cols-2">
+            {/* White heading on the black region. */}
+            <SectionHeading className="text-foreground">{research.heading}</SectionHeading>
+            <div className="grid grid-cols-1 gap-inset md:grid-cols-2">
                 {/* Each card is its own black rectangle — .section-fill
                   * swaps bg/fg locally, so text and borders flip. */}
                 {research.entries.map(entry => (

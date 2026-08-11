@@ -34,7 +34,7 @@ export type ResearchEntry = {
 }
 
 export const research: { heading: string; entries: ResearchEntry[] } = {
-    heading: 'research',
+    heading: 'Research',
     entries: [
         {
             slug: 'offline-rl-teaching',
