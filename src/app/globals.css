@@ -19,14 +19,15 @@ body {
  *
  * All sizes sit on the Fibonacci list 8·16·24·40·64 (8+16=24, 16+24=40,
  * 24+40=64) — neighboring sizes relate near the golden ratio. seam is
- * the one size that breathes: 24px on phones growing smoothly to 40px
- * where the 1024px content column stops widening. To make the site
- * airier or tighter, edit these four values — nothing else. */
+ * the one size that breathes: 1.5rem on phones growing smoothly to
+ * 2.5rem where the 64rem content column stops widening (the vw slope is
+ * scaled to the 90% base set on html below). To make the site airier or
+ * tighter, edit these four values — nothing else. */
 :root {
     --space-inline: 0.5rem;   /* 8px */
     --space-stack: 1rem;      /* 16px */
     --space-inset: 1.5rem;    /* 24px */
-    --space-seam: clamp(1.5rem, 0.885rem + 2.524vw, 2.5rem);  /* 24→40px */
+    --space-seam: clamp(1.5rem, 0.885rem + 2.271vw, 2.5rem);  /* 24→40px */
 }
 
 @layer base {
@@ -109,6 +110,12 @@ body {
 }
 
 html {
+    /* Global scale: the site is designed at 16px base but reads best ~10%
+     * smaller (it looked right at 90% browser zoom). Every size on the
+     * site is rem/em-based, so this one knob shrinks all of it together.
+     * The content column and the seam's vw slope are stated in rem-
+     * compatible terms so they follow too. */
+    font-size: 90%;
     scroll-behavior: smooth;
     /* With classic (non-overlay) scrollbars, reserve a matching gutter on
      * the left so centered content stays visually centered in the window. */

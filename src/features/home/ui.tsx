@@ -35,7 +35,7 @@ export function Section({ children, id, className, containerClassName, fill }: S
         <section id={id} className={cn('py-seam', className)}>
             <div
                 className={cn(
-                    'container mx-auto max-w-screen-lg',
+                    'container mx-auto max-w-[64rem]',
                     /* No page gutter on phones: the black rectangle runs
                      * edge to edge, which removes one level of horizontal
                      * nesting (page gutter + box padding + card padding was

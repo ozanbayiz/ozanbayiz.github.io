@@ -141,7 +141,7 @@ export default async function ResearchReportPage({
     const Report = await compileReport(slug)
 
     return (
-        <main className="container mx-auto max-w-screen-md px-inset py-seam">
+        <main className="container mx-auto max-w-[48rem] px-inset py-seam">
             {/* Letterhead — quiet mono utility link. Navigation speaks in
              * the UI voice; Calligra signs only once, at the footer. */}
             <nav>

@@ -64,7 +64,7 @@ export default function Home() {
                     (component: sections/Favorites.tsx, data: data/favorites.ts) */}
 
                 <footer className="pb-seam text-center">
-                    <div className="container mx-auto max-w-screen-lg px-inset">
+                    <div className="container mx-auto max-w-[64rem] px-inset">
                         <p className="font-script text-4xl leading-none text-foreground">
                             {footer.signature} {CURRENT_YEAR}
                         </p>
