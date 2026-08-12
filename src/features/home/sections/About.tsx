@@ -26,8 +26,11 @@ export default function AboutSection() {
                 </div>
                 <div className="order-first md:order-none col-span-1 flex flex-col justify-center md:col-span-5">
                     {/* A white figure card, like the paragraph cards: the photo
-                     * uncropped, with its caption in the mono UI voice. */}
-                    <figure className="section-card p-stack">
+                     * uncropped, with its caption in the mono UI voice.
+                     * max-w-md caps the card once the layout drops to one
+                     * column — a notch above its 5/12 grid-column size on a
+                     * wide screen, so Ozan never gets *huge*. */}
+                    <figure className="section-card mx-auto w-full max-w-md p-stack">
                         <ExportedImage
                             src={about.photo.src}
                             alt={about.photo.alt}
@@ -35,7 +38,7 @@ export default function AboutSection() {
                             height={PHOTO_H}
                             className="h-auto w-full"
                             priority
-                            sizes="(min-width: 768px) 40vw, 100vw"
+                            sizes="(min-width: 768px) 40vw, 28rem"
                         />
                         {about.photo.caption && (
                             <figcaption className="mt-inline text-center text-xs leading-relaxed text-foreground/70">
