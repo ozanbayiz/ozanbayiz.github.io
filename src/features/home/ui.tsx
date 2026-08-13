@@ -59,7 +59,7 @@ export function Section({ children, id, className, containerClassName, fill }: S
 /**
  * Section label in blackletter display type, in the section's own color
  * (each homepage section owns a hue: ozanbayiz? = fuchsia [default],
- * research = cyan via className, favorites = chartreuse when it returns).
+ * research = white via className, favorites = chartreuse when it returns).
  * Document pages stay monochrome.
  * Title-case is fine — the blackletter capitals stay legible; avoid full
  * `uppercase` transforms, which trade away the textura rhythm.

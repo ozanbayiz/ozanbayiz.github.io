@@ -38,7 +38,7 @@ function SocialLinksBar() {
                         href={link.href}
                         aria-label={link.label}
                         icon
-                        className="text-foreground transition-colors hover:text-accent3-text"
+                        className="text-foreground transition-colors hover:text-accent1-text"
                     >
                         {SOCIAL_ICONS[link.icon]}
                     </ExternalLink>

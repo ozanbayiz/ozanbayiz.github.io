@@ -75,15 +75,16 @@ body {
         letter-spacing: 0;
     }
 
-    /* Accent system — sections own colors; two colors also carry a
-     * site-wide function:
-     *   fuchsia    #FF00CC — the "ozanbayiz?" section: heading + links
-     *   cyan       #00CCFF — the research section: heading + card hover;
-     *                        also neutral hover feedback site-wide
+    /* Accent system — two working colors:
+     *   fuchsia    #FF00CC — headings + links, and ALL interaction
+     *                        feedback site-wide (hover underlines,
+     *                        card hover, icon hover)
      *   chartreuse #CCFF00 — reserved for favorites' return;
      *                        also the highlighter: ::selection + <mark>
+     * Cyan was retired 2026-08-12 (the --accent3 tokens remain defined
+     * for palette completeness but nothing references them).
      * Document (paper) pages stay monochrome. Colored links hover in
-     * their own color; neutral links hover cyan. */
+     * their own color; neutral links hover fuchsia. */
 
     /* Ensure anchored headings scroll below the sticky project header */
     :is(h1, h2, h3, h4, h5, h6)[id] {
@@ -139,13 +140,13 @@ html {
         font-weight 0.2s ease;
 }
 
-/* Cyan = neutral interaction feedback (text-safe variant, so it stays
- * visible on white and on the black fills alike). */
+/* Fuchsia = neutral interaction feedback (text-safe variant, so it
+ * stays visible on white and on the black fills alike). */
 .flex-link:hover,
 .flex-link:focus-visible,
 .group:hover .flex-link-group,
 .group:focus-visible .flex-link-group {
-    text-decoration-color: hsl(var(--accent3-text));
+    text-decoration-color: hsl(var(--accent1-text));
     text-decoration-thickness: 2px;
     font-weight: 700;
 }
@@ -160,10 +161,10 @@ html {
  *
  *   color   .link-accent     — fuchsia    #FF00CC
  *           .link-chartreuse — chartreuse #CCFF00 (black fill only —
- *           .link-cyan       — cyan       #00CCFF   near-invisible on white)
+ *                              near-invisible on white)
  *   marker  .link-marked     — hairline underline at rest
  *   motion  .link-glow       — glow on hover, in the link's own color
- *                              (pair with a color: "link-cyan link-glow")
+ *                              (pair with a color: "link-accent link-glow")
  *           .link-box        — hard offset box on hover (card aesthetic)
  *
  * Fuchsia is borderline AA as small text on white; all three colors read
@@ -183,10 +184,6 @@ html {
     color: hsl(var(--accent2-text));
 }
 
-.link-cyan {
-    color: hsl(var(--accent3-text));
-}
-
 .link-glow:hover,
 .link-glow:focus-visible {
     text-shadow: 0 0 18px currentColor;
@@ -198,14 +195,12 @@ html {
 }
 
 /* Colored links hover-underline in their own color (section purity
- * beats the neutral cyan hover). Must come after the .flex-link hover
- * rule — equal specificity, later wins. */
+ * beats the neutral fuchsia hover). Must come after the .flex-link
+ * hover rule — equal specificity, later wins. */
 .link-accent:hover,
 .link-accent:focus-visible,
 .link-chartreuse:hover,
-.link-chartreuse:focus-visible,
-.link-cyan:hover,
-.link-cyan:focus-visible {
+.link-chartreuse:focus-visible {
     text-decoration-color: currentColor;
 }
 
@@ -219,13 +214,14 @@ html {
     transition: box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-/* Cyan on hover — interaction feedback, striking atop the black fills. */
+/* Fuchsia on hover — interaction feedback, striking on white cards
+ * and black fills alike. */
 .flex-border-hover:hover,
 .group:hover .flex-border-group,
 .flex-border-hover:focus-visible,
 .group:focus-visible .flex-border-group {
-    border-color: hsl(var(--accent3));
-    box-shadow: 4px 4px 0 hsl(var(--accent3));
+    border-color: hsl(var(--accent1));
+    box-shadow: 4px 4px 0 hsl(var(--accent1));
 }
 
 /* Backward-compat */

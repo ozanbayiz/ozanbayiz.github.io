@@ -14,10 +14,9 @@
  * Links: <a className="flex-link"> is the quiet base (invisible at rest,
  * underline + bold on hover). Add personality classes at will:
  *   colors:  link-accent (#FF00CC) · link-chartreuse (#CCFF00) ·
- *            link-cyan (#00CCFF) — chartreuse/cyan on the black fill only
  *   marker:  link-marked (hairline underline)
  *   motion:  link-glow (glow in the link's color) · link-box (offset box)
- * Compose freely, e.g. className="flex-link link-cyan link-glow".
+ * Compose freely, e.g. className="flex-link link-accent link-glow".
  * Defined in src/app/globals.css under "Link personalities".
  */
 

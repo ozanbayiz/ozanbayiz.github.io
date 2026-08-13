@@ -92,7 +92,7 @@ function DocumentActions({ entry }: { entry: ResearchEntry }) {
                     rel="noopener noreferrer"
                     aria-label={action.aria}
                     title={action.aria}
-                    className="text-foreground transition-colors hover:text-accent3-text"
+                    className="text-foreground transition-colors hover:text-accent1-text"
                 >
                     {action.icon}
                 </a>
@@ -147,7 +147,7 @@ export default async function ResearchReportPage({
             <nav>
                 <Link
                     href="/"
-                    className="font-mono text-sm text-foreground/70 transition-colors hover:text-accent3-text"
+                    className="font-mono text-sm text-foreground/70 transition-colors hover:text-accent1-text"
                 >
                     ← ozanbayiz
                 </Link>

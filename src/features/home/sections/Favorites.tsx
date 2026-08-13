@@ -49,7 +49,7 @@ function InventorySlot({
             className={cn(
                 'relative bg-background overflow-hidden',
                 variant === 'movie' ? 'aspect-[2/3]' : 'aspect-square',
-                isActive ? 'ring-2 ring-accent3 z-10' : '',
+                isActive ? 'ring-2 ring-accent1 z-10' : '',
             )}
             onClick={onSelect}
             onMouseEnter={onHover}
