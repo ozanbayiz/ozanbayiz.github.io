@@ -14,6 +14,9 @@
 export type ResearchEntry = {
     slug: string
     title: string
+    /** Card-sized title; the homepage card uses this when the full
+     * title is a mouthful. The report page always shows `title`. */
+    shortTitle?: string
     /** Venue-style context line, e.g. 'UC Berkeley · CS 280' */
     context: string
     year: string
@@ -33,12 +36,12 @@ export type ResearchEntry = {
     demo?: string
 }
 
-export const research: { heading: string; entries: ResearchEntry[] } = {
-    heading: 'Research',
+export const research: { entries: ResearchEntry[] } = {
     entries: [
         {
             slug: 'multilingual-vision-and-text',
             title: 'A Compositional Analysis of Cross-Lingual Math Reasoning in Efficient Vision-Language Models',
+            shortTitle: 'Cross-Lingual Math Reasoning in Efficient VLMs',
             context: 'ECCV 2026 · FAILED workshop',
             year: '2026',
             tldr: 'Reading a math problem and reasoning about it are separate skills for small vision-language models — separate enough that monolingual scores alone predict cross-lingual accuracy.',
@@ -58,6 +61,7 @@ export const research: { heading: string; entries: ResearchEntry[] } = {
         {
             slug: 'offline-rl-teaching',
             title: 'When Offline RL Cannot Evaluate Teaching: A Diagnostic Case Study',
+            shortTitle: 'When Offline RL Cannot Evaluate Teaching',
             context: 'UC Berkeley · CS 185/285',
             year: '2026',
             tldr: 'A four-diagnostic screening protocol for offline RL in education — and the catalogue of comparisons it caught before they could ship as findings.',

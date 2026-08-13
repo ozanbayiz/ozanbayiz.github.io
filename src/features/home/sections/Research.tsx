@@ -5,46 +5,44 @@ import Link from 'next/link'
 
 import { research } from '@/features/research/content'
 
-import { SectionHeading } from '../ui'
-
+/* No section heading — the cards announce themselves (paper figures,
+ * academic titles); nothing on the homepage introduces anything. */
 export default function ResearchSection() {
     return (
-        <div className="w-full flex flex-col gap-stack">
-            {/* White heading on the black region. */}
-            <SectionHeading className="text-foreground">{research.heading}</SectionHeading>
-            <div className="grid grid-cols-1 gap-inset md:grid-cols-2">
-                {/* Each card is its own black rectangle — .section-fill
-                  * swaps bg/fg locally, so text and borders flip. */}
+        <div className="w-full">
+            {/* items-start: each card hugs its own content like the About
+              * paragraphs — no stretching to match its row neighbor. */}
+            <div className="grid grid-cols-1 items-start gap-inset md:grid-cols-2">
+                {/* Each card is a white rectangle on the black fill — the
+                  * same .section-card recipe as the About paragraphs, with
+                  * the thumbnail inside the padding like a small figure. */}
                 {research.entries.map(entry => (
                     <Link
                         key={entry.slug}
                         href={`/research/${entry.slug}/`}
-                        className="section-fill flex-border-hover group flex flex-col"
+                        className="section-card flex-border-hover flex flex-col gap-stack p-stack"
                     >
                         {entry.cover && (
-                            <div className="relative aspect-[16/9] overflow-hidden border-b border-foreground/20">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                {/* In colour at rest: the grayscale-until-hover
-                                  * treatment was invisible on touch devices,
-                                  * where the figures simply read as dead grey. */}
-                                <img
-                                    src={entry.cover}
-                                    alt=""
-                                    aria-hidden
-                                    loading="lazy"
-                                    decoding="async"
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img
+                                src={entry.cover}
+                                alt=""
+                                aria-hidden
+                                loading="lazy"
+                                decoding="async"
+                                /* A uniform 16:9 plate spanning the card
+                                 * width inside the padding. object-contain
+                                 * shows the whole figure — never cropped —
+                                 * and any letterboxing is white-on-white,
+                                 * so the plate stays seamless. */
+                                className="aspect-video w-full object-contain"
+                            />
                         )}
-                        <div className="flex flex-col gap-inline p-stack">
-                            <p className="text-base font-bold leading-snug">
-                                {entry.title}
-                            </p>
-                            <p className="text-sm leading-relaxed">
-                                {entry.tldr}
-                            </p>
-                        </div>
+                        {/* Title only — it does the talking; the tldr's
+                          * job moved to the report page itself. */}
+                        <p className="text-sm font-bold leading-snug">
+                            {entry.shortTitle ?? entry.title}
+                        </p>
                     </Link>
                 ))}
             </div>
