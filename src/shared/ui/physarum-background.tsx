@@ -122,6 +122,19 @@ const SAT = 3.5 /* preference peaks here, falls off above */
 const TURNOVER = 0.004 /* fraction of agents respawned per frame */
 const FOOD = 2.5 /* trail deposited per cell under the cursor */
 
+/* ── Cadence ─────────────────────────────────────────────────────────
+ * Fixed timestep. The sim advances STEPS_PER_TICK tuned steps per tick
+ * (30Hz) — exactly 60 steps/s on EVERY display, so a 120Hz screen no
+ * longer runs the organism at double speed and a struggling one only
+ * slows gracefully. The canvas repaints on ticks (30fps — invisible
+ * for a glyph-quantized render) plus at full display rate while the
+ * page scrolls, so zones track smoothly; the idle frames in between
+ * cost nothing. This roughly halves the sim's steady-state CPU. */
+const TICK_MS = 1000 / 30
+const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
+const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
+const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
+
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
 const CUT = 0.06 /* below this, cells render as true whitespace */
@@ -637,13 +650,10 @@ export default function PhysarumBackground() {
             ay[i] = y
         }
 
-        const loop = (tMs: number) => {
-            if (!running) return
-            if (trail.length !== gw * gh) init() /* window resized */
-
-            measureZones()
-            updateMask(tMs / 1000) /* everything breathes: bands per-frame */
-
+        /* one tuned sim step: cursor food, agent sense/turn/move/deposit,
+         * trail diffusion + decay. One step == one frame of the tuned
+         * 60Hz reference demo; the loop below decides how many to run. */
+        const step = () => {
             if (pointer.active && !mask[pointer.y * gw + pointer.x]) {
                 for (let dy = -1; dy <= 1; dy++) {
                     for (let dx = -1; dx <= 1; dx++) {
@@ -737,10 +747,36 @@ export default function PhysarumBackground() {
                 }
             }
             ;[trail, next] = [next, trail]
+        }
 
-            drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
+        /* fixed-timestep loop — see the Cadence note by the tunables */
+        let acc = 0
+        let lastT = 0
+        let lastSX = -1
+        let lastSY = -1
 
+        const loop = (tMs: number) => {
+            if (!running) return
             raf = requestAnimationFrame(loop)
+            if (trail.length !== gw * gh) init() /* window resized */
+
+            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            lastT = tMs
+
+            const scrolled =
+                window.scrollY !== lastSY || window.scrollX !== lastSX
+            if (acc < TICK_MS && !scrolled) return /* idle frame: free */
+
+            let ticks = Math.floor(acc / TICK_MS)
+            acc -= ticks * TICK_MS
+            ticks = Math.min(ticks, MAX_TICKS)
+
+            lastSY = window.scrollY
+            lastSX = window.scrollX
+            measureZones()
+            updateMask(tMs / 1000) /* everything breathes together */
+            for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
+            drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
         }
         raf = requestAnimationFrame(loop)
 
