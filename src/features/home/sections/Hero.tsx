@@ -1,9 +1,9 @@
-/* Hero: ASCII art (spider + name) and social links.
- * Art/links live in ../content.tsx. */
+/* Hero: the name in Chomsky blackletter, and social links.
+ * Name/links live in ../content.tsx. */
 
 import ExternalLink from '@/shared/ui/external-link'
 
-import { ascii, socials } from '../content'
+import { ascii, hero, socials } from '../content'
 
 import type { SocialIcon } from '../content'
 import type { ReactNode } from 'react'
@@ -30,7 +30,9 @@ const SOCIAL_ICONS: Record<SocialIcon, ReactNode> = {
 
 function SocialLinksBar() {
     return (
-        <div className="flex flex-col items-center gap-stack sm:flex-row">
+        /* A dead zone: the mold keeps clear of the icons and address,
+         * with no cloud painted behind them. */
+        <div data-cloud="dead" className="flex flex-col items-center gap-stack sm:flex-row">
             <div className="flex items-center gap-stack">
                 {socials.links.map(link => (
                     <ExternalLink
@@ -56,16 +58,27 @@ function SocialLinksBar() {
 export default function HeroSection() {
     return (
         <section className="relative flex flex-col items-center justify-center pt-seam">
-            <div className="relative z-10 flex flex-col items-center gap-stack px-inset">
-                {/* ASCII art — the centerpiece. No subtitle beneath: the
-                 * name carries the hero alone (no taglines, no pedigree). */}
-                <div className="text-2xs leading-tight lg:text-sm lg:leading-tight">
-                    <div className="flex flex-wrap items-center justify-around gap-x-stack gap-y-inline">
-                        <pre className="ascii-gradient">{ascii.spider}</pre>
-                        <pre className="ascii-gradient">{ascii.name}</pre>
-                    </div>
+            {/* The hero is a DEAD ZONE (data-cloud="dead"): no black
+              * cloud — the spider and name sit in plain ink on the bare
+              * page — and the exclusion hugs the art LINE BY LINE, so
+              * the mold's absence traces the silhouette. A modest wob
+              * keeps that tracing visible instead of smearing it. */}
+            <div data-cloud="dead" data-cloud-wob="1.5" className="relative z-10 px-inset text-2xs leading-tight lg:text-sm lg:leading-tight">
+                {/* The art is decoration to a screen reader — the name
+                  * itself lives in the visually-hidden h1. */}
+                <h1 className="sr-only">{hero.name}</h1>
+                <div aria-hidden className="flex flex-wrap items-center justify-around gap-x-stack gap-y-inline">
+                    <pre className="ascii-gradient">{ascii.spider}</pre>
+                    <pre className="ascii-gradient">{ascii.name}</pre>
                 </div>
+            </div>
 
+            {/* The social links sit bare on the page — plain black on
+              * white, no cloud. pt-seam above: since the cumulus keel
+              * keeps the cloud's underside calm, a seam of white is
+              * enough. Nothing extra below — the about section's own
+              * seam supplies that gap. */}
+            <div className="relative z-10 px-inset pt-seam">
                 <SocialLinksBar />
             </div>
         </section>

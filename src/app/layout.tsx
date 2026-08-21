@@ -2,6 +2,8 @@ import './globals.css'
 
 import localFont from 'next/font/local'
 
+import MoldTransition from '@/shared/ui/mold-transition'
+
 import type { Metadata } from 'next'
 
 /* Kept available as `font-serif` (e.g. for math-heavy article pages);
@@ -52,9 +54,11 @@ const SITE_NAME = 'Ozan Bayiz'
 const SITE_DESCRIPTION = 'Personal site of Ozan Bayiz — Computer Science at UC Berkeley.'
 
 export const metadata: Metadata = {
+    /* The tab reads as the domain; SITE_NAME stays the person for
+     * OpenGraph cards and JSON-LD. */
     title: {
-        default: SITE_NAME,
-        template: '%s — Ozan Bayiz'
+        default: 'ozanbayiz.net',
+        template: '%s — ozanbayiz.net'
     },
     description: SITE_DESCRIPTION,
     metadataBase: new URL('https://ozanbayiz.github.io'),
@@ -91,6 +95,13 @@ export default function RootLayout({
     return (
         <html lang='en'>
             <body className={`${xits.variable} ${plexMono.variable} ${gothic.variable} ${calligra.variable} font-sans antialiased overflow-x-hidden flex min-h-screen flex-col`}>
+                {/* Card→page transition overlay: a project card's cloud
+                  * floods the screen like growing mold, the navigation
+                  * happens under the cover, and the black dissolves to
+                  * reveal the page. Lives in the layout because it must
+                  * survive the very navigation it covers. Transparent
+                  * and inert when idle. */}
+                <MoldTransition />
                 <a
                     href='#main'
                     className='sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-background focus:text-foreground focus:border focus:border-foreground focus:px-stack focus:py-inline'

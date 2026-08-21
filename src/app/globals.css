@@ -16,18 +16,26 @@ body {
  *   inset     the frame inside EVERY black area — same on all sides,
  *             same at all widths, so the rectangles always match
  *   seam      the white band wherever one major block meets another
+ *   gulf      the channel beside neighboring CLOUDS — wide enough
+ *             that two breathing flanks never bridge it
+ *   chasm     the vertical channel between STACKED clouds: a crest's
+ *             lobes billow ~50px upward and a keel drifts ~25px down,
+ *             so only this keeps stacked cards from ever touching
  *
- * All sizes sit on the Fibonacci list 8·16·24·40·64 (8+16=24, 16+24=40,
- * 24+40=64) — neighboring sizes relate near the golden ratio. seam is
- * the one size that breathes: 1.5rem on phones growing smoothly to
- * 2.5rem where the 64rem content column stops widening (the vw slope is
- * scaled to the 90% base set on html below). To make the site airier or
- * tighter, edit these four values — nothing else. */
+ * All sizes sit on the Fibonacci list 8·16·24·40·64·104 (8+16=24,
+ * 16+24=40, 24+40=64, 40+64=104) — neighboring sizes relate near the
+ * golden ratio. seam is the one size that breathes: 1.5rem on phones
+ * growing smoothly to 2.5rem where the 64rem content column stops
+ * widening (the vw slope is scaled to the 90% base set on html below).
+ * To make the site airier or tighter, edit these six values — nothing
+ * else. */
 :root {
     --space-inline: 0.5rem;   /* 8px */
     --space-stack: 1rem;      /* 16px */
     --space-inset: 1.5rem;    /* 24px */
     --space-seam: clamp(1.5rem, 0.885rem + 2.271vw, 2.5rem);  /* 24→40px */
+    --space-gulf: 4rem;       /* 64px */
+    --space-chasm: 6.5rem;    /* 104px */
 }
 
 @layer base {
@@ -259,6 +267,41 @@ html {
     color: hsl(var(--foreground));
 }
 
+/* ── Cloud zones ─────────────────────────────────────────────────────
+ * Elements marked data-cloud ride a breathing black blob painted by
+ * the CloudBackground canvas behind the page (see
+ * src/shared/ui/cloud-background.tsx). .cloud-zone styles content for
+ * that surface: the same var swap as .section-fill (white text,
+ * full-bodied accents on black) plus a painted black rectangle.
+ *
+ * The painted rectangle STAYS while the canvas runs — deliberately.
+ * The blob always reaches beyond it, so at rest the eye only ever sees
+ * the blob's curved, breathing edge; but the rectangle scrolls in
+ * perfect sync with its text (the canvas, repainting from a rAF, can
+ * trail the compositor by a frame mid-scroll), so white text is never
+ * caught on the white page. It is also the whole no-JS/reduced-motion
+ * fallback. No border, no radius: the blob does the shaping. */
+.cloud-zone {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --accent1-text: 312 100% 50%;   /* fuchsia    #FF00CC */
+    --accent2-text: 72 100% 50%;    /* chartreuse #CCFF00 */
+    --accent3-text: 192 100% 50%;   /* cyan       #00CCFF */
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+}
+
+/* Interaction: hovering (or keyboard-focusing) a cloud marked
+ * data-cloud-hover ignites the WHOLE cloud fuchsia — the canvas
+ * repaints that blob (cloud-background.tsx reads the same attribute
+ * and :hover/:focus-visible state each frame) and this rule flips the
+ * painted anchor under it. Instant, no transition: the two layers must
+ * change in the same frame or the rectangle shows inside the blob.
+ * Fuchsia = interaction feedback, site-wide. */
+.cloud-zone[data-cloud-hover]:is(:hover, :focus-visible) {
+    --background: 312 100% 50%;
+}
+
 /* ASCII art — IBM Plex Mono Bold (boldest weight), fg color.
  * Plex Mono caps at 700, so extra density comes from stroking the
  * glyph outlines and tightening the character grid. */
@@ -368,7 +411,6 @@ html {
     font-size: 0.75rem;
     line-height: 1.5;
     text-align: center;
-    opacity: 0.7;
     margin-top: 0.6em;
 }
 

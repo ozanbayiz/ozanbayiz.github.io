@@ -24,6 +24,13 @@ import type { ReactNode } from 'react'
 
 /* ── Hero ──────────────────────────────────────────────────────────── */
 
+export const hero = {
+    /* The name as text — feeds the hero's screen-reader h1; the
+     * visible name is the ASCII art below. */
+    name: 'Ozan Bayiz'
+}
+
+/* ASCII art — the hero's spider and name. */
 export const ascii = {
     spider: `                     XXXXXXX
                      XXXXXXX

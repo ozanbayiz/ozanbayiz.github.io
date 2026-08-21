@@ -51,7 +51,9 @@ export default {
                 inline: 'var(--space-inline)',
                 stack: 'var(--space-stack)',
                 inset: 'var(--space-inset)',
-                seam: 'var(--space-seam)'
+                seam: 'var(--space-seam)',
+                gulf: 'var(--space-gulf)',
+                chasm: 'var(--space-chasm)'
             }
         },
         borderRadius: {

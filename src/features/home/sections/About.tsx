@@ -10,38 +10,49 @@ import { about } from '../content'
 const PHOTO_W = 1400
 const PHOTO_H = 1050
 
+/* Every bio item is a dead zone: no cloud painted, plain ink on the
+ * page. The dead-zone defaults wrap each text line tightly, so the
+ * physarum grows right up to the items and through the seam gaps
+ * between them. */
+
 export default function AboutSection() {
     return (
-        <div className="w-full flex flex-col">
-            <div className="grid grid-cols-1 gap-inset md:grid-cols-12">
-                <div className="col-span-1 flex flex-col justify-center gap-stack md:col-span-7">
+        <div className='flex w-full flex-col'>
+            {/* seam gaps, no interior padding: the items sit close, and
+             * their tight bands leave the mold corridors between them. */}
+            <div className='grid grid-cols-1 gap-seam md:grid-cols-12'>
+                <div className='col-span-1 flex flex-col justify-center gap-seam md:col-span-7'>
                     {about.paragraphs.map((paragraph, i) => (
                         <p
                             key={i}
-                            className="section-card p-stack text-sm leading-relaxed"
+                            data-cloud='dead'
+                            className='text-sm leading-relaxed'
                         >
                             {paragraph}
                         </p>
                     ))}
                 </div>
-                <div className="order-first md:order-none col-span-1 flex flex-col justify-center md:col-span-5">
-                    {/* A white figure card, like the paragraph cards: the photo
-                     * uncropped, with its caption in the mono UI voice.
-                     * max-w-md caps the card once the layout drops to one
-                     * column — a notch above its 5/12 grid-column size on a
-                     * wide screen, so Ozan never gets *huge*. */}
-                    <figure className="section-card mx-auto w-full max-w-md p-stack">
+                <div className='order-first col-span-1 flex flex-col justify-center md:order-none md:col-span-5'>
+                    {/* The photo in its own tight dead zone, uncropped,
+                     * caption in the mono UI voice. max-w-md caps the
+                     * figure once the layout drops to one column — a
+                     * notch above its 5/12 grid-column size on a wide
+                     * screen, so Ozan never gets *huge*. */}
+                    <figure
+                        data-cloud='dead'
+                        className='mx-auto w-full max-w-md'
+                    >
                         <ExportedImage
                             src={about.photo.src}
                             alt={about.photo.alt}
                             width={PHOTO_W}
                             height={PHOTO_H}
-                            className="h-auto w-full"
+                            className='h-auto w-full'
                             priority
-                            sizes="(min-width: 768px) 40vw, 28rem"
+                            sizes='(min-width: 768px) 40vw, 28rem'
                         />
                         {about.photo.caption && (
-                            <figcaption className="mt-inline text-center text-xs leading-relaxed text-foreground/70">
+                            <figcaption className='mt-inline text-center text-xs leading-relaxed text-foreground/70'>
                                 {about.photo.caption}
                             </figcaption>
                         )}

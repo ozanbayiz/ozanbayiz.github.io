@@ -3,6 +3,7 @@ import AboutSection from '@/features/home/sections/About'
 import HeroSection from '@/features/home/sections/Hero'
 import ResearchSection from '@/features/home/sections/Research'
 import { CONTENT_INSET_X, Section } from '@/features/home/ui'
+import PhysarumBackground from '@/shared/ui/physarum-background'
 
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -29,31 +30,39 @@ export default function Home() {
                 type='application/ld+json'
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
             />
+            {/* The living background: breathing black clouds behind the
+              * data-cloud blocks, and an ASCII slime-mold sim crawling
+              * the space between them — a fixed canvas behind all
+              * content, pointer-transparent. Mounted HERE, not in the
+              * layout: the organism belongs to the homepage; the paper
+              * pages stay plain documents. */}
+            <PhysarumBackground />
             <HeroSection />
 
             <main id='main' className="relative flex grow flex-col">
-                {/* Default py-seam: the white bands above and below the
-                  * rectangle are the same size, so it sits centered
-                  * between the hero and the black region. */}
-                <Section id="about" fill>
-                    <AboutSection />
+                {/* Stripped-down base: a white page, each content block
+                  * riding its own breathing black cloud painted by
+                  * CloudBackground (see shared/ui/cloud-background.tsx).
+                  * The old black rectangles and full-bleed black region
+                  * are gone; the physarum organism arrives later in the
+                  * space between the clouds. */}
+
+                {/* Every bio item inside is its own dead zone (see
+                  * sections/About.tsx); same horizontal inset as
+                  * research, from the shared constant. */}
+                <Section id="about">
+                    <div className={CONTENT_INSET_X}>
+                        <AboutSection />
+                    </div>
                 </Section>
 
-                {/* From here down the page goes full-bleed black: the
-                  * section rhythm supplies the white gap after the about
-                  * rectangle, then .section-fill (and its light accent
-                  * variants) run through the footer. `grow` keeps the black
-                  * running to the bottom on tall viewports instead of
-                  * stopping and showing white beneath. */}
-                <div className="section-fill grow">
-                {/* py-inset: the same 24px frame every black area gets,
-                  * so this region's top edge matches the about rectangle's
-                  * frame exactly. */}
-                <Section id="research" className="py-inset">
-                    {/* Same horizontal inset as the about rectangle, from one
-                      * shared constant — this section's black is the page
-                      * background, not its own box, so the padding has to
-                      * be applied here to land on the same left edge. */}
+                {/* pt-gulf: the first cards' clouds billow upward ~50px;
+                  * a plain seam would let them bleed into the bio text
+                  * above (twMerge keeps the seam below). */}
+                <Section id="research" className="pt-gulf">
+                    {/* Same horizontal inset as the about section, from
+                      * one shared constant — the research cards' clouds
+                      * are painted per card, so there's no box here. */}
                     <div className={CONTENT_INSET_X}>
                         <ResearchSection />
                     </div>
@@ -63,14 +72,19 @@ export default function Home() {
                     <Section id="favorites"><FavoritesSection /></Section>
                     (component: sections/Favorites.tsx, data: data/favorites.ts) */}
 
-                <footer className="pb-seam text-center">
+                {/* pt-gulf: the research cards' clouds breathe downward,
+                  * so the bare signature keeps a full gulf of white
+                  * between itself and them. */}
+                <footer className="pt-gulf pb-seam text-center">
                     <div className="container mx-auto max-w-[64rem] px-inset">
-                        <p className="font-script text-4xl leading-none text-foreground">
+                        {/* The signature is a dead zone: plain ink, no
+                          * cloud, and the mold keeps its distance. w-fit
+                          * so the zone hugs the script, not the column. */}
+                        <p data-cloud="dead" className="mx-auto w-fit font-script text-4xl leading-none text-foreground">
                             {footer.signature} {CURRENT_YEAR}
                         </p>
                     </div>
                 </footer>
-                </div>
             </main>
         </>
     )

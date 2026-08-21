@@ -6,7 +6,6 @@ import path from 'path'
 import * as jsxRuntime from 'react/jsx-runtime'
 
 import { evaluate } from '@mdx-js/mdx'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import rehypeKatex from 'rehype-katex'
 import rehypeSlug from 'rehype-slug'
@@ -16,6 +15,7 @@ import remarkMath from 'remark-math'
 
 import { research } from '@/features/research/content'
 import { mdxComponents } from '@/mdx-components'
+import MeltLink from '@/shared/ui/melt-link'
 
 import type { ResearchEntry } from '@/features/research/content'
 import type { Metadata } from 'next'
@@ -143,14 +143,15 @@ export default async function ResearchReportPage({
     return (
         <main className="container mx-auto max-w-[48rem] px-inset py-seam">
             {/* Letterhead — quiet mono utility link. Navigation speaks in
-             * the UI voice; Calligra signs only once, at the footer. */}
+             * the UI voice; Calligra signs only once, at the footer.
+             * MeltLink: going home melts the document into the white. */}
             <nav>
-                <Link
+                <MeltLink
                     href="/"
-                    className="font-mono text-sm text-foreground/70 transition-colors hover:text-accent1-text"
+                    className="font-mono text-sm text-foreground transition-colors hover:text-accent1-text"
                 >
                     ← ozanbayiz
-                </Link>
+                </MeltLink>
             </nav>
 
             {/* Title, with the document-action toolbar directly beneath. */}
@@ -190,9 +191,9 @@ export default async function ResearchReportPage({
             </article>
 
             <footer className="mt-seam text-center">
-                <Link href="/" className="font-script text-4xl leading-none text-foreground">
+                <MeltLink href="/" className="font-script text-4xl leading-none text-foreground">
                     ozanbayiz
-                </Link>
+                </MeltLink>
             </footer>
         </main>
     )
