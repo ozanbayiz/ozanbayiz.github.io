@@ -157,6 +157,60 @@ const cellAttr = (el: Element, name: string, fallback: number) => {
         : fallback
 }
 
+/* a measured rect, in CSS px — DOMRect satisfies this structurally */
+type Box = {
+    left: number
+    right: number
+    top: number
+    bottom: number
+    width: number
+    height: number
+}
+
+/* Font metrics pad every line rect: a range rect spans the font's
+ * ascent to descent, while the visible ink sits well inside — the
+ * Calligra signature carries ~10px of empty ascent alone. Measure each
+ * text node's actual ink once (canvas measureText) and remember how
+ * much to trim off the top and bottom of its line rects, so dead zones
+ * hug what the eye sees, not the font's bounding box. The cache is
+ * dropped once webfonts finish loading — metrics measured against a
+ * fallback face would otherwise stick. */
+type InkTrim = { top: number; bottom: number }
+let inkTrims = new WeakMap<Text, InkTrim>()
+function resetInkTrims() {
+    inkTrims = new WeakMap()
+}
+let measureCtx: CanvasRenderingContext2D | null = null
+const inkTrim = (node: Text): InkTrim => {
+    let trim = inkTrims.get(node)
+    if (!trim) {
+        trim = { top: 0, bottom: 0 }
+        const el = node.parentElement
+        if (!measureCtx) {
+            measureCtx = document.createElement('canvas').getContext('2d')
+        }
+        if (el && measureCtx) {
+            const cs = getComputedStyle(el)
+            measureCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+            const m = measureCtx.measureText((node.nodeValue ?? '').trim())
+            /* max ink over the node's characters — per-line trims can
+             * only be larger, so this never overcuts */
+            if (m.fontBoundingBoxAscent !== undefined) {
+                trim.top = Math.max(
+                    0,
+                    m.fontBoundingBoxAscent - m.actualBoundingBoxAscent
+                )
+                trim.bottom = Math.max(
+                    0,
+                    m.fontBoundingBoxDescent - m.actualBoundingBoxDescent
+                )
+            }
+        }
+        inkTrims.set(node, trim)
+    }
+    return trim
+}
+
 /* Non-whitespace runs per text node, cached — a node's text never
  * changes here. Needed for <pre> ASCII art: its lines are padded with
  * spaces so the silhouette never reflows, and spaces are characters,
@@ -217,9 +271,26 @@ export default function PhysarumBackground() {
          * images and icons. The mold can then fill the ragged margins a
          * block rectangle would sterilize — after a short last line,
          * along the ASCII art's outline, beside a caption. */
-        const contentRects = (node: Node, out: DOMRect[]): void => {
+        /* push a line rect with the node's font-metric padding trimmed
+         * off — the zone should trace ink, not the font bounding box */
+        const pushInkRect = (r: DOMRect, t: InkTrim, out: Box[]) => {
+            const top = r.top + t.top
+            const bottom = r.bottom - t.bottom
+            if (bottom - top < 2) return
+            out.push({
+                left: r.left,
+                right: r.right,
+                top,
+                bottom,
+                width: r.width,
+                height: bottom - top
+            })
+        }
+
+        const contentRects = (node: Node, out: Box[]): void => {
             if (node.nodeType === Node.TEXT_NODE) {
                 if (!/\S/.test(node.nodeValue ?? '')) return
+                const trim = inkTrim(node as Text)
                 /* inside a <pre>, whitespace is layout: measure each
                  * glyph run on its own so padding spaces stay ALIVE */
                 if (node.parentElement?.closest('pre')) {
@@ -228,13 +299,14 @@ export default function PhysarumBackground() {
                         range.setEnd(node, b)
                         const rects = range.getClientRects()
                         for (let i = 0; i < rects.length; i++)
-                            out.push(rects[i]!)
+                            pushInkRect(rects[i]!, trim, out)
                     }
                     return
                 }
                 range.selectNodeContents(node)
                 const rects = range.getClientRects()
-                for (let i = 0; i < rects.length; i++) out.push(rects[i]!)
+                for (let i = 0; i < rects.length; i++)
+                    pushInkRect(rects[i]!, trim, out)
                 return
             }
             if (!(node instanceof Element)) return
@@ -282,7 +354,7 @@ export default function PhysarumBackground() {
                 /* painted clouds need their whole block — the blob must
                  * cover the painted .cloud-zone anchor. Dead zones hug
                  * their content instead. */
-                const rects: DOMRect[] = []
+                const rects: Box[] = []
                 if (paint) rects.push(el.getBoundingClientRect())
                 else contentRects(el, rects)
                 for (const r of rects) {
@@ -674,6 +746,10 @@ export default function PhysarumBackground() {
 
         window.addEventListener('pointermove', onMove, { passive: true })
         window.addEventListener('resize', resize)
+
+        /* webfonts swap in after first paint — retire ink trims measured
+         * against fallback faces (they recompute lazily next frame) */
+        document.fonts?.ready.then(resetInkTrims)
 
         /* no burning battery in background tabs */
         const onVisibility = () => {
