@@ -133,11 +133,22 @@ const FOOD = 2.5 /* trail deposited per cell under the cursor */
  * slows gracefully. The canvas repaints on ticks (30fps — invisible
  * for a glyph-quantized render) plus at full display rate while the
  * page scrolls, so zones track smoothly; the idle frames in between
- * cost nothing. This roughly halves the sim's steady-state CPU. */
+ * cost nothing. This roughly halves the sim's steady-state CPU.
+ *
+ * Scroll frames repaint on EVERY device, touch included: this canvas
+ * is fixed, so each blob is glued to its element only by repainting at
+ * the new scroll offset — at 30Hz a flick leaves every blob trailing
+ * its anchor rectangle by 30–150px, snapping forward in visible steps
+ * (the painted anchors save the TEXT, not the blob edges). A scroll
+ * frame is also the cheap kind of frame — updateMask + drawField over
+ * cached zone geometry, no sim steps, and (on coarse pointers) no DOM
+ * reads at all until the scroll settles, since Safari's Range
+ * measurement is the one genuinely expensive piece. */
 const TICK_MS = 1000 / 30
 const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
 const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
 const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
+const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
 
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
@@ -812,16 +823,13 @@ export default function PhysarumBackground() {
             ;[trail, next] = [next, trail]
         }
 
-        /* fixed-timestep loop — see the Cadence note by the tunables.
-         * Touch devices (coarse pointers) render on ticks only: their
-         * compositor scrolls without the main thread anyway, and the
-         * ≤33ms of zone lag hides behind the painted anchors — while
-         * the saved work is exactly what iOS Safari kills pages over. */
+        /* fixed-timestep loop — see the Cadence note by the tunables. */
         const coarse = window.matchMedia('(pointer: coarse)').matches
         let acc = 0
         let lastT = 0
         let lastSX = -1
         let lastSY = -1
+        let settleT = -Infinity /* time of the last observed scroll move */
 
         const loop = (tMs: number) => {
             if (!running) return
@@ -831,8 +839,13 @@ export default function PhysarumBackground() {
             lastT = tMs
 
             const scrolled =
-                !coarse &&
-                (window.scrollY !== lastSY || window.scrollX !== lastSX)
+                window.scrollY !== lastSY || window.scrollX !== lastSX
+            if (scrolled) settleT = tMs
+            /* momentum can coast through a frame without moving a full
+             * pixel — treat the scroll as live for a beat past the last
+             * observed move, so the DOM re-measure below doesn't land
+             * mid-flick */
+            const scrolling = tMs - settleT < SETTLE_MS
             if (acc < TICK_MS && !scrolled) return /* idle frame: free */
 
             let ticks = Math.floor(acc / TICK_MS)
@@ -842,8 +855,13 @@ export default function PhysarumBackground() {
             lastSY = window.scrollY
             lastSX = window.scrollX
             /* fresh DOM geometry only on ticks; scroll-only frames ride
-             * the cached zones, translated by the scroll delta */
-            if (ticks > 0) measureZones()
+             * the cached zones, translated by the scroll delta. On
+             * coarse pointers, ticks that land MID-SCROLL also ride the
+             * cache — Safari's Range machinery is what made scrolling
+             * expensive, geometry only changes with layout, and there's
+             * no cursor whose hover state could go stale; the first
+             * tick after the scroll settles re-measures. */
+            if (ticks > 0 && !(coarse && scrolling)) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
             drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
