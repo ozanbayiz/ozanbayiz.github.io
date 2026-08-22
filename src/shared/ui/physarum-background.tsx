@@ -35,8 +35,9 @@ import { useEffect, useRef, useState } from 'react'
  * NEUTRAL (0, not negative), which is what makes the colony accrete
  * along the moat's outer rim instead of keeping a standoff distance;
  * agents swallowed by a breathing (or scrolling) boundary are pushed
- * out radially, never teleported; trails inside the exclusion are
- * zeroed every diffusion pass.
+ * out radially, never teleported. Trails PERSIST under the exclusion
+ * (hidden by fadeF, decaying normally) so zones scrolling across the
+ * field don't strip-mine the colony.
  *
  * An element marked data-cloud="dead" keeps all three bands as pure
  * exclusion — a dead zone the mold respects, its edge breathing like
@@ -342,8 +343,17 @@ export default function PhysarumBackground() {
          * client-side navigations (stale nodes measure 0×0 and are
          * skipped). The canvas is fixed at inset 0, so client
          * coordinates ARE canvas coordinates. */
+        /* scroll position at the last measurement — between measures,
+         * updateMask translates the cached zones by the scroll delta
+         * instead of re-reading the DOM (Safari's Range machinery is
+         * expensive at display rate; geometry only changes with layout) */
+        let mzX = 0
+        let mzY = 0
+
         const measureZones = () => {
             zoneRects.length = 0
+            mzX = window.scrollX
+            mzY = window.scrollY
             document.querySelectorAll('[data-cloud]').forEach((el, k) => {
                 const paint = el.getAttribute('data-cloud') !== 'dead'
                 const pad = cellAttr(
@@ -408,11 +418,20 @@ export default function PhysarumBackground() {
         }
 
         const resize = () => {
-            canvas.width = Math.floor(canvas.clientWidth * dpr)
-            canvas.height = Math.floor(canvas.clientHeight * dpr)
+            const w = Math.floor(canvas.clientWidth * dpr)
+            const h = Math.floor(canvas.clientHeight * dpr)
+            /* iOS fires resize as its URL bar settles; the canvas is
+             * sized in lvh so its box hasn't actually changed — bail
+             * before reallocating anything */
+            if (w === canvas.width && h === canvas.height && gw > 0) return
+            canvas.width = w
+            canvas.height = h
             ctx.font = `${CH * 0.9}px ui-monospace, Menlo, monospace`
             ctx.textBaseline = 'top'
             CW = ctx.measureText('M').width /* measured, never assumed */
+            if (!(CW > 0)) CW = CH * 0.6 /* a 0 would make the grid infinite */
+            const oldGw = gw
+            const oldGh = gh
             /* ceil: the cell grid covers the full canvas, so a blob can
              * reach the right and bottom edges without a flat clip */
             gw = Math.max(4, Math.ceil(canvas.width / CW))
@@ -421,6 +440,7 @@ export default function PhysarumBackground() {
             mask = new Uint8Array(gw * gh)
             fadeF = new Float32Array(gw * gh)
             pointer.active = false /* grid changed; wait for the next move */
+            remap(oldGw, oldGh) /* the colony survives the new grid */
             measureZones()
         }
 
@@ -431,22 +451,29 @@ export default function PhysarumBackground() {
             cloudM.fill(0)
             mask.fill(0)
             fadeF.fill(1)
+            /* zones were measured at (mzX, mzY); shift them by however
+             * far the page has scrolled since — DOM-free tracking */
+            const shX = ((mzX - window.scrollX) * dpr) / CW
+            const shY = ((mzY - window.scrollY) * dpr) / CH
             for (const z of zoneRects) {
+                const zx0 = z.x0 + shX
+                const zx1 = z.x1 + shX
+                const zy0 = z.y0 + shY
+                const zy1 = z.y1 + shY
                 const reach = z.pad + z.wob * CREST + z.buffer + z.fade + 1
-                const bx0 = Math.max(0, Math.floor(z.x0 - reach))
-                const bx1 = Math.min(gw - 1, Math.ceil(z.x1 + reach))
-                const by0 = Math.max(0, Math.floor(z.y0 - reach))
-                const by1 = Math.min(gh - 1, Math.ceil(z.y1 + reach))
+                const bx0 = Math.max(0, Math.floor(zx0 - reach))
+                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach))
+                const by0 = Math.max(0, Math.floor(zy0 - reach))
+                const by1 = Math.min(gh - 1, Math.ceil(zy1 + reach))
                 for (let y = by0; y <= by1; y++) {
                     /* distances from the CELL CENTER — measuring from the
                      * top-left corner would bias every blob one cell down
                      * and right */
                     const yc = y + 0.5
-                    const dy = yc < z.y0 ? z.y0 - yc : yc > z.y1 ? yc - z.y1 : 0
+                    const dy = yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
                     for (let x = bx0; x <= bx1; x++) {
                         const xc = x + 0.5
-                        const dx =
-                            xc < z.x0 ? z.x0 - xc : xc > z.x1 ? xc - z.x1 : 0
+                        const dx = xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0
                         const d = Math.sqrt(dx * dx + dy * dy)
                         /* three octaves, diagonal wave directions so every
                          * edge orientation undulates: swell, wave, ripple */
@@ -480,9 +507,9 @@ export default function PhysarumBackground() {
                          * sits; vert is 0 beside it, 1 straight over/under */
                         const vert = d > 0 ? dy / d : 0
                         const amp =
-                            yc < z.y0
+                            yc < zy0
                                 ? FLANK + (CREST - FLANK) * vert
-                                : yc > z.y1
+                                : yc > zy1
                                   ? FLANK + (KEEL - FLANK) * vert
                                   : FLANK
                         const off = z.pad + z.wob * amp * puff
@@ -598,8 +625,31 @@ export default function PhysarumBackground() {
                 aa[i] = Math.random() * Math.PI * 2
             }
         }
-        resize()
-        init()
+        /* carry the colony across a grid change (rotation, a window
+         * resize, iOS chrome settling): copy the overlapping region of
+         * the trail field instead of resetting the organism */
+        const remap = (oldGw: number, oldGh: number) => {
+            if (oldGw === 0 || trail.length !== oldGw * oldGh) {
+                init()
+                return
+            }
+            const nt = new Float32Array(gw * gh)
+            const cw = Math.min(gw, oldGw)
+            const ch = Math.min(gh, oldGh)
+            for (let y = 0; y < ch; y++) {
+                for (let x = 0; x < cw; x++) {
+                    nt[y * gw + x] = trail[y * oldGw + x]!
+                }
+            }
+            trail = nt
+            next = new Float32Array(gw * gh)
+            for (let i = 0; i < N; i++) {
+                if (ax[i]! >= gw) ax[i] = Math.random() * gw
+                if (ay[i]! >= gh) ay[i] = Math.random() * gh
+            }
+        }
+
+        resize() /* first call reaches init() through remap */
 
         /* overcrowding aversion: preference peaks at SAT and falls off
          * above, so saturated highways repel their own traffic — no
@@ -724,12 +774,12 @@ export default function PhysarumBackground() {
                 const yU = (y - 1 + gh) % gh
                 const yD = (y + 1) % gh
                 for (let x = 0; x < gw; x++) {
+                    /* trails PERSIST under the exclusion (they only
+                     * decay): agents are still barred and rendering is
+                     * still suppressed by fadeF, but a zone scrolling
+                     * across the field no longer strip-mines the colony
+                     * — crucial on phones, where zones span the width */
                     const i = y * gw + x
-                    if (mask[i]) {
-                        /* trails never survive inside cloud or buffer */
-                        next[i] = 0
-                        continue
-                    }
                     const xL = (x - 1 + gw) % gw
                     const xR = (x + 1) % gw
                     const s =
@@ -749,7 +799,12 @@ export default function PhysarumBackground() {
             ;[trail, next] = [next, trail]
         }
 
-        /* fixed-timestep loop — see the Cadence note by the tunables */
+        /* fixed-timestep loop — see the Cadence note by the tunables.
+         * Touch devices (coarse pointers) render on ticks only: their
+         * compositor scrolls without the main thread anyway, and the
+         * ≤33ms of zone lag hides behind the painted anchors — while
+         * the saved work is exactly what iOS Safari kills pages over. */
+        const coarse = window.matchMedia('(pointer: coarse)').matches
         let acc = 0
         let lastT = 0
         let lastSX = -1
@@ -758,13 +813,13 @@ export default function PhysarumBackground() {
         const loop = (tMs: number) => {
             if (!running) return
             raf = requestAnimationFrame(loop)
-            if (trail.length !== gw * gh) init() /* window resized */
 
             acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
             lastT = tMs
 
             const scrolled =
-                window.scrollY !== lastSY || window.scrollX !== lastSX
+                !coarse &&
+                (window.scrollY !== lastSY || window.scrollX !== lastSX)
             if (acc < TICK_MS && !scrolled) return /* idle frame: free */
 
             let ticks = Math.floor(acc / TICK_MS)
@@ -773,7 +828,9 @@ export default function PhysarumBackground() {
 
             lastSY = window.scrollY
             lastSX = window.scrollX
-            measureZones()
+            /* fresh DOM geometry only on ticks; scroll-only frames ride
+             * the cached zones, translated by the scroll delta */
+            if (ticks > 0) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
             drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
@@ -808,10 +865,15 @@ export default function PhysarumBackground() {
     if (reduced) return null
 
     return (
+        /* 100lvh (large-viewport height): the canvas keeps one stable
+         * size while mobile browser chrome collapses and expands —
+         * no mid-scroll stretching, no resize storms. h-full is the
+         * fallback where lvh isn't supported. */
         <canvas
             ref={canvasRef}
             aria-hidden='true'
-            className='pointer-events-none fixed inset-0 -z-10 h-full w-full'
+            className='pointer-events-none fixed left-0 top-0 -z-10 h-full w-full'
+            style={{ height: '100lvh' }}
         />
     )
 }

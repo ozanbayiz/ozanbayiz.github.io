@@ -45,10 +45,10 @@ export const research: { entries: ResearchEntry[] } = {
             context: 'ECCV 2026 · FAILED workshop',
             year: '2026',
             tldr: 'Reading a math problem and reasoning about it are separate skills for small vision-language models — separate enough that monolingual scores alone predict cross-lingual accuracy.',
-            cover: '/projects/multilingual-vision-and-text/questions_all_languages.png',
+            cover: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
             hero: [
                 {
-                    src: '/projects/multilingual-vision-and-text/questions_all_languages.png',
+                    src: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
                     caption:
                         'The same MGSM question rendered as images in five languages. The arithmetic is identical everywhere; the script is not. Latin for En/De/Es, Latin with diacritics for Turkish, ideographic characters for Chinese.'
                 }
@@ -65,10 +65,10 @@ export const research: { entries: ResearchEntry[] } = {
             context: 'UC Berkeley · CS 185/285',
             year: '2026',
             tldr: 'A four-diagnostic screening protocol for offline RL in education — and the catalogue of comparisons it caught before they could ship as findings.',
-            cover: '/projects/offline-rl-teaching/system-figure.png',
+            cover: '/projects/offline-rl-teaching/system-figure.webp',
             hero: [
                 {
-                    src: '/projects/offline-rl-teaching/system-figure.png',
+                    src: '/projects/offline-rl-teaching/system-figure.webp',
                     caption:
                         'The two-policy tutoring system. The high-level pedagogical policy (this paper) selects knowledge-graph nodes; the low-level interaction policy (future work) executes teaching turns with the student.'
                 }

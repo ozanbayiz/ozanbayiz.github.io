@@ -374,10 +374,13 @@ export default function MoldTransition() {
     }, [])
 
     return (
+        /* 100lvh keeps the overlay one stable size while mobile browser
+         * chrome collapses/expands; h-full is the fallback. */
         <canvas
             ref={canvasRef}
             aria-hidden='true'
-            className='pointer-events-none fixed inset-0 z-50 h-full w-full'
+            className='pointer-events-none fixed left-0 top-0 z-50 h-full w-full'
+            style={{ height: '100lvh' }}
         />
     )
 }
