@@ -85,9 +85,12 @@ const WOB_SPEED = 0.9 /* breathing tempo */
 const LOBE_BIAS = 1.25 /* >1 hugs the inner radius, puffing out rarely */
 const BUFFER = 2.0 /* empty moat between cloud edge and mold territory */
 const FADE = 2.5 /* render-side feather band where mold density ramps up */
+/* DEAD_* are in ROW units and apply isotropically in pixels (see the
+ * kx note in updateMask): 0.35 rows is ~4px of clearance on EVERY
+ * side of the text, horizontal and vertical alike. */
 const DEAD_PAD = 0.35 /* dead zones: hard clearance hugging the text */
-const DEAD_BUFFER = 0.3 /* dead zones: sliver of moat */
-const DEAD_FADE = 1.2 /* dead zones: short feather — mold reads close */
+const DEAD_BUFFER = 0.25 /* dead zones: sliver of moat */
+const DEAD_FADE = 0.9 /* dead zones: short feather — mold reads close */
 const DEAD_WOB_MIN = 0.3 /* dead zones: barely-there breathing floor */
 
 /* per-element overrides, all in cells, all clamped to [0, OVERRIDE_MAX]:
@@ -460,9 +463,18 @@ export default function PhysarumBackground() {
                 const zx1 = z.x1 + shX
                 const zy0 = z.y0 + shY
                 const zy1 = z.y1 + shY
+                /* DEAD zones measure distance isotropically in PIXELS
+                 * (row units): a cell is only ~0.6× as wide as it is
+                 * tall, so raw cell-unit distance gave text ~40% less
+                 * horizontal clearance than vertical — the mold visibly
+                 * crowded the ends of lines while wasting space above
+                 * and below. kx converts a horizontal cell distance
+                 * into row units. Painted clouds keep the cell-metric
+                 * field their look and spacing scale were tuned on. */
+                const kx = z.paint ? 1 : CW / CH
                 const reach = z.pad + z.wob * CREST + z.buffer + z.fade + 1
-                const bx0 = Math.max(0, Math.floor(zx0 - reach))
-                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach))
+                const bx0 = Math.max(0, Math.floor(zx0 - reach / kx))
+                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach / kx))
                 const by0 = Math.max(0, Math.floor(zy0 - reach))
                 const by1 = Math.min(gh - 1, Math.ceil(zy1 + reach))
                 for (let y = by0; y <= by1; y++) {
@@ -473,7 +485,8 @@ export default function PhysarumBackground() {
                     const dy = yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
                     for (let x = bx0; x <= bx1; x++) {
                         const xc = x + 0.5
-                        const dx = xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0
+                        const dx =
+                            (xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0) * kx
                         const d = Math.sqrt(dx * dx + dy * dy)
                         /* three octaves, diagonal wave directions so every
                          * edge orientation undulates: swell, wave, ripple */
