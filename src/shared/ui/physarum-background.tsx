@@ -212,6 +212,11 @@ type Overlay = {
     hi: HTMLCanvasElement | null /* the blob — painted zones only */
     hiCtx: CanvasRenderingContext2D | null
     rastered: boolean /* painted at least once — only then may it cull */
+    /* last-applied placement — styles are written only on change */
+    pl: number
+    pt: number
+    pw: number
+    ph: number
 }
 
 /* an element's overlay paint job, rebuilt by each measure */
@@ -342,6 +347,12 @@ export default function PhysarumBackground() {
         let running = true
 
         const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
+        /* overlays raster at a REDUCED density: their content is solid
+         * cell-quantized fills, which read identically below full
+         * retina — and the memory saved (canvas backing scales with
+         * dprO²) is exactly what keeps iOS Safari's memory watchdog
+         * from killing the page */
+        const dprO = Math.min(dpr, 1.5)
         const CH = CELL_H * dpr /* cell height, device px */
         let CW = CH * 0.6 /* replaced by measured advance in resize() */
 
@@ -569,7 +580,11 @@ export default function PhysarumBackground() {
                         loCtx: lo.getContext('2d'),
                         hi,
                         hiCtx: hi ? hi.getContext('2d') : null,
-                        rastered: false
+                        rastered: false,
+                        pl: NaN,
+                        pt: NaN,
+                        pw: -1,
+                        ph: -1
                     }
                     pool.set(k, ent)
                 }
@@ -866,22 +881,65 @@ export default function PhysarumBackground() {
                     }
                 }
                 /* size + place the canvases, then raster the scratch:
-                 * solid runs batched (+1px overlap, no seams) */
+                 * solid runs batched (+1px overlap, no seams).
+                 *
+                 * iOS-hardened sizing: the backing store is allocated
+                 * at dprO with 128px-quantized padding and shrink
+                 * hysteresis, so sub-pixel layout jitter flipping a
+                 * ceil() can NEVER reallocate at tick rate — repeated
+                 * canvas reallocation floods WebKit with transient
+                 * IOSurfaces, and that is the classic "A problem
+                 * repeatedly occurred" jetsam kill. Styles are written
+                 * only when a value actually changed, for the same
+                 * reason at the compositor level. Dimensions are capped
+                 * at 4096: past that iOS canvas behavior degrades. */
+                const sc = dprO / dpr
+                const Wb = Math.min(4096, Math.ceil(W * sc))
+                const Hb = Math.min(4096, Math.ceil(H * sc))
                 for (const c of [ent.lo, ent.hi]) {
                     if (!c) continue
-                    if (c.width !== W || c.height !== H) {
-                        c.width = W
-                        c.height = H
+                    if (
+                        c.width < Wb ||
+                        c.height < Hb ||
+                        c.width > Wb + 384 ||
+                        c.height > Hb + 384
+                    ) {
+                        c.width = Math.min(4096, Math.ceil(Wb / 128) * 128)
+                        c.height = Math.min(4096, Math.ceil(Hb / 128) * 128)
                     }
-                    c.style.left = `${oL}px`
-                    c.style.top = `${oT}px`
-                    c.style.width = `${W / dpr}px`
-                    c.style.height = `${H / dpr}px`
+                }
+                if (
+                    ent.pl !== oL ||
+                    ent.pt !== oT ||
+                    ent.pw !== ent.lo.width ||
+                    ent.ph !== ent.lo.height
+                ) {
+                    for (const c of [ent.lo, ent.hi]) {
+                        if (!c) continue
+                        c.style.left = `${oL}px`
+                        c.style.top = `${oT}px`
+                        /* CSS size maps the padded backing 1:1 at dprO;
+                         * the pad past the painted area is transparent */
+                        c.style.width = `${c.width / dprO}px`
+                        c.style.height = `${c.height / dprO}px`
+                    }
+                    ent.pl = oL
+                    ent.pt = oT
+                    ent.pw = ent.lo.width
+                    ent.ph = ent.lo.height
                 }
                 const hi = ent.hiCtx
                 const hot = zones[0]!.hot
-                lo.clearRect(0, 0, W, H)
-                hi?.clearRect(0, 0, W, H)
+                /* clear the full backing untransformed, then paint in
+                 * device-dpr coordinates scaled down to the backing */
+                lo.setTransform(1, 0, 0, 1, 0, 0)
+                lo.clearRect(0, 0, ent.lo.width, ent.lo.height)
+                lo.setTransform(sc, 0, 0, sc, 0, 0)
+                if (hi && ent.hi) {
+                    hi.setTransform(1, 0, 0, 1, 0, 0)
+                    hi.clearRect(0, 0, ent.hi.width, ent.hi.height)
+                    hi.setTransform(sc, 0, 0, sc, 0, 0)
+                }
                 for (let y = 0; y < gh2; y++) {
                     let runX = 0
                     let runCls = 0
