@@ -139,6 +139,26 @@ const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
 const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
 const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
 
+/* ── Scroll prediction (coarse pointers) ─────────────────────────────
+ * A fixed canvas rastered from rAF reaches the screen a frame or two
+ * behind the compositor's scroll — at flick speeds, a 20–60px gap
+ * between every blob and its element that no repaint cadence can
+ * close. But iOS momentum is smooth and predictable, so the zones are
+ * painted where the page WILL be when this frame lands: current
+ * scroll plus smoothed velocity times a lookahead matched to the
+ * measured frame interval. During steady momentum the residual error
+ * is a pixel or two; at flick reversals it spikes briefly but stays
+ * inside PAD, where the painted anchors absorb it. Prediction is
+ * clamped (a programmatic jump must not fling the blobs) and decays
+ * to zero the moment scrolling settles, so the resting frame is
+ * always exact. Coarse pointers only: wheel scrolling is stepped, and
+ * predicting a step overshoots visibly. */
+const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
+const LOOKAHEAD_FRAMES = 1.4 /* frames of raster→screen latency to lead */
+const LOOKAHEAD_MAX_MS = 28 /* cap the lead when the frame rate dips */
+const PREDICT_MAX = 80 /* CSS px — max correction per axis */
+const VEL_SMOOTH = 0.5 /* EMA weight on the newest velocity sample */
+
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
 const CUT = 0.06 /* below this, cells render as true whitespace */
@@ -352,6 +372,11 @@ export default function PhysarumBackground() {
          * expensive at display rate; geometry only changes with layout) */
         let mzX = 0
         let mzY = 0
+        /* mid-scroll prediction offsets, CSS px — where the page will
+         * be when the current frame reaches the screen (see the Scroll
+         * prediction note by the tunables). Zero at rest. */
+        let predX = 0
+        let predY = 0
 
         const measureZones = () => {
             zoneRects.length = 0
@@ -455,9 +480,11 @@ export default function PhysarumBackground() {
             mask.fill(0)
             fadeF.fill(1)
             /* zones were measured at (mzX, mzY); shift them by however
-             * far the page has scrolled since — DOM-free tracking */
-            const shX = ((mzX - window.scrollX) * dpr) / CW
-            const shY = ((mzY - window.scrollY) * dpr) / CH
+             * far the page has scrolled since — plus the predicted
+             * remaining travel, so the raster lands where the page
+             * will actually be on screen. DOM-free tracking. */
+            const shX = ((mzX - window.scrollX - predX) * dpr) / CW
+            const shY = ((mzY - window.scrollY - predY) * dpr) / CH
             for (const z of zoneRects) {
                 const zx0 = z.x0 + shX
                 const zx1 = z.x1 + shX
@@ -813,37 +840,73 @@ export default function PhysarumBackground() {
         }
 
         /* fixed-timestep loop — see the Cadence note by the tunables.
-         * Touch devices (coarse pointers) render on ticks only: their
-         * compositor scrolls without the main thread anyway, and the
-         * ≤33ms of zone lag hides behind the painted anchors — while
-         * the saved work is exactly what iOS Safari kills pages over. */
+         * Scroll frames repaint on EVERY device (cheap: updateMask +
+         * drawField over cached zone geometry, no sim steps, and on
+         * coarse pointers no DOM reads until the scroll settles), and
+         * on coarse pointers the zones are painted at the PREDICTED
+         * scroll position — see the Scroll prediction note. */
         const coarse = window.matchMedia('(pointer: coarse)').matches
         let acc = 0
         let lastT = 0
         let lastSX = -1
         let lastSY = -1
+        let lastScrollT = -Infinity /* time of the last observed move */
+        let vX = 0 /* smoothed scroll velocity, CSS px per ms */
+        let vY = 0
 
         const loop = (tMs: number) => {
             if (!running) return
             raf = requestAnimationFrame(loop)
 
-            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            const dt = lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            acc += dt
             lastT = tMs
 
-            const scrolled =
-                !coarse &&
-                (window.scrollY !== lastSY || window.scrollX !== lastSX)
+            const sx = window.scrollX
+            const sy = window.scrollY
+            const scrolled = sy !== lastSY || sx !== lastSX
+            if (scrolled) {
+                /* velocity over the span since the last observed move,
+                 * EMA-smoothed — one noisy sample can't kick the blobs */
+                const span = tMs - lastScrollT
+                if (lastSY >= 0 && span > 0 && span < DT_CLAMP) {
+                    vX += ((sx - lastSX) / span - vX) * VEL_SMOOTH
+                    vY += ((sy - lastSY) / span - vY) * VEL_SMOOTH
+                }
+                lastScrollT = tMs
+                lastSX = sx
+                lastSY = sy
+            }
+            /* momentum can coast through a frame without moving a full
+             * pixel — treat the scroll as live for a beat past the
+             * last observed move */
+            const scrolling = tMs - lastScrollT < SETTLE_MS
+            if (!scrolling) {
+                vX = 0
+                vY = 0
+            }
+            if (coarse && scrolling) {
+                const la = Math.min(dt * LOOKAHEAD_FRAMES, LOOKAHEAD_MAX_MS)
+                predX = Math.max(-PREDICT_MAX, Math.min(PREDICT_MAX, vX * la))
+                predY = Math.max(-PREDICT_MAX, Math.min(PREDICT_MAX, vY * la))
+            } else {
+                predX = 0
+                predY = 0
+            }
+
             if (acc < TICK_MS && !scrolled) return /* idle frame: free */
 
             let ticks = Math.floor(acc / TICK_MS)
             acc -= ticks * TICK_MS
             ticks = Math.min(ticks, MAX_TICKS)
 
-            lastSY = window.scrollY
-            lastSX = window.scrollX
             /* fresh DOM geometry only on ticks; scroll-only frames ride
-             * the cached zones, translated by the scroll delta */
-            if (ticks > 0) measureZones()
+             * the cached zones, translated by the scroll delta. Ticks
+             * that land MID-SCROLL on coarse pointers ride the cache
+             * too — Safari's Range machinery is the one genuinely
+             * expensive piece, geometry only changes with layout, and
+             * the first tick after the scroll settles re-measures. */
+            if (ticks > 0 && !(coarse && scrolling)) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
             drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
