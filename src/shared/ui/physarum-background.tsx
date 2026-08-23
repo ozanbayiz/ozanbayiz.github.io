@@ -12,8 +12,8 @@ import { useEffect, useRef, useState } from 'react'
  *     backdrop — it tracks no content, so no scroll can misalign it,
  *     and it repaints on 30Hz ticks only, scrolling or not.
  *   · The BANDS around every [data-cloud] element — blob, moat,
- *     feather — live on small per-zone canvases parked in two
- *     DOCUMENT-anchored overlay layers (whites at z -6, blobs at
+ *     feather — live on ONE small canvas set per element, parked in
+ *     two DOCUMENT-anchored overlay layers (whites at z -6, blobs at
  *     z -4, both under the content). The compositor scrolls them WITH
  *     their content, so a blob is glued to its card at any flick
  *     speed. A fixed canvas rastered from rAF lands a frame or two
@@ -160,6 +160,7 @@ const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
 const CUT = 0.06 /* below this, cells render as true whitespace */
+const OVERLAY_MAX_CELLS = 600 /* per-axis cap on one overlay's grid */
 
 /* palette — color means alive; black-and-white means content */
 const INK = 'rgba(255, 0, 204, 0.9)' /* fuchsia mold on the white page */
@@ -190,8 +191,29 @@ type Zone = {
     hpx: number
     kx: number /* horizontal cell distance → row units (1 if painted) */
     reach: number /* outermost band radius, row units */
+}
+
+/* One overlay (a lo canvas, plus hi for painted zones) per [data-cloud]
+ * ELEMENT — not per rect: a dead zone's dozens of line rects share one
+ * canvas, keeping canvas memory and compositor layer count at "a few
+ * per section" instead of hundreds of slivers (which is what iOS
+ * Safari's memory watchdog kills pages over). */
+type Overlay = {
     lo: HTMLCanvasElement /* whites: moat + feather */
+    loCtx: CanvasRenderingContext2D | null
     hi: HTMLCanvasElement | null /* the blob — painted zones only */
+    hiCtx: CanvasRenderingContext2D | null
+    rastered: boolean /* painted at least once — only then may it cull */
+}
+
+/* an element's overlay paint job, rebuilt by each measure */
+type OverlayJob = {
+    ent: Overlay
+    zones: Zone[] /* this element's rects */
+    oL: number /* canvas origin, CSS px, DOCUMENT coords */
+    oT: number
+    gw2: number /* canvas grid, cells */
+    gh2: number
 }
 
 /* The breathing noise, sampled in DOCUMENT cells: three octaves of
@@ -320,20 +342,23 @@ export default function PhysarumBackground() {
         let mask = new Uint8Array(0) /* 1 = sim exclusion (cloud + buffer) */
         const zoneRects: Zone[] = []
 
-        /* per-zone overlay canvases, keyed by element × rect index and
-         * reused across ticks — created on first measure, swept when a
-         * zone disappears (client-side navigation) */
-        const pool = new Map<
-            string,
-            { lo: HTMLCanvasElement; hi: HTMLCanvasElement | null }
-        >()
+        /* per-ELEMENT overlay canvases, reused across ticks — created
+         * on first measure, swept when the element disappears
+         * (client-side navigation) */
+        const pool = new Map<number, Overlay>()
+        const jobs: OverlayJob[] = []
         const dropPool = () => {
             for (const ent of pool.values()) {
                 ent.lo.remove()
                 ent.hi?.remove()
             }
             pool.clear()
+            jobs.length = 0
         }
+        /* shared band-composition scratch, grown to the largest overlay
+         * once — no per-tick allocation */
+        let sCls = new Uint8Array(0) /* 0 none, 1 white, 2 blob */
+        let sF = new Float32Array(0) /* feather ramp, min over rects */
 
         /* One reusable Range for text measurement — no per-frame allocs */
         const range = document.createRange()
@@ -414,9 +439,10 @@ export default function PhysarumBackground() {
 
         const measureZones = () => {
             zoneRects.length = 0
+            jobs.length = 0
             mzX = window.scrollX
             mzY = window.scrollY
-            const used = new Set<string>()
+            const used = new Set<number>()
             document.querySelectorAll('[data-cloud]').forEach((el, k) => {
                 const paint = el.getAttribute('data-cloud') !== 'dead'
                 const pad = cellAttr(
@@ -445,8 +471,8 @@ export default function PhysarumBackground() {
                 const rects: Box[] = []
                 if (paint) rects.push(el.getBoundingClientRect())
                 else contentRects(el, rects)
-                for (let ri = 0; ri < rects.length; ri++) {
-                    const r = rects[ri]!
+                const zs: Zone[] = []
+                for (const r of rects) {
                     /* skip degenerate boxes: stale nodes, sr-only text */
                     if (r.width < 2 || r.height < 2) continue
                     /* breathing amplitude: the element's data-cloud-wob
@@ -467,34 +493,7 @@ export default function PhysarumBackground() {
                             )
                         )
                     const fade = paint ? FADE : DEAD_FADE
-                    /* overlay canvases for this rect, reused per tick */
-                    const key = `${k}:${ri}`
-                    let ent = pool.get(key)
-                    if (!ent || (ent.hi !== null) !== paint) {
-                        ent?.lo.remove()
-                        ent?.hi?.remove()
-                        /* maxWidth: the base stylesheet's responsive
-                         * `canvas { max-width: 100% }` resolves against
-                         * the zero-width overlay shell and would clamp
-                         * these to nothing */
-                        const mk = () => {
-                            const c = document.createElement('canvas')
-                            c.style.position = 'absolute'
-                            c.style.maxWidth = 'none'
-                            return c
-                        }
-                        const lo = mk()
-                        overLo.appendChild(lo)
-                        let hi: HTMLCanvasElement | null = null
-                        if (paint) {
-                            hi = mk()
-                            overHi.appendChild(hi)
-                        }
-                        ent = { lo, hi }
-                        pool.set(key, ent)
-                    }
-                    used.add(key)
-                    zoneRects.push({
+                    zs.push({
                         x0: (r.left * dpr) / CW,
                         x1: (r.right * dpr) / CW,
                         y0: (r.top * dpr) / CH,
@@ -512,13 +511,78 @@ export default function PhysarumBackground() {
                         wpx: r.width,
                         hpx: r.height,
                         kx: paint ? 1 : CW / CH,
-                        reach: pad + wob * CREST + buffer + fade + 1,
-                        lo: ent.lo,
-                        hi: ent.hi
+                        reach: pad + wob * CREST + buffer + fade + 1
                     })
                 }
+                if (!zs.length) return
+                zoneRects.push(...zs)
+                /* ONE overlay per element: the union bbox of its rects
+                 * plus the widest pads any rect needs */
+                let bL = Infinity
+                let bT = Infinity
+                let bR = -Infinity
+                let bB = -Infinity
+                let padXc = 0
+                let padYc = 0
+                for (const z of zs) {
+                    bL = Math.min(bL, z.docL)
+                    bT = Math.min(bT, z.docT)
+                    bR = Math.max(bR, z.docL + z.wpx)
+                    bB = Math.max(bB, z.docT + z.hpx)
+                    padXc = Math.max(padXc, Math.ceil(z.reach / z.kx) + 1)
+                    padYc = Math.max(padYc, Math.ceil(z.reach) + 1)
+                }
+                let ent = pool.get(k)
+                if (!ent || (ent.hi !== null) !== paint) {
+                    ent?.lo.remove()
+                    ent?.hi?.remove()
+                    /* maxWidth: the base stylesheet's responsive
+                     * `canvas { max-width: 100% }` resolves against the
+                     * zero-width overlay shell and would clamp these to
+                     * nothing */
+                    const mk = () => {
+                        const c = document.createElement('canvas')
+                        c.style.position = 'absolute'
+                        c.style.maxWidth = 'none'
+                        return c
+                    }
+                    const lo = mk()
+                    overLo.appendChild(lo)
+                    let hi: HTMLCanvasElement | null = null
+                    if (paint) {
+                        hi = mk()
+                        overHi.appendChild(hi)
+                    }
+                    ent = {
+                        lo,
+                        loCtx: lo.getContext('2d'),
+                        hi,
+                        hiCtx: hi ? hi.getContext('2d') : null,
+                        rastered: false
+                    }
+                    pool.set(k, ent)
+                }
+                used.add(k)
+                /* OVERLAY_MAX_CELLS: a runaway element (a data-cloud on
+                 * something page-sized) must not allocate an unbounded
+                 * canvas — clamp; the blob clips rather than the page
+                 * dying on canvas memory */
+                jobs.push({
+                    ent,
+                    zones: zs,
+                    oL: bL - (padXc * CW) / dpr,
+                    oT: bT - (padYc * CH) / dpr,
+                    gw2: Math.min(
+                        OVERLAY_MAX_CELLS,
+                        Math.ceil(((bR - bL) * dpr) / CW) + padXc * 2
+                    ),
+                    gh2: Math.min(
+                        OVERLAY_MAX_CELLS,
+                        Math.ceil(((bB - bT) * dpr) / CH) + padYc * 2
+                    )
+                })
             })
-            /* sweep canvases whose zones are gone (navigation, unmount
+            /* sweep canvases whose element is gone (navigation, unmount
              * of a card) — stale nodes measure 0×0 and land here too */
             for (const [key, ent] of pool) {
                 if (!used.has(key)) {
@@ -553,6 +617,11 @@ export default function PhysarumBackground() {
             remap(oldGw, oldGh) /* the colony survives the new grid */
             dropPool() /* cell metrics may have changed; re-raster fresh */
             measureZones()
+            /* raster the fresh overlays in THIS frame — waiting for the
+             * next tick would blank every blob for up to 33ms after a
+             * rotation (paintOverlays is declared below, but resize()
+             * only ever runs after full effect setup) */
+            paintOverlays(performance.now() / 1000)
         }
 
         /* Rebuilt every tick — the SIM's view of the bands, cut on the
@@ -672,120 +741,155 @@ export default function PhysarumBackground() {
         }
 
         /* ── Overlay painting ────────────────────────────────────────
-         * Each zone's bands are rastered onto its own small canvases in
-         * the document-anchored layers: whites (moat + feather) below,
-         * the blob above. The local cell grid is anchored to the
-         * ELEMENT, so the shape is scroll-invariant — the compositor
-         * carries the canvases with the content, pixel-perfect at any
-         * speed, and this only repaints for the 30Hz breathing. The
-         * wobble is sampled in document cells so an element's rects (a
-         * dead zone's text lines) breathe as one coherent edge. */
+         * One canvas set per element, rastered from a shared scratch:
+         * every rect of the element composes its bands into the same
+         * local field (solid beats feather, blob beats white, feathers
+         * take the strongest ramp), then one pass paints the result.
+         * The local grid is anchored to the ELEMENT, so the shape is
+         * scroll-invariant — the compositor carries the canvases with
+         * the content, pixel-perfect at any speed, and this only
+         * repaints for the 30Hz breathing. The wobble is sampled in
+         * document cells so an element's rects (a dead zone's text
+         * lines) breathe as one coherent edge. */
         const PAGE = '#ffffff' /* the page's white — occludes glyphs */
         const paintOverlays = (t: number) => {
-            /* offscreen zones keep their last raster — stale breathing
-             * on an invisible blob costs nothing; it catches up on the
-             * first tick after scrolling into this margin */
-            const vTop = window.scrollY - 300
-            const vBot = window.scrollY + window.innerHeight + 300
-            for (const z of zoneRects) {
-                const padXc = Math.ceil(z.reach / z.kx) + 1
-                const padYc = Math.ceil(z.reach) + 1
-                const padXpx = (padXc * CW) / dpr
-                const padYpx = (padYc * CH) / dpr
-                if (z.docT + z.hpx + padYpx < vTop || z.docT - padYpx > vBot)
-                    continue
-                const gw2 = Math.ceil((z.wpx * dpr) / CW) + padXc * 2
-                const gh2 = Math.ceil((z.hpx * dpr) / CH) + padYc * 2
+            /* offscreen overlays keep their last raster — stale
+             * breathing on an invisible blob costs nothing. An overlay
+             * is only culled AFTER its first raster: a never-painted
+             * canvas entering mid-flick would arrive blank. The margin
+             * is a full viewport each way, so even a violent flick
+             * crosses it slower than the ≤33ms it takes the next tick
+             * to raster what's coming. */
+            const m = window.innerHeight
+            const vTop = window.scrollY - m
+            const vBot = window.scrollY + 2 * m
+            for (const job of jobs) {
+                const { ent, zones, oL, oT, gw2, gh2 } = job
+                const lo = ent.loCtx
+                if (!lo) continue
                 const W = Math.ceil(gw2 * CW)
                 const H = gh2 * CH
-                for (const c of [z.lo, z.hi]) {
+                if (
+                    ent.rastered &&
+                    (oT + H / dpr < vTop || oT > vBot)
+                )
+                    continue
+                /* grow the shared scratch to this overlay's grid */
+                const n = gw2 * gh2
+                if (sCls.length < n) {
+                    sCls = new Uint8Array(n)
+                    sF = new Float32Array(n)
+                }
+                sCls.fill(0, 0, n)
+                sF.fill(1, 0, n)
+                /* compose every rect's bands into the scratch, each
+                 * over its own bounded box — same pattern as the sim's
+                 * updateMask, in the overlay's local cells */
+                const xoff = (oL * dpr) / CW /* local → document cells */
+                const yoff = (oT * dpr) / CH
+                for (const z of zones) {
+                    const zx0 = ((z.docL - oL) * dpr) / CW
+                    const zx1 = zx0 + (z.wpx * dpr) / CW
+                    const zy0 = ((z.docT - oT) * dpr) / CH
+                    const zy1 = zy0 + (z.hpx * dpr) / CH
+                    const bx0 = Math.max(0, Math.floor(zx0 - z.reach / z.kx))
+                    const bx1 = Math.min(
+                        gw2 - 1,
+                        Math.ceil(zx1 + z.reach / z.kx)
+                    )
+                    const by0 = Math.max(0, Math.floor(zy0 - z.reach))
+                    const by1 = Math.min(gh2 - 1, Math.ceil(zy1 + z.reach))
+                    for (let y = by0; y <= by1; y++) {
+                        const yc = y + 0.5
+                        const dy =
+                            yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
+                        for (let x = bx0; x <= bx1; x++) {
+                            const xc = x + 0.5
+                            const dx =
+                                (xc < zx0
+                                    ? zx0 - xc
+                                    : xc > zx1
+                                      ? xc - zx1
+                                      : 0) * z.kx
+                            const d = Math.sqrt(dx * dx + dy * dy)
+                            const w = wobble(x + xoff, y + yoff, t, z.phase)
+                            const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
+                            const vert = d > 0 ? dy / d : 0
+                            const amp =
+                                yc < zy0
+                                    ? FLANK + (CREST - FLANK) * vert
+                                    : yc > zy1
+                                      ? FLANK + (KEEL - FLANK) * vert
+                                      : FLANK
+                            const off = z.pad + z.wob * amp * puff
+                            const i = y * gw2 + x
+                            if (d < off) {
+                                /* dead zones' "blob" is exclusion: white */
+                                const cls = z.paint ? 2 : 1
+                                if (cls > sCls[i]!) sCls[i] = cls
+                            } else if (d < off + z.buffer) {
+                                if (sCls[i]! < 1) sCls[i] = 1
+                            } else {
+                                const f = (d - off - z.buffer) / z.fade
+                                if (f < sF[i]!) sF[i] = f
+                            }
+                        }
+                    }
+                }
+                /* size + place the canvases, then raster the scratch:
+                 * solid runs batched (+1px overlap, no seams), the
+                 * feather's per-cell alpha painted singly */
+                for (const c of [ent.lo, ent.hi]) {
                     if (!c) continue
                     if (c.width !== W || c.height !== H) {
                         c.width = W
                         c.height = H
                     }
-                    c.style.left = `${z.docL - padXpx}px`
-                    c.style.top = `${z.docT - padYpx}px`
+                    c.style.left = `${oL}px`
+                    c.style.top = `${oT}px`
                     c.style.width = `${W / dpr}px`
                     c.style.height = `${H / dpr}px`
                 }
-                const lo = z.lo.getContext('2d')
-                const hi = z.hi ? z.hi.getContext('2d') : null
-                if (!lo) continue
+                const hi = ent.hiCtx
+                const hot = zones[0]!.hot
                 lo.clearRect(0, 0, W, H)
                 hi?.clearRect(0, 0, W, H)
-                /* rect edges in local cells; wobble in document cells */
-                const zx0 = padXc
-                const zx1 = padXc + (z.wpx * dpr) / CW
-                const zy0 = padYc
-                const zy1 = padYc + (z.hpx * dpr) / CH
-                const ox = (z.docL * dpr) / CW - padXc
-                const oy = (z.docT * dpr) / CH - padYc
                 for (let y = 0; y < gh2; y++) {
-                    const yc = y + 0.5
-                    const dy = yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
-                    /* batch solid runs (+1px overlap, no seams); the
-                     * feather's per-cell alpha paints singly */
-                    let runX = -1
-                    let runCls = 0 /* 1 blob, 2 white */
-                    const flush = (xEnd: number) => {
-                        if (runX < 0) return
-                        const px = runX * CW
-                        const wRun = (xEnd - runX) * CW + 1
-                        if (runCls === 1 && hi) {
-                            hi.fillStyle = z.hot ? CLOUD_HOT : CLOUD_FILL
-                            hi.fillRect(px, y * CH, wRun, CH + 1)
-                        } else {
-                            lo.globalAlpha = 1
-                            lo.fillStyle = PAGE
-                            lo.fillRect(px, y * CH, wRun, CH + 1)
-                        }
-                        runX = -1
-                    }
-                    for (let x = 0; x < gw2; x++) {
-                        const xc = x + 0.5
-                        const dx =
-                            (xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0) *
-                            z.kx
-                        const d = Math.sqrt(dx * dx + dy * dy)
-                        const w = wobble(x + ox, y + oy, t, z.phase)
-                        const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
-                        const vert = d > 0 ? dy / d : 0
-                        const amp =
-                            yc < zy0
-                                ? FLANK + (CREST - FLANK) * vert
-                                : yc > zy1
-                                  ? FLANK + (KEEL - FLANK) * vert
-                                  : FLANK
-                        const off = z.pad + z.wob * amp * puff
-                        /* dead zones' "blob" is pure exclusion: white */
-                        const cls =
-                            d < off
-                                ? z.paint
-                                    ? 1
-                                    : 2
-                                : d < off + z.buffer
-                                  ? 2
-                                  : 0
+                    let runX = 0
+                    let runCls = 0
+                    /* the x === gw2 sentinel flushes the last run */
+                    for (let x = 0; x <= gw2; x++) {
+                        const cls = x < gw2 ? sCls[y * gw2 + x]! : 0
                         if (cls !== runCls) {
-                            flush(x)
-                            if (cls) {
-                                runX = x
-                                runCls = cls
-                            } else runCls = 0
+                            if (runCls) {
+                                const px = runX * CW
+                                const wRun = (x - runX) * CW + 1
+                                if (runCls === 2 && hi) {
+                                    hi.fillStyle = hot
+                                        ? CLOUD_HOT
+                                        : CLOUD_FILL
+                                    hi.fillRect(px, y * CH, wRun, CH + 1)
+                                } else {
+                                    lo.globalAlpha = 1
+                                    lo.fillStyle = PAGE
+                                    lo.fillRect(px, y * CH, wRun, CH + 1)
+                                }
+                            }
+                            runX = x
+                            runCls = cls
                         }
-                        if (!cls) {
-                            const f = (d - off - z.buffer) / z.fade
+                        if (x < gw2 && cls === 0) {
+                            const f = sF[y * gw2 + x]!
                             if (f < 1) {
-                                lo.globalAlpha = 1 - Math.max(0, f)
+                                lo.globalAlpha = 1 - f
                                 lo.fillStyle = PAGE
                                 lo.fillRect(x * CW, y * CH, CW + 1, CH + 1)
                             }
                         }
                     }
-                    flush(gw2)
                 }
                 lo.globalAlpha = 1
+                ent.rastered = true
             }
         }
 
