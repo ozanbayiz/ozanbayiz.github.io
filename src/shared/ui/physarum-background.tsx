@@ -150,6 +150,22 @@ const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
 const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
 const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
 
+/* ── Scroll veil (coarse pointers) ───────────────────────────────────
+ * Even repainting every frame, a fixed canvas rastered from rAF lands
+ * on screen a frame or two behind iOS's compositor-driven scroll — at
+ * flick speeds that is a 20–60px offset between every blob and its
+ * content that NO paint cadence can close. Only two things scroll in
+ * perfect sync with the page: the page itself, and nothing on this
+ * canvas. So past VEIL_V the canvas fades out (opacity is animated by
+ * the compositor, so the fade itself can't jank) and the painted
+ * anchor rectangles carry the design — exactly the fallback role they
+ * were built for; when the scroll settles, one fresh repaint lands and
+ * the organism fades back in. Reading-speed scrolls stay painted:
+ * their lag is a few px, hidden inside PAD. */
+const VEIL_V = 0.9 /* CSS px per ms of scroll speed that veils */
+const VEIL_OUT = 'opacity 120ms linear' /* vanish fast once flicked */
+const VEIL_IN = 'opacity 400ms ease' /* reappear gently on settle */
+
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
 const CUT = 0.06 /* below this, cells render as true whitespace */
@@ -364,6 +380,11 @@ export default function PhysarumBackground() {
         let mzX = 0
         let mzY = 0
 
+        /* real hover only — touch browsers synthesize :hover from taps,
+         * which would ignite blobs mid-touch (globals.css gates the
+         * painted anchor identically; the two must stay in lockstep) */
+        const hoverable = window.matchMedia('(hover: hover)').matches
+
         const measureZones = () => {
             zoneRects.length = 0
             mzX = window.scrollX
@@ -387,7 +408,9 @@ export default function PhysarumBackground() {
                 /* per-frame hover/focus state — no listeners needed */
                 const hot =
                     el.hasAttribute('data-cloud-hover') &&
-                    el.matches(':hover, :focus-visible')
+                    el.matches(
+                        hoverable ? ':hover, :focus-visible' : ':focus-visible'
+                    )
                 /* painted clouds need their whole block — the blob must
                  * cover the painted .cloud-zone anchor. Dead zones hug
                  * their content instead. */
@@ -831,11 +854,14 @@ export default function PhysarumBackground() {
         let lastSY = -1
         let settleT = -Infinity /* time of the last observed scroll move */
 
+        let veiled = false
+
         const loop = (tMs: number) => {
             if (!running) return
             raf = requestAnimationFrame(loop)
 
-            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            const frameDt = lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            acc += frameDt
             lastT = tMs
 
             const scrolled =
@@ -846,7 +872,28 @@ export default function PhysarumBackground() {
              * observed move, so the DOM re-measure below doesn't land
              * mid-flick */
             const scrolling = tMs - settleT < SETTLE_MS
-            if (acc < TICK_MS && !scrolled) return /* idle frame: free */
+
+            /* the veil: fast touch flicks hide the canvas (see the
+             * tunables note); it stays hidden until the scroll settles,
+             * whatever the speed does in between */
+            if (coarse && scrolled && !veiled) {
+                const v =
+                    Math.hypot(
+                        window.scrollY - lastSY,
+                        window.scrollX - lastSX
+                    ) / Math.max(frameDt, 1)
+                if (v > VEIL_V) {
+                    veiled = true
+                    canvas.style.transition = VEIL_OUT
+                    canvas.style.opacity = '0'
+                }
+            }
+            /* unveiling happens further down, AFTER this settle tick
+             * has painted fresh geometry — never over a stale frame */
+
+            /* idle frames are free; a veiled scroll is idle too — no
+             * point rastering what can't be seen */
+            if (acc < TICK_MS && (!scrolled || veiled)) return
 
             let ticks = Math.floor(acc / TICK_MS)
             acc -= ticks * TICK_MS
@@ -864,7 +911,18 @@ export default function PhysarumBackground() {
             if (ticks > 0 && !(coarse && scrolling)) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
-            drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
+            /* a veiled canvas skips the raster — except on the settle
+             * tick, which paints fresh geometry and lifts the veil in
+             * the same frame (style and raster commit together) */
+            const unveil = veiled && !scrolling
+            if (!veiled || unveil) {
+                drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
+            }
+            if (unveil) {
+                veiled = false
+                canvas.style.transition = VEIL_IN
+                canvas.style.opacity = '1'
+            }
         }
         raf = requestAnimationFrame(loop)
 
