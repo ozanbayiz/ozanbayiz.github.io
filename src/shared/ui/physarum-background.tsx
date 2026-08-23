@@ -11,10 +11,13 @@ import { useEffect, useRef, useState } from 'react'
  *     canvas behind everything. It is a pure viewport-anchored
  *     backdrop — it tracks no content, so no scroll can misalign it,
  *     and it repaints on 30Hz ticks only, scrolling or not.
- *   · The BANDS around every [data-cloud] element — blob, moat,
- *     feather — live on ONE small canvas set per element, parked in
- *     two DOCUMENT-anchored overlay layers (whites at z -6, blobs at
- *     z -4, both under the content). The compositor scrolls them WITH
+ *   · The HARD BANDS around every [data-cloud] element — blob and
+ *     moat — live on ONE small canvas set per element, parked in two
+ *     DOCUMENT-anchored overlay layers (whites at z -6, blobs at
+ *     z -4, both under the content). The soft FADE band stays on the
+ *     glyph canvas as the density ramp: the colony's edge is the
+ *     mold's own reaction to the content, and its softness lets a
+ *     tick of scroll lag read as drift rather than tearing. The compositor scrolls them WITH
  *     their content, so a blob is glued to its card at any flick
  *     speed. A fixed canvas rastered from rAF lands a frame or two
  *     behind a compositor-driven scroll — 20–60px at iOS flick speeds,
@@ -36,19 +39,23 @@ import { useEffect, useRef, useState } from 'react'
  *   2. BUFFER (off <= d < off+BUFFER)   clean page — painted page-
  *      white over the glyph field, no agents. The moat that keeps the
  *      mold and the cloud from ever touching.
- *   3. FADE   (the next FADE cells)     mold territory begins; a white
- *      feather whose alpha ramps 1→0 across the band, so the colony's
- *      edge dissolves toward the moat instead of cutting off.
- *      Render-only — the sim still sees a hard wall at the buffer's
- *      outer edge.
+ *   3. FADE   (the next FADE cells)     mold territory begins; rendered
+ *      trail density is multiplied by a 0→1 ramp across the band
+ *      (fadeF, on the glyph canvas), so the colony's edge dissolves
+ *      through the glyph ramp instead of cutting off — the organism
+ *      visibly reacting to the content. Render-only — the sim still
+ *      sees a hard wall at the buffer's outer edge.
  *
  * The organism is a classic Physarum sim — agents that sense, turn,
  * deposit; a trail field that diffuses and decays — drawn as ASCII
  * glyphs, fuchsia on the white page: color means alive, black-and-
- * white means content. The cursor is food: tracked with a window-level
- * pointermove (the canvas has pointer-events none and NEVER receives
- * events), translated into grid cells with the MEASURED character
- * advance — never a hardcoded width ratio. The exclusion senses as
+ * white means content. The pointer is food: tracked with window-level
+ * pointermove AND pointerdown (the canvas has pointer-events none and
+ * NEVER receives events), translated into grid cells with the MEASURED
+ * character advance — never a hardcoded width ratio. On touch screens
+ * a tap drops food where the finger lands (touches vanish rather than
+ * move away, so the meal expires after TOUCH_FOOD_MS instead of
+ * feeding one cell forever) — the colony swarms toward a touch. The exclusion senses as
  * NEUTRAL (0, not negative), which is what makes the colony accrete
  * along the moat's outer rim instead of keeping a standoff distance;
  * agents swallowed by a breathing (or scrolling) boundary are pushed
@@ -141,6 +148,7 @@ const TRAIL_MAX = 8
 const SAT = 3.5 /* preference peaks here, falls off above */
 const TURNOVER = 0.004 /* fraction of agents respawned per frame */
 const FOOD = 2.5 /* trail deposited per cell under the cursor */
+const TOUCH_FOOD_MS = 900 /* a touch's meal expires after this long */
 
 /* ── Cadence ─────────────────────────────────────────────────────────
  * Fixed timestep. The sim advances STEPS_PER_TICK tuned steps per tick
@@ -340,6 +348,7 @@ export default function PhysarumBackground() {
         let gw = 0
         let gh = 0
         let mask = new Uint8Array(0) /* 1 = sim exclusion (cloud + buffer) */
+        let fadeF = new Float32Array(0) /* glyph ramp near zones (render) */
         const zoneRects: Zone[] = []
 
         /* per-ELEMENT overlay canvases, reused across ticks — created
@@ -358,7 +367,6 @@ export default function PhysarumBackground() {
         /* shared band-composition scratch, grown to the largest overlay
          * once — no per-tick allocation */
         let sCls = new Uint8Array(0) /* 0 none, 1 white, 2 blob */
-        let sF = new Float32Array(0) /* feather ramp, min over rects */
 
         /* One reusable Range for text measurement — no per-frame allocs */
         const range = document.createRange()
@@ -529,8 +537,11 @@ export default function PhysarumBackground() {
                     bT = Math.min(bT, z.docT)
                     bR = Math.max(bR, z.docL + z.wpx)
                     bB = Math.max(bB, z.docT + z.hpx)
-                    padXc = Math.max(padXc, Math.ceil(z.reach / z.kx) + 1)
-                    padYc = Math.max(padYc, Math.ceil(z.reach) + 1)
+                    /* overlays carry only the HARD bands — the fade
+                     * band (z.fade) lives on the glyph canvas */
+                    const oReach = z.reach - z.fade
+                    padXc = Math.max(padXc, Math.ceil(oReach / z.kx) + 1)
+                    padYc = Math.max(padYc, Math.ceil(oReach) + 1)
                 }
                 let ent = pool.get(k)
                 if (!ent || (ent.hi !== null) !== paint) {
@@ -613,6 +624,7 @@ export default function PhysarumBackground() {
             gw = Math.max(4, Math.ceil(canvas.width / CW))
             gh = Math.max(4, Math.ceil(canvas.height / CH))
             mask = new Uint8Array(gw * gh)
+            fadeF = new Float32Array(gw * gh)
             pointer.active = false /* grid changed; wait for the next move */
             remap(oldGw, oldGh) /* the colony survives the new grid */
             dropPool() /* cell metrics may have changed; re-raster fresh */
@@ -630,6 +642,7 @@ export default function PhysarumBackground() {
          * so a tick of staleness during a scroll is invisible. */
         const updateMask = (t: number) => {
             mask.fill(0)
+            fadeF.fill(1)
             /* zones were measured at (mzX, mzY); shift them by however
              * far the page has scrolled since — DOM-free tracking */
             const shX = ((mzX - window.scrollX) * dpr) / CW
@@ -682,17 +695,32 @@ export default function PhysarumBackground() {
                                   ? FLANK + (KEEL - FLANK) * vert
                                   : FLANK
                         const off = z.pad + z.wob * amp * puff
-                        /* cloud and moat both wall the sim out; the
-                         * fade band is render-only and lives entirely
-                         * on the overlays now */
-                        if (d < off + z.buffer) mask[y * gw + x] = 1
+                        const i = y * gw + x
+                        if (d < off + z.buffer) {
+                            /* cloud and moat wall the sim out; their
+                             * VISUALS are the overlays' solid paint, so
+                             * glyphs beneath keep rendering (occluded)
+                             * — no ghost hole trails a scrolling zone */
+                            mask[i] = 1
+                        } else {
+                            /* the ramp: the colony edge thinning toward
+                             * the moat is the mold's own reaction, at a
+                             * tick's freshness — soft and noisy enough
+                             * that mid-scroll it reads as drift */
+                            const f = Math.min(1, (d - off - z.buffer) / z.fade)
+                            if (f < fadeF[i]!) fadeF[i] = f
+                        }
                     }
                 }
             }
         }
 
-        /* window-level pointer tracking — the canvas never gets events */
+        /* window-level pointer tracking — the canvas never gets events.
+         * pointermove is the cursor; pointerdown makes TAPS count too
+         * (a clean tap fires no pointermove at all), which is the only
+         * feeding gesture a touch screen has. */
         const pointer = { x: -1, y: -1, active: false }
+        let pointerT = 0 /* when the pointer last fed — taps expire */
         const onMove = (e: PointerEvent) => {
             const cx = (e.clientX * dpr) / CW
             const cy = (e.clientY * dpr) / CH
@@ -703,6 +731,7 @@ export default function PhysarumBackground() {
             pointer.active = true
             pointer.x = Math.floor(cx)
             pointer.y = Math.floor(cy)
+            pointerT = performance.now()
         }
 
         const hash = (x: number, y: number) => {
@@ -712,16 +741,21 @@ export default function PhysarumBackground() {
 
         const drawField = (get: (x: number, y: number) => number) => {
             /* transparent canvas: the page's own white shows wherever
-             * nothing is painted. Glyphs only — clouds, moats, and
-             * feathers live on the document-anchored overlays, which
-             * occlude whatever renders beneath them (trails PERSIST
-             * under the exclusion, so glyphs are drawn everywhere). */
+             * nothing is painted. Glyphs only — clouds and moats live
+             * on the document-anchored overlays, which occlude whatever
+             * renders beneath them (trails PERSIST under the exclusion,
+             * so glyphs draw everywhere and no ghost hole trails a
+             * scrolling zone); density feathers up across FADE via the
+             * ramp, the mold's visible reaction to content. */
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.fillStyle = INK
             for (let y = 0; y < gh; y++) {
                 let line = ''
                 for (let x = 0; x < gw; x++) {
-                    let v = Math.max(0, Math.min(1, get(x, y)))
+                    let v = Math.max(
+                        0,
+                        Math.min(1, get(x, y) * fadeF[y * gw + x]!)
+                    )
                     if (v < CUT) {
                         line += ' '
                         continue
@@ -742,9 +776,10 @@ export default function PhysarumBackground() {
 
         /* ── Overlay painting ────────────────────────────────────────
          * One canvas set per element, rastered from a shared scratch:
-         * every rect of the element composes its bands into the same
-         * local field (solid beats feather, blob beats white, feathers
-         * take the strongest ramp), then one pass paints the result.
+         * every rect of the element composes its HARD bands (blob and
+         * moat — the fade band is the glyph canvas's ramp) into the
+         * same local field, blob beating white, then one pass paints
+         * the result.
          * The local grid is anchored to the ELEMENT, so the shape is
          * scroll-invariant — the compositor carries the canvases with
          * the content, pixel-perfect at any speed, and this only
@@ -776,29 +811,26 @@ export default function PhysarumBackground() {
                     continue
                 /* grow the shared scratch to this overlay's grid */
                 const n = gw2 * gh2
-                if (sCls.length < n) {
-                    sCls = new Uint8Array(n)
-                    sF = new Float32Array(n)
-                }
+                if (sCls.length < n) sCls = new Uint8Array(n)
                 sCls.fill(0, 0, n)
-                sF.fill(1, 0, n)
                 /* compose every rect's bands into the scratch, each
                  * over its own bounded box — same pattern as the sim's
                  * updateMask, in the overlay's local cells */
                 const xoff = (oL * dpr) / CW /* local → document cells */
                 const yoff = (oT * dpr) / CH
                 for (const z of zones) {
+                    const oReach = z.reach - z.fade
                     const zx0 = ((z.docL - oL) * dpr) / CW
                     const zx1 = zx0 + (z.wpx * dpr) / CW
                     const zy0 = ((z.docT - oT) * dpr) / CH
                     const zy1 = zy0 + (z.hpx * dpr) / CH
-                    const bx0 = Math.max(0, Math.floor(zx0 - z.reach / z.kx))
+                    const bx0 = Math.max(0, Math.floor(zx0 - oReach / z.kx))
                     const bx1 = Math.min(
                         gw2 - 1,
-                        Math.ceil(zx1 + z.reach / z.kx)
+                        Math.ceil(zx1 + oReach / z.kx)
                     )
-                    const by0 = Math.max(0, Math.floor(zy0 - z.reach))
-                    const by1 = Math.min(gh2 - 1, Math.ceil(zy1 + z.reach))
+                    const by0 = Math.max(0, Math.floor(zy0 - oReach))
+                    const by1 = Math.min(gh2 - 1, Math.ceil(zy1 + oReach))
                     for (let y = by0; y <= by1; y++) {
                         const yc = y + 0.5
                         const dy =
@@ -829,16 +861,12 @@ export default function PhysarumBackground() {
                                 if (cls > sCls[i]!) sCls[i] = cls
                             } else if (d < off + z.buffer) {
                                 if (sCls[i]! < 1) sCls[i] = 1
-                            } else {
-                                const f = (d - off - z.buffer) / z.fade
-                                if (f < sF[i]!) sF[i] = f
                             }
                         }
                     }
                 }
                 /* size + place the canvases, then raster the scratch:
-                 * solid runs batched (+1px overlap, no seams), the
-                 * feather's per-cell alpha painted singly */
+                 * solid runs batched (+1px overlap, no seams) */
                 for (const c of [ent.lo, ent.hi]) {
                     if (!c) continue
                     if (c.width !== W || c.height !== H) {
@@ -870,7 +898,6 @@ export default function PhysarumBackground() {
                                         : CLOUD_FILL
                                     hi.fillRect(px, y * CH, wRun, CH + 1)
                                 } else {
-                                    lo.globalAlpha = 1
                                     lo.fillStyle = PAGE
                                     lo.fillRect(px, y * CH, wRun, CH + 1)
                                 }
@@ -878,17 +905,8 @@ export default function PhysarumBackground() {
                             runX = x
                             runCls = cls
                         }
-                        if (x < gw2 && cls === 0) {
-                            const f = sF[y * gw2 + x]!
-                            if (f < 1) {
-                                lo.globalAlpha = 1 - f
-                                lo.fillStyle = PAGE
-                                lo.fillRect(x * CW, y * CH, CW + 1, CH + 1)
-                            }
-                        }
                     }
                 }
-                lo.globalAlpha = 1
                 ent.rastered = true
             }
         }
@@ -1132,6 +1150,11 @@ export default function PhysarumBackground() {
              * the first tick after the scroll settles re-measures */
             if (!(coarse && tMs - settleT < SETTLE_MS)) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
+            /* touch pointers vanish rather than move away — let a tap's
+             * meal expire instead of feeding one cell forever */
+            if (coarse && pointer.active && tMs - pointerT > TOUCH_FOOD_MS) {
+                pointer.active = false
+            }
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
             drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
             paintOverlays(tMs / 1000)
@@ -1139,6 +1162,7 @@ export default function PhysarumBackground() {
         raf = requestAnimationFrame(loop)
 
         window.addEventListener('pointermove', onMove, { passive: true })
+        window.addEventListener('pointerdown', onMove, { passive: true })
         window.addEventListener('resize', resize)
 
         /* webfonts swap in after first paint — retire ink trims measured
@@ -1156,6 +1180,7 @@ export default function PhysarumBackground() {
             running = false
             cancelAnimationFrame(raf)
             window.removeEventListener('pointermove', onMove)
+            window.removeEventListener('pointerdown', onMove)
             window.removeEventListener('resize', resize)
             document.removeEventListener('visibilitychange', onVisibility)
             dropPool()
