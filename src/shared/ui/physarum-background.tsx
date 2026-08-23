@@ -3,29 +3,32 @@
 import { useEffect, useRef, useState } from 'react'
 
 /* ── PhysarumBackground ───────────────────────────────────────────────
- * Breathing black clouds and an ASCII slime-mold organism, painted on
- * a fixed, pointer-transparent canvas behind the page.
+ * Breathing black clouds and an ASCII slime-mold organism, inked onto
+ * the page itself.
  *
- * ROOTED ON THE PAGE. The whole world — trail field, blobs, breathing
- * noise, glyph grid — lives in DOCUMENT coordinates, not screen
- * coordinates. The canvas is only a viewport-sized window onto that
- * world, re-rendered each frame at the page's scroll offset (with a
- * sub-cell translate, so the field scrolls pixel-smooth WITH the
- * content). Two things follow by construction:
- *   · A blob has ONE silhouette that scrolls with its element — its
- *     shape is a function of document position, so scrolling can never
- *     re-cut it against a different patch of noise (the old screen-
- *     space sampling made cards flash and shape-shift as you
- *     scrolled).
+ * ONE GROUND. There is no foreground and background — the canvas is a
+ * single DOCUMENT-SIZED, absolutely-positioned element laid into the
+ * page under the content (z -10), and the whole world — trail field,
+ * blobs, breathing noise, glyph grid — lives in document coordinates
+ * on it. The compositor scrolls canvas and content together as one
+ * surface: scrolling involves NO JavaScript, no repaint, no chasing,
+ * and therefore no possible slip, lag, or tear between the organism
+ * and the content it grows around. Three things follow:
+ *   · A blob has ONE silhouette, part of its element's place on the
+ *     page — scrolling cannot re-cut it against a different patch of
+ *     noise (screen-space sampling once made cards flash and
+ *     shape-shift as you scrolled).
  *   · The colony is rooted: scroll away and back, and the mold you
- *     left is still there. Trails outside the active window freeze in
- *     place instead of being recomputed or dropped.
- * The SIM runs only in a window around the viewport (one viewport of
- * margin each way): agents that fall outside respawn inside, and the
- * diffusion pass touches only window rows — offscreen trails persist
- * untouched. Geometry (zones, wobble, mask, glyph noise) is all
- * document-anchored, so nothing needs recomputing during a scroll:
- * scroll frames are a pure re-render at the new offset.
+ *     left is still there, frozen as painted ink until the live
+ *     window returns to it.
+ *   · A fixed canvas needed lvh sizing, scroll-frame repaints and
+ *     latency prediction; a page canvas needs none of it.
+ * The SIM runs only in a window around the viewport (WIN_MARGIN
+ * viewports of margin): agents that fall outside respawn inside, the
+ * diffusion pass touches only window rows, and each tick repaints
+ * only the window's rows — everything else stays as valid frozen ink.
+ * The backing resolution adapts (AREA_MAX) so the one canvas always
+ * fits Safari's canvas-area ceiling, allocated once, never churned.
  *
  * Three concentric bands surround every [data-cloud] element, all cut
  * per tick from ONE distance field (updateMask):
@@ -73,11 +76,8 @@ import { useEffect, useRef, useState } from 'react'
  * PAINTED ANCHOR. .cloud-zone elements keep their painted black
  * rectangle even while the canvas runs: the blob always reaches at
  * least PAD beyond it, so at rest the eye only ever sees the blob's
- * curved edge — but the painted rectangle scrolls in perfect sync with
- * its text, while this canvas (repainting from a rAF) can trail the
- * compositor by a frame mid-scroll. White text is therefore never
- * caught on the white page, and the same rectangle is the whole
- * no-JS / reduced-motion fallback.
+ * curved edge. The rectangle bridges the first tick before the sheet
+ * is inked, and it is the whole no-JS / reduced-motion fallback.
  *
  * Reduced motion: no canvas at all — painted rectangles, no glyphs,
  * no animation. Hidden tabs consume no frames (visibilitychange). */
@@ -151,34 +151,14 @@ const FOOD = 2.5 /* trail deposited per cell under the cursor */
  * Fixed timestep. The sim advances STEPS_PER_TICK tuned steps per tick
  * (30Hz) — exactly 60 steps/s on EVERY display, so a 120Hz screen no
  * longer runs the organism at double speed and a struggling one only
- * slows gracefully. The canvas repaints on ticks (30fps — invisible
- * for a glyph-quantized render) plus at full display rate while the
- * page scrolls, so zones track smoothly; the idle frames in between
- * cost nothing. This roughly halves the sim's steady-state CPU. */
+ * slows gracefully. The live window re-inks on ticks (30fps —
+ * invisible for a glyph-quantized render); every other frame costs
+ * nothing, and scrolling costs nothing on ANY frame — the canvas is
+ * part of the page. */
 const TICK_MS = 1000 / 30
 const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
 const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
 const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
-
-/* ── Scroll prediction (coarse pointers) ─────────────────────────────
- * A fixed canvas rastered from rAF reaches the screen a frame or two
- * behind the compositor's scroll — at flick speeds, a 20–60px gap
- * between every blob and its element that no repaint cadence can
- * close. But iOS momentum is smooth and predictable, so the window is
- * rendered at the offset the page WILL occupy when this frame lands:
- * current scroll plus smoothed velocity times a lookahead matched to
- * the measured frame interval. During steady momentum the residual
- * error is a pixel or two; at flick reversals it spikes briefly but
- * stays inside PAD, where the painted anchors absorb it. Prediction
- * is clamped (a programmatic jump must not fling the field) and
- * decays to zero the moment scrolling settles, so the resting frame
- * is always exact. Coarse pointers only: wheel scrolling is stepped,
- * and predicting a step overshoots visibly. */
-const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
-const LOOKAHEAD_FRAMES = 1.4 /* frames of raster→screen latency to lead */
-const LOOKAHEAD_MAX_MS = 28 /* cap the lead when the frame rate dips */
-const PREDICT_MAX = 80 /* CSS px — max correction */
-const VEL_SMOOTH = 0.5 /* EMA weight on the newest velocity sample */
 
 /* ── Document grid ───────────────────────────────────────────────────
  * The field spans the whole page: gw columns (the page never scrolls
@@ -186,9 +166,15 @@ const VEL_SMOOTH = 0.5 /* EMA weight on the newest velocity sample */
  * pathological page height can't allocate unbounded arrays (~1MB of
  * Float32 at the cap; the homepage needs a few hundred rows). The sim
  * is ALIVE only inside a window of the viewport ± WIN_MARGIN
- * viewports; everything outside is frozen in place. */
+ * viewports; everything outside is frozen in place.
+ *
+ * AREA_MAX bounds the one canvas's backing pixels: Safari (iOS and
+ * macOS alike) refuses canvases past ~16.7M px². The render density
+ * is derived from it — a phone page fits at full density; a very wide
+ * or very long page softens slightly instead of failing. */
 const DOC_ROWS_MAX = 4096
-const WIN_MARGIN = 1 /* viewports of live-sim margin above and below */
+const WIN_MARGIN = 0.5 /* viewports of live-sim margin above and below */
+const AREA_MAX = 14_000_000 /* device px² — safely under Safari's limit */
 
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
@@ -320,8 +306,10 @@ export default function PhysarumBackground() {
         let raf = 0
         let running = true
 
-        const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
-        const CH = CELL_H * dpr /* cell height, device px */
+        /* render density: the device ratio, capped, then reduced if the
+         * document-sized canvas would exceed AREA_MAX — set in resize() */
+        let dprC = Math.min(window.devicePixelRatio || 1, DPR_CAP)
+        let CH = CELL_H * dprC /* cell height, device px */
         let CW = CH * 0.6 /* replaced by measured advance in resize() */
 
         let gw = 0 /* columns — the page never scrolls horizontally */
@@ -336,22 +324,21 @@ export default function PhysarumBackground() {
         let fadeF = new Float32Array(0) /* render attenuation outside buffer */
         const zoneRects: Zone[] = []
 
-        const docRows = () =>
-            Math.max(
-                gh,
-                Math.min(
-                    DOC_ROWS_MAX,
-                    Math.ceil(
-                        (document.documentElement.scrollHeight * dpr) / CH
-                    )
-                )
-            )
+        /* document height (CSS px) at the last resize — the loop's
+         * cheap per-tick growth check */
+        let lastDocCssH = 0
         const updateWindow = () => {
+            /* INTEGER rows only — a fractional bound would index off
+             * every array (typed arrays silently drop non-integer
+             * writes and read undefined) */
             winTop = Math.max(
                 0,
-                Math.floor((window.scrollY * dpr) / CH) - gh * WIN_MARGIN
+                Math.floor((window.scrollY * dprC) / CH - gh * WIN_MARGIN)
             )
-            winBot = Math.min(dh, winTop + gh * (1 + 2 * WIN_MARGIN))
+            winBot = Math.min(
+                dh,
+                winTop + Math.ceil(gh * (1 + 2 * WIN_MARGIN))
+            )
             winTop = Math.max(0, Math.min(winTop, winBot - 1))
         }
 
@@ -421,13 +408,6 @@ export default function PhysarumBackground() {
          * client-side navigations (stale nodes measure 0×0 and are
          * skipped). The canvas is fixed at inset 0, so client
          * coordinates ARE canvas coordinates. */
-        /* mid-scroll prediction offset, CSS px — where the page will
-         * be when the current frame reaches the screen (see the Scroll
-         * prediction note by the tunables). Zero at rest. Zones and
-         * field are document-anchored, so prediction touches ONLY the
-         * render offset in drawField — nothing else moves. */
-        let predY = 0
-
         const measureZones = () => {
             zoneRects.length = 0
             const sx = window.scrollX
@@ -466,15 +446,15 @@ export default function PhysarumBackground() {
                      * dimension — big blobs get big lobes, a single
                      * text line stays modest */
                     const minDim = Math.min(
-                        (r.width * dpr) / CW,
-                        (r.height * dpr) / CH
+                        (r.width * dprC) / CW,
+                        (r.height * dprC) / CH
                     )
                     zoneRects.push({
                         /* DOCUMENT cells — stable across any scroll */
-                        x0: ((r.left + sx) * dpr) / CW,
-                        x1: ((r.right + sx) * dpr) / CW,
-                        y0: ((r.top + sy) * dpr) / CH,
-                        y1: ((r.bottom + sy) * dpr) / CH,
+                        x0: ((r.left + sx) * dprC) / CW,
+                        x1: ((r.right + sx) * dprC) / CW,
+                        y0: ((r.top + sy) * dprC) / CH,
+                        y1: ((r.bottom + sy) * dprC) / CH,
                         /* per ELEMENT, so one zone's lines breathe as one */
                         phase: k * 2.39,
                         wob:
@@ -497,21 +477,29 @@ export default function PhysarumBackground() {
         }
 
         const resize = () => {
-            const w = Math.floor(canvas.clientWidth * dpr)
-            const h = Math.floor(canvas.clientHeight * dpr)
-            /* iOS fires resize as its URL bar settles; the canvas is
-             * sized in lvh so its box hasn't actually changed — bail
-             * before reallocating anything. The document can still
-             * GROW (images, fonts), so the row count is checked too. */
-            if (
-                w === canvas.width &&
-                h === canvas.height &&
-                gw > 0 &&
-                docRows() === dh
+            const cssW = document.documentElement.clientWidth
+            const cssH = document.documentElement.scrollHeight
+            /* density: device ratio, capped, reduced until the one
+             * document-sized canvas fits Safari's area ceiling */
+            const cand = Math.min(
+                window.devicePixelRatio || 1,
+                DPR_CAP,
+                Math.sqrt(AREA_MAX / Math.max(1, cssW * cssH))
             )
-                return
+            const w = Math.floor(cssW * cand)
+            const h = Math.floor(cssH * cand)
+            /* iOS fires resize as its URL bar settles; neither the page
+             * width nor the document height changed — bail before
+             * touching anything. Document growth (images, fonts) lands
+             * here too, via the per-tick height check in the loop. */
+            if (w === canvas.width && h === canvas.height && gw > 0) return
+            dprC = cand
+            CH = CELL_H * dprC
             canvas.width = w
             canvas.height = h
+            canvas.style.width = `${cssW}px`
+            canvas.style.height = `${cssH}px`
+            lastDocCssH = cssH
             ctx.font = `${CH * 0.9}px ui-monospace, Menlo, monospace`
             ctx.textBaseline = 'top'
             CW = ctx.measureText('M').width /* measured, never assumed */
@@ -521,8 +509,11 @@ export default function PhysarumBackground() {
             /* ceil: the cell grid covers the full canvas, so a blob can
              * reach the right and bottom edges without a flat clip */
             gw = Math.max(4, Math.ceil(canvas.width / CW))
-            gh = Math.max(4, Math.ceil(canvas.height / CH))
-            dh = docRows()
+            gh = Math.max(
+                4,
+                Math.ceil((window.innerHeight * dprC) / CH)
+            )
+            dh = Math.max(gh, Math.min(DOC_ROWS_MAX, Math.ceil(h / CH)))
             cloudM = new Uint8Array(gw * dh)
             mask = new Uint8Array(gw * dh)
             fadeF = new Float32Array(gw * dh)
@@ -530,6 +521,10 @@ export default function PhysarumBackground() {
             updateWindow()
             remap(oldGw, oldDh) /* the colony survives the new grid */
             measureZones()
+            /* ink the whole sheet once — bands and field for EVERY row;
+             * ticks maintain only the live window from here on */
+            updateMask(performance.now() / 1000, 0, dh)
+            paintRows(0, dh)
         }
 
         /* Rebuilt every TICK, window rows only — everything breathes
@@ -540,10 +535,10 @@ export default function PhysarumBackground() {
          * it against a different patch of noise. Rows outside the
          * window keep their last state: the frozen colony's bands
          * simply stop breathing offscreen. */
-        const updateMask = (t: number) => {
-            cloudM.fill(0, winTop * gw, winBot * gw)
-            mask.fill(0, winTop * gw, winBot * gw)
-            fadeF.fill(1, winTop * gw, winBot * gw)
+        const updateMask = (t: number, top = winTop, bot = winBot) => {
+            cloudM.fill(0, top * gw, bot * gw)
+            mask.fill(0, top * gw, bot * gw)
+            fadeF.fill(1, top * gw, bot * gw)
             for (const z of zoneRects) {
                 const zx0 = z.x0
                 const zx1 = z.x1
@@ -561,8 +556,8 @@ export default function PhysarumBackground() {
                 const reach = z.pad + z.wob * CREST + z.buffer + z.fade + 1
                 const bx0 = Math.max(0, Math.floor(zx0 - reach / kx))
                 const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach / kx))
-                const by0 = Math.max(winTop, Math.floor(zy0 - reach))
-                const by1 = Math.min(winBot - 1, Math.ceil(zy1 + reach))
+                const by0 = Math.max(top, Math.floor(zy0 - reach))
+                const by1 = Math.min(bot - 1, Math.ceil(zy1 + reach))
                 for (let y = by0; y <= by1; y++) {
                     /* distances from the CELL CENTER — measuring from the
                      * top-left corner would bias every blob one cell down
@@ -655,26 +650,19 @@ export default function PhysarumBackground() {
             return h - Math.floor(h)
         }
 
-        const drawField = (get: (x: number, y: number) => number) => {
+        const paintRows = (y0: number, y1: number) => {
             /* transparent canvas: the page's own white shows wherever
-             * nothing is painted. The render is a WINDOW into the
-             * document-anchored field: rows are read at the (predicted)
-             * scroll offset and the whole frame is translated by the
-             * sub-cell remainder, so the field scrolls pixel-smooth
-             * WITH the page — glyphs, blobs and noise are all rooted. */
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            const scDev = (window.scrollY + predY) * dpr
-            const row0 = Math.max(0, Math.floor(scDev / CH))
-            const frac = scDev - row0 * CH /* negative in rubber-band */
-            ctx.save()
-            ctx.translate(0, -frac)
-            /* one extra row: the fractional shift exposes a sliver of
-             * the row below the window's last full cell */
-            const rows = Math.min(gh + 1, dh - row0)
+             * nothing is painted. Rows are inked at their ABSOLUTE
+             * document positions — the canvas IS the page, so there is
+             * no scroll offset, no translate, nothing to chase. Rows
+             * outside [y0, y1) keep their existing ink. */
+            const top = Math.max(0, y0)
+            const bot = Math.min(dh, y1)
+            if (bot <= top) return
+            ctx.clearRect(0, top * CH, canvas.width, (bot - top) * CH)
             /* cloud pass: solid cells, row runs batched into single
              * rects (+1px overlap so no seams), colored per run */
-            for (let ry = 0; ry < rows; ry++) {
-                const y = row0 + ry
+            for (let y = top; y < bot; y++) {
                 for (let x = 0; x < gw; x++) {
                     const v = cloudM[y * gw + x]
                     if (!v) continue
@@ -684,7 +672,7 @@ export default function PhysarumBackground() {
                     let xEnd = x
                     while (xEnd < gw && cloudM[y * gw + xEnd] === v) xEnd++
                     ctx.fillStyle = v === 2 ? CLOUD_HOT : CLOUD_FILL
-                    ctx.fillRect(x * CW, ry * CH, (xEnd - x) * CW + 1, CH + 1)
+                    ctx.fillRect(x * CW, y * CH, (xEnd - x) * CW + 1, CH + 1)
                     x = xEnd - 1
                 }
             }
@@ -692,13 +680,16 @@ export default function PhysarumBackground() {
              * blank through the same path; mold density feathers up
              * across FADE */
             ctx.fillStyle = INK
-            for (let ry = 0; ry < rows; ry++) {
-                const y = row0 + ry
+            for (let y = top; y < bot; y++) {
                 let line = ''
                 for (let x = 0; x < gw; x++) {
                     let v = Math.max(
                         0,
-                        Math.min(1, get(x, y) * fadeF[y * gw + x]!)
+                        Math.min(
+                            1,
+                            (trail[y * gw + x]! / RENDER_DIV) *
+                                fadeF[y * gw + x]!
+                        )
                     )
                     if (v < CUT) {
                         line += ' '
@@ -714,9 +705,8 @@ export default function PhysarumBackground() {
                             )
                         ]!
                 }
-                ctx.fillText(line, 0, ry * CH)
+                ctx.fillText(line, 0, y * CH)
             }
-            ctx.restore()
         }
 
         /* spawn helper: never place an agent inside cloud or buffer —
@@ -834,9 +824,9 @@ export default function PhysarumBackground() {
         const step = () => {
             if (pointer.active) {
                 /* the cursor's DOCUMENT cell, right now */
-                const px = Math.floor((pointer.cx * dpr) / CW)
+                const px = Math.floor((pointer.cx * dprC) / CW)
                 const py = Math.floor(
-                    ((pointer.cy + window.scrollY) * dpr) / CH
+                    ((pointer.cy + window.scrollY) * dprC) / CH
                 )
                 if (
                     px >= 0 &&
@@ -954,71 +944,35 @@ export default function PhysarumBackground() {
         }
 
         /* fixed-timestep loop — see the Cadence note by the tunables.
-         * Scroll frames repaint on EVERY device (cheap: updateMask +
-         * drawField over cached zone geometry, no sim steps, and on
-         * coarse pointers no DOM reads until the scroll settles), and
-         * on coarse pointers the zones are painted at the PREDICTED
-         * scroll position — see the Scroll prediction note. */
-        const coarse = window.matchMedia('(pointer: coarse)').matches
+         * Scrolling never enters this loop: the canvas is part of the
+         * page and the compositor moves it with the content. Ticks
+         * advance the sim and re-ink the live window's rows; every
+         * other frame costs nothing at all. */
         let acc = 0
         let lastT = 0
-        let lastSY = -1
-        let lastScrollT = -Infinity /* time of the last observed move */
-        let vY = 0 /* smoothed scroll velocity, CSS px per ms */
 
         const loop = (tMs: number) => {
             if (!running) return
             raf = requestAnimationFrame(loop)
 
-            const dt = lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
-            acc += dt
+            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
             lastT = tMs
-
-            const sy = window.scrollY
-            const scrolled = sy !== lastSY
-            if (scrolled) {
-                /* velocity over the span since the last observed move,
-                 * EMA-smoothed — one noisy sample can't kick the field */
-                const span = tMs - lastScrollT
-                if (lastSY >= 0 && span > 0 && span < DT_CLAMP) {
-                    vY += ((sy - lastSY) / span - vY) * VEL_SMOOTH
-                }
-                lastScrollT = tMs
-                lastSY = sy
-            }
-            /* momentum can coast through a frame without moving a full
-             * pixel — treat the scroll as live for a beat past the
-             * last observed move */
-            const scrolling = tMs - lastScrollT < SETTLE_MS
-            if (!scrolling) vY = 0
-            if (coarse && scrolling) {
-                const la = Math.min(dt * LOOKAHEAD_FRAMES, LOOKAHEAD_MAX_MS)
-                predY = Math.max(-PREDICT_MAX, Math.min(PREDICT_MAX, vY * la))
-            } else {
-                predY = 0
-            }
-
-            if (acc < TICK_MS && !scrolled) return /* idle frame: free */
+            if (acc < TICK_MS) return /* idle frame: free */
 
             let ticks = Math.floor(acc / TICK_MS)
             acc -= ticks * TICK_MS
             ticks = Math.min(ticks, MAX_TICKS)
 
-            /* the world is document-anchored, so scroll-only frames are
-             * a pure re-render at the new offset — sim, mask and zone
-             * geometry advance on ticks alone. Mid-scroll ticks on
-             * coarse pointers also skip the DOM re-measure (Safari's
-             * Range machinery is the one genuinely expensive piece;
-             * document coordinates don't change with scroll, so the
-             * cached zones stay exact until layout actually changes). */
-            if (ticks > 0) {
-                if (docRows() !== dh) resize() /* images/fonts landed */
-                updateWindow()
-                if (!(coarse && scrolling)) measureZones()
-                updateMask(tMs / 1000) /* everything breathes together */
-                for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
+            /* the document can grow under us (images, fonts) — cheap
+             * height compare, full re-sheet only when it actually did */
+            if (document.documentElement.scrollHeight !== lastDocCssH) {
+                resize()
             }
-            drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
+            updateWindow()
+            measureZones()
+            updateMask(tMs / 1000) /* everything breathes together */
+            for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
+            paintRows(winTop, winBot)
         }
         raf = requestAnimationFrame(loop)
 
@@ -1050,15 +1004,16 @@ export default function PhysarumBackground() {
     if (reduced) return null
 
     return (
-        /* 100lvh (large-viewport height): the canvas keeps one stable
-         * size while mobile browser chrome collapses and expands —
-         * no mid-scroll stretching, no resize storms. h-full is the
-         * fallback where lvh isn't supported. */
+        /* Absolutely positioned at the document origin (body isn't
+         * positioned, so the containing block is the initial one) and
+         * sized to the full document by resize() — the canvas is part
+         * of the page, and the compositor scrolls it with the content.
+         * The base stylesheet's responsive canvas{max-width:100%} is
+         * satisfied trivially: the canvas is exactly the page's width. */
         <canvas
             ref={canvasRef}
             aria-hidden='true'
-            className='pointer-events-none fixed left-0 top-0 -z-10 h-full w-full'
-            style={{ height: '100lvh' }}
+            className='pointer-events-none absolute left-0 top-0 -z-10'
         />
     )
 }
