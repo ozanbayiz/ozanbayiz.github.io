@@ -3,31 +3,11 @@
 import { useEffect, useRef, useState } from 'react'
 
 /* ── PhysarumBackground ───────────────────────────────────────────────
- * Breathing black clouds and an ASCII slime-mold organism behind the
- * page, split across two kinds of surface so nothing tears during a
- * scroll:
+ * Breathing black clouds and an ASCII slime-mold organism, painted on
+ * a fixed, pointer-transparent canvas behind the page.
  *
- *   · The GLYPH FIELD (the mold) lives on a fixed, pointer-transparent
- *     canvas behind everything. It is a pure viewport-anchored
- *     backdrop — it tracks no content, so no scroll can misalign it,
- *     and it repaints on 30Hz ticks only, scrolling or not.
- *   · The HARD BANDS around every [data-cloud] element — blob and
- *     moat — live on ONE small canvas set per element, parked in two
- *     DOCUMENT-anchored overlay layers (whites at z -6, blobs at
- *     z -4, both under the content). The soft FADE band stays on the
- *     glyph canvas as the density ramp: the colony's edge is the
- *     mold's own reaction to the content, and its softness lets a
- *     tick of scroll lag read as drift rather than tearing. The compositor scrolls them WITH
- *     their content, so a blob is glued to its card at any flick
- *     speed. A fixed canvas rastered from rAF lands a frame or two
- *     behind a compositor-driven scroll — 20–60px at iOS flick speeds,
- *     an offset no repaint cadence can close; anchoring the bands to
- *     the document removes the chase entirely. Whites sit below blobs
- *     so one card's feather can never wash a neighbor's blob edge.
- *
- * Three concentric bands surround every [data-cloud] element, cut per
- * tick from ONE distance field per zone (paintOverlays; updateMask
- * cuts the same bands on the viewport grid for the sim):
+ * Three concentric bands surround every [data-cloud] element, all cut
+ * per frame from ONE distance field (updateMask):
  *
  *   1. CLOUD  (d < off)                 solid black blob; the element's
  *      white text rides it. off = PAD + wobble, an eccentric cumulus
@@ -36,26 +16,22 @@ import { useEffect, useRef, useState } from 'react'
  *      snug with occasional puffs (LOBE_BIAS), billowing at the crest
  *      and calm at the keel (CREST/FLANK/KEEL). Corners round by
  *      construction.
- *   2. BUFFER (off <= d < off+BUFFER)   clean page — painted page-
- *      white over the glyph field, no agents. The moat that keeps the
- *      mold and the cloud from ever touching.
+ *   2. BUFFER (off <= d < off+BUFFER)   clean page — no paint, no
+ *      glyphs, no agents. The moat that keeps the mold and the cloud
+ *      from ever touching.
  *   3. FADE   (the next FADE cells)     mold territory begins; rendered
- *      trail density is multiplied by a 0→1 ramp across the band
- *      (fadeF, on the glyph canvas), so the colony's edge dissolves
- *      through the glyph ramp instead of cutting off — the organism
- *      visibly reacting to the content. Render-only — the sim still
- *      sees a hard wall at the buffer's outer edge.
+ *      trail density is multiplied by a 0→1 ramp across the band, so
+ *      the colony's edge dissolves through the glyph ramp instead of
+ *      cutting off. Render-only — the sim still sees a hard wall at
+ *      the buffer's outer edge.
  *
  * The organism is a classic Physarum sim — agents that sense, turn,
  * deposit; a trail field that diffuses and decays — drawn as ASCII
  * glyphs, fuchsia on the white page: color means alive, black-and-
- * white means content. The pointer is food: tracked with window-level
- * pointermove AND pointerdown (the canvas has pointer-events none and
- * NEVER receives events), translated into grid cells with the MEASURED
- * character advance — never a hardcoded width ratio. On touch screens
- * a tap drops food where the finger lands (touches vanish rather than
- * move away, so the meal expires after TOUCH_FOOD_MS instead of
- * feeding one cell forever) — the colony swarms toward a touch. The exclusion senses as
+ * white means content. The cursor is food: tracked with a window-level
+ * pointermove (the canvas has pointer-events none and NEVER receives
+ * events), translated into grid cells with the MEASURED character
+ * advance — never a hardcoded width ratio. The exclusion senses as
  * NEUTRAL (0, not negative), which is what makes the colony accrete
  * along the moat's outer rim instead of keeping a standoff distance;
  * agents swallowed by a breathing (or scrolling) boundary are pushed
@@ -74,11 +50,12 @@ import { useEffect, useRef, useState } from 'react'
  * flips via CSS in the same frame (see globals.css).
  *
  * PAINTED ANCHOR. .cloud-zone elements keep their painted black
- * rectangle even while the overlays run: the blob always reaches at
+ * rectangle even while the canvas runs: the blob always reaches at
  * least PAD beyond it, so at rest the eye only ever sees the blob's
- * curved edge. The rectangle covers the blob's interior from the
- * content layer, flips fuchsia in the same frame as the CSS hover
- * (the blob ring follows on the next tick), and is the whole
+ * curved edge — but the painted rectangle scrolls in perfect sync with
+ * its text, while this canvas (repainting from a rAF) can trail the
+ * compositor by a frame mid-scroll. White text is therefore never
+ * caught on the white page, and the same rectangle is the whole
  * no-JS / reduced-motion fallback.
  *
  * Reduced motion: no canvas at all — painted rectangles, no glyphs,
@@ -148,17 +125,25 @@ const TRAIL_MAX = 8
 const SAT = 3.5 /* preference peaks here, falls off above */
 const TURNOVER = 0.004 /* fraction of agents respawned per frame */
 const FOOD = 2.5 /* trail deposited per cell under the cursor */
-const TOUCH_FOOD_MS = 900 /* a touch's meal expires after this long */
 
 /* ── Cadence ─────────────────────────────────────────────────────────
  * Fixed timestep. The sim advances STEPS_PER_TICK tuned steps per tick
  * (30Hz) — exactly 60 steps/s on EVERY display, so a 120Hz screen no
  * longer runs the organism at double speed and a struggling one only
- * slows gracefully. Everything repaints on ticks (30fps — invisible
- * for a glyph-quantized render, and the right tempo for breathing);
- * every other frame costs nothing. Scrolling needs no frames at all:
- * the fixed canvas is a pure backdrop and the overlays ride the page
- * on the compositor, so there is nothing to keep in sync. */
+ * slows gracefully. The canvas repaints on ticks (30fps — invisible
+ * for a glyph-quantized render) plus at full display rate while the
+ * page scrolls, so zones track smoothly; the idle frames in between
+ * cost nothing. This roughly halves the sim's steady-state CPU.
+ *
+ * Scroll frames repaint on EVERY device, touch included: this canvas
+ * is fixed, so each blob is glued to its element only by repainting at
+ * the new scroll offset — at 30Hz a flick leaves every blob trailing
+ * its anchor rectangle by 30–150px, snapping forward in visible steps
+ * (the painted anchors save the TEXT, not the blob edges). A scroll
+ * frame is also the cheap kind of frame — updateMask + drawField over
+ * cached zone geometry, no sim steps, and (on coarse pointers) no DOM
+ * reads at all until the scroll settles, since Safari's Range
+ * measurement is the one genuinely expensive piece. */
 const TICK_MS = 1000 / 30
 const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
 const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
@@ -168,7 +153,6 @@ const SETTLE_MS = 150 /* a scroll is "over" this long after the last move */
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
 const CUT = 0.06 /* below this, cells render as true whitespace */
-const OVERLAY_MAX_CELLS = 600 /* per-axis cap on one overlay's grid */
 
 /* palette — color means alive; black-and-white means content */
 const INK = 'rgba(255, 0, 204, 0.9)' /* fuchsia mold on the white page */
@@ -180,7 +164,6 @@ const CLOUD_FILL = '#000000' /* clouds are black; text on them is white */
 const CLOUD_HOT = '#ff00cc'
 
 type Zone = {
-    /* rect in viewport grid cells at measure time — the sim's mask */
     x0: number
     x1: number
     y0: number
@@ -192,47 +175,7 @@ type Zone = {
     fade: number
     paint: boolean
     hot: boolean
-    /* overlay geometry — CSS px, DOCUMENT coordinates */
-    docL: number
-    docT: number
-    wpx: number
-    hpx: number
-    kx: number /* horizontal cell distance → row units (1 if painted) */
-    reach: number /* outermost band radius, row units */
 }
-
-/* One overlay (a lo canvas, plus hi for painted zones) per [data-cloud]
- * ELEMENT — not per rect: a dead zone's dozens of line rects share one
- * canvas, keeping canvas memory and compositor layer count at "a few
- * per section" instead of hundreds of slivers (which is what iOS
- * Safari's memory watchdog kills pages over). */
-type Overlay = {
-    lo: HTMLCanvasElement /* whites: moat + feather */
-    loCtx: CanvasRenderingContext2D | null
-    hi: HTMLCanvasElement | null /* the blob — painted zones only */
-    hiCtx: CanvasRenderingContext2D | null
-    rastered: boolean /* painted at least once — only then may it cull */
-}
-
-/* an element's overlay paint job, rebuilt by each measure */
-type OverlayJob = {
-    ent: Overlay
-    zones: Zone[] /* this element's rects */
-    oL: number /* canvas origin, CSS px, DOCUMENT coords */
-    oT: number
-    gw2: number /* canvas grid, cells */
-    gh2: number
-}
-
-/* The breathing noise, sampled in DOCUMENT cells: three octaves of
- * drifting sine, diagonal wave directions so every edge orientation
- * undulates — swell, wave, ripple. Shared verbatim by the sim's mask
- * (updateMask) and the visual overlays (paintOverlays), so the two
- * cuts of the field breathe as one. */
-const wobble = (x: number, y: number, t: number, phase: number) =>
-    Math.sin(x * 0.12 + y * 0.1 + t * WOB_SPEED * 0.55 + phase) * 0.6 +
-    Math.sin(x * 0.27 - y * 0.22 - t * WOB_SPEED * 0.45 + phase * 1.7) * 0.25 +
-    Math.sin(x * 0.55 + y * 0.8 + t * WOB_SPEED * 1.2 + phase * 2.3) * 0.15
 
 /* attribute override in cells, else the given default */
 const cellAttr = (el: Element, name: string, fallback: number) => {
@@ -319,8 +262,6 @@ const runsOf = (node: Text): [number, number][] => {
 
 export default function PhysarumBackground() {
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
-    const overLoRef = useRef<HTMLDivElement | null>(null)
-    const overHiRef = useRef<HTMLDivElement | null>(null)
     const [reduced, setReduced] = useState(false)
 
     useEffect(() => {
@@ -333,9 +274,7 @@ export default function PhysarumBackground() {
 
     useEffect(() => {
         const canvas = canvasRef.current
-        const overLo = overLoRef.current
-        const overHi = overHiRef.current
-        if (!canvas || !overLo || !overHi || reduced) return
+        if (!canvas || reduced) return
         const ctx = canvas.getContext('2d')
         if (!ctx) return
         let raf = 0
@@ -347,26 +286,10 @@ export default function PhysarumBackground() {
 
         let gw = 0
         let gh = 0
+        let cloudM = new Uint8Array(0) /* 0 none, 1 black cloud, 2 hot cloud */
         let mask = new Uint8Array(0) /* 1 = sim exclusion (cloud + buffer) */
-        let fadeF = new Float32Array(0) /* glyph ramp near zones (render) */
+        let fadeF = new Float32Array(0) /* render attenuation outside buffer */
         const zoneRects: Zone[] = []
-
-        /* per-ELEMENT overlay canvases, reused across ticks — created
-         * on first measure, swept when the element disappears
-         * (client-side navigation) */
-        const pool = new Map<number, Overlay>()
-        const jobs: OverlayJob[] = []
-        const dropPool = () => {
-            for (const ent of pool.values()) {
-                ent.lo.remove()
-                ent.hi?.remove()
-            }
-            pool.clear()
-            jobs.length = 0
-        }
-        /* shared band-composition scratch, grown to the largest overlay
-         * once — no per-tick allocation */
-        let sCls = new Uint8Array(0) /* 0 none, 1 white, 2 blob */
 
         /* One reusable Range for text measurement — no per-frame allocs */
         const range = document.createRange()
@@ -428,11 +351,12 @@ export default function PhysarumBackground() {
             node.childNodes.forEach(child => contentRects(child, out))
         }
 
-        /* Re-measured each TICK, inside the same rAF that draws: layout
+        /* Re-measured EVERY FRAME, inside the same rAF that draws: layout
          * is clean by then, so the reads are cheap and the zones track
-         * layout changes and client-side navigations (stale nodes
-         * measure 0×0 and are skipped). The canvas is fixed at inset 0,
-         * so client coordinates ARE canvas coordinates. */
+         * their elements with zero lag — even mid-scroll, and across
+         * client-side navigations (stale nodes measure 0×0 and are
+         * skipped). The canvas is fixed at inset 0, so client
+         * coordinates ARE canvas coordinates. */
         /* scroll position at the last measurement — between measures,
          * updateMask translates the cached zones by the scroll delta
          * instead of re-reading the DOM (Safari's Range machinery is
@@ -440,17 +364,10 @@ export default function PhysarumBackground() {
         let mzX = 0
         let mzY = 0
 
-        /* real hover only — touch browsers synthesize :hover from taps,
-         * which would ignite blobs mid-touch (globals.css gates the
-         * painted anchor identically; the two must stay in lockstep) */
-        const hoverable = window.matchMedia('(hover: hover)').matches
-
         const measureZones = () => {
             zoneRects.length = 0
-            jobs.length = 0
             mzX = window.scrollX
             mzY = window.scrollY
-            const used = new Set<number>()
             document.querySelectorAll('[data-cloud]').forEach((el, k) => {
                 const paint = el.getAttribute('data-cloud') !== 'dead'
                 const pad = cellAttr(
@@ -470,16 +387,13 @@ export default function PhysarumBackground() {
                 /* per-frame hover/focus state — no listeners needed */
                 const hot =
                     el.hasAttribute('data-cloud-hover') &&
-                    el.matches(
-                        hoverable ? ':hover, :focus-visible' : ':focus-visible'
-                    )
+                    el.matches(':hover, :focus-visible')
                 /* painted clouds need their whole block — the blob must
                  * cover the painted .cloud-zone anchor. Dead zones hug
                  * their content instead. */
                 const rects: Box[] = []
                 if (paint) rects.push(el.getBoundingClientRect())
                 else contentRects(el, rects)
-                const zs: Zone[] = []
                 for (const r of rects) {
                     /* skip degenerate boxes: stale nodes, sr-only text */
                     if (r.width < 2 || r.height < 2) continue
@@ -491,117 +405,30 @@ export default function PhysarumBackground() {
                         (r.width * dpr) / CW,
                         (r.height * dpr) / CH
                     )
-                    const wob =
-                        wobOverride ??
-                        Math.min(
-                            WOB_MAX,
-                            Math.max(
-                                paint ? WOB_MIN : DEAD_WOB_MIN,
-                                minDim * WOB_SCALE
-                            )
-                        )
-                    const fade = paint ? FADE : DEAD_FADE
-                    zs.push({
+                    zoneRects.push({
                         x0: (r.left * dpr) / CW,
                         x1: (r.right * dpr) / CW,
                         y0: (r.top * dpr) / CH,
                         y1: (r.bottom * dpr) / CH,
                         /* per ELEMENT, so one zone's lines breathe as one */
                         phase: k * 2.39,
-                        wob,
+                        wob:
+                            wobOverride ??
+                            Math.min(
+                                WOB_MAX,
+                                Math.max(
+                                    paint ? WOB_MIN : DEAD_WOB_MIN,
+                                    minDim * WOB_SCALE
+                                )
+                            ),
                         pad,
                         buffer,
-                        fade,
+                        fade: paint ? FADE : DEAD_FADE,
                         paint,
-                        hot,
-                        docL: r.left + window.scrollX,
-                        docT: r.top + window.scrollY,
-                        wpx: r.width,
-                        hpx: r.height,
-                        kx: paint ? 1 : CW / CH,
-                        reach: pad + wob * CREST + buffer + fade + 1
+                        hot
                     })
                 }
-                if (!zs.length) return
-                zoneRects.push(...zs)
-                /* ONE overlay per element: the union bbox of its rects
-                 * plus the widest pads any rect needs */
-                let bL = Infinity
-                let bT = Infinity
-                let bR = -Infinity
-                let bB = -Infinity
-                let padXc = 0
-                let padYc = 0
-                for (const z of zs) {
-                    bL = Math.min(bL, z.docL)
-                    bT = Math.min(bT, z.docT)
-                    bR = Math.max(bR, z.docL + z.wpx)
-                    bB = Math.max(bB, z.docT + z.hpx)
-                    /* overlays carry only the HARD bands — the fade
-                     * band (z.fade) lives on the glyph canvas */
-                    const oReach = z.reach - z.fade
-                    padXc = Math.max(padXc, Math.ceil(oReach / z.kx) + 1)
-                    padYc = Math.max(padYc, Math.ceil(oReach) + 1)
-                }
-                let ent = pool.get(k)
-                if (!ent || (ent.hi !== null) !== paint) {
-                    ent?.lo.remove()
-                    ent?.hi?.remove()
-                    /* maxWidth: the base stylesheet's responsive
-                     * `canvas { max-width: 100% }` resolves against the
-                     * zero-width overlay shell and would clamp these to
-                     * nothing */
-                    const mk = () => {
-                        const c = document.createElement('canvas')
-                        c.style.position = 'absolute'
-                        c.style.maxWidth = 'none'
-                        return c
-                    }
-                    const lo = mk()
-                    overLo.appendChild(lo)
-                    let hi: HTMLCanvasElement | null = null
-                    if (paint) {
-                        hi = mk()
-                        overHi.appendChild(hi)
-                    }
-                    ent = {
-                        lo,
-                        loCtx: lo.getContext('2d'),
-                        hi,
-                        hiCtx: hi ? hi.getContext('2d') : null,
-                        rastered: false
-                    }
-                    pool.set(k, ent)
-                }
-                used.add(k)
-                /* OVERLAY_MAX_CELLS: a runaway element (a data-cloud on
-                 * something page-sized) must not allocate an unbounded
-                 * canvas — clamp; the blob clips rather than the page
-                 * dying on canvas memory */
-                jobs.push({
-                    ent,
-                    zones: zs,
-                    oL: bL - (padXc * CW) / dpr,
-                    oT: bT - (padYc * CH) / dpr,
-                    gw2: Math.min(
-                        OVERLAY_MAX_CELLS,
-                        Math.ceil(((bR - bL) * dpr) / CW) + padXc * 2
-                    ),
-                    gh2: Math.min(
-                        OVERLAY_MAX_CELLS,
-                        Math.ceil(((bB - bT) * dpr) / CH) + padYc * 2
-                    )
-                })
             })
-            /* sweep canvases whose element is gone (navigation, unmount
-             * of a card) — stale nodes measure 0×0 and land here too */
-            for (const [key, ent] of pool) {
-                if (!used.has(key)) {
-                    ent.lo.remove()
-                    ent.hi?.remove()
-                    pool.delete(key)
-                }
-            }
         }
 
         const resize = () => {
@@ -623,34 +450,25 @@ export default function PhysarumBackground() {
              * reach the right and bottom edges without a flat clip */
             gw = Math.max(4, Math.ceil(canvas.width / CW))
             gh = Math.max(4, Math.ceil(canvas.height / CH))
+            cloudM = new Uint8Array(gw * gh)
             mask = new Uint8Array(gw * gh)
             fadeF = new Float32Array(gw * gh)
             pointer.active = false /* grid changed; wait for the next move */
             remap(oldGw, oldGh) /* the colony survives the new grid */
-            dropPool() /* cell metrics may have changed; re-raster fresh */
             measureZones()
-            /* raster the fresh overlays in THIS frame — waiting for the
-             * next tick would blank every blob for up to 33ms after a
-             * rotation (paintOverlays is declared below, but resize()
-             * only ever runs after full effect setup) */
-            paintOverlays(performance.now() / 1000)
         }
 
-        /* Rebuilt every tick — the SIM's view of the bands, cut on the
-         * viewport grid. Visuals are the overlays' job (paintOverlays
-         * cuts the same field per zone); this mask only steers agents,
-         * so a tick of staleness during a scroll is invisible. */
+        /* Rebuilt EVERY FRAME — everything breathes together. One
+         * distance computation per cell feeds all three bands: cloud,
+         * buffer, fade. */
         const updateMask = (t: number) => {
+            cloudM.fill(0)
             mask.fill(0)
             fadeF.fill(1)
             /* zones were measured at (mzX, mzY); shift them by however
              * far the page has scrolled since — DOM-free tracking */
             const shX = ((mzX - window.scrollX) * dpr) / CW
             const shY = ((mzY - window.scrollY) * dpr) / CH
-            /* sample the wobble in DOCUMENT cells, like the overlays
-             * do — the two cuts of the field must breathe as one */
-            const sox = (window.scrollX * dpr) / CW
-            const soy = (window.scrollY * dpr) / CH
             for (const z of zoneRects) {
                 const zx0 = z.x0 + shX
                 const zx1 = z.x1 + shX
@@ -664,11 +482,12 @@ export default function PhysarumBackground() {
                  * and below. kx converts a horizontal cell distance
                  * into row units. Painted clouds keep the cell-metric
                  * field their look and spacing scale were tuned on. */
-                const kx = z.kx
-                const bx0 = Math.max(0, Math.floor(zx0 - z.reach / kx))
-                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + z.reach / kx))
-                const by0 = Math.max(0, Math.floor(zy0 - z.reach))
-                const by1 = Math.min(gh - 1, Math.ceil(zy1 + z.reach))
+                const kx = z.paint ? 1 : CW / CH
+                const reach = z.pad + z.wob * CREST + z.buffer + z.fade + 1
+                const bx0 = Math.max(0, Math.floor(zx0 - reach / kx))
+                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach / kx))
+                const by0 = Math.max(0, Math.floor(zy0 - reach))
+                const by1 = Math.min(gh - 1, Math.ceil(zy1 + reach))
                 for (let y = by0; y <= by1; y++) {
                     /* distances from the CELL CENTER — measuring from the
                      * top-left corner would bias every blob one cell down
@@ -680,7 +499,30 @@ export default function PhysarumBackground() {
                         const dx =
                             (xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0) * kx
                         const d = Math.sqrt(dx * dx + dy * dy)
-                        const w = wobble(x + sox, y + soy, t, z.phase)
+                        /* three octaves, diagonal wave directions so every
+                         * edge orientation undulates: swell, wave, ripple */
+                        const w =
+                            Math.sin(
+                                x * 0.12 +
+                                    y * 0.1 +
+                                    t * WOB_SPEED * 0.55 +
+                                    z.phase
+                            ) *
+                                0.6 +
+                            Math.sin(
+                                x * 0.27 -
+                                    y * 0.22 -
+                                    t * WOB_SPEED * 0.45 +
+                                    z.phase * 1.7
+                            ) *
+                                0.25 +
+                            Math.sin(
+                                x * 0.55 +
+                                    y * 0.8 +
+                                    t * WOB_SPEED * 1.2 +
+                                    z.phase * 2.3
+                            ) *
+                                0.15
                         /* bias toward the inner radius: mostly snug, with
                          * occasional outward puffs */
                         const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
@@ -696,17 +538,15 @@ export default function PhysarumBackground() {
                                   : FLANK
                         const off = z.pad + z.wob * amp * puff
                         const i = y * gw + x
-                        if (d < off + z.buffer) {
-                            /* cloud and moat wall the sim out; their
-                             * VISUALS are the overlays' solid paint, so
-                             * glyphs beneath keep rendering (occluded)
-                             * — no ghost hole trails a scrolling zone */
+                        if (d < off) {
+                            if (z.paint) cloudM[i] = z.hot ? 2 : 1
                             mask[i] = 1
+                            fadeF[i] = 0
+                        } else if (d < off + z.buffer) {
+                            /* moat: no mold, no paint — clean page */
+                            mask[i] = 1
+                            fadeF[i] = 0
                         } else {
-                            /* the ramp: the colony edge thinning toward
-                             * the moat is the mold's own reaction, at a
-                             * tick's freshness — soft and noisy enough
-                             * that mid-scroll it reads as drift */
                             const f = Math.min(1, (d - off - z.buffer) / z.fade)
                             if (f < fadeF[i]!) fadeF[i] = f
                         }
@@ -715,12 +555,8 @@ export default function PhysarumBackground() {
             }
         }
 
-        /* window-level pointer tracking — the canvas never gets events.
-         * pointermove is the cursor; pointerdown makes TAPS count too
-         * (a clean tap fires no pointermove at all), which is the only
-         * feeding gesture a touch screen has. */
+        /* window-level pointer tracking — the canvas never gets events */
         const pointer = { x: -1, y: -1, active: false }
-        let pointerT = 0 /* when the pointer last fed — taps expire */
         const onMove = (e: PointerEvent) => {
             const cx = (e.clientX * dpr) / CW
             const cy = (e.clientY * dpr) / CH
@@ -731,7 +567,6 @@ export default function PhysarumBackground() {
             pointer.active = true
             pointer.x = Math.floor(cx)
             pointer.y = Math.floor(cy)
-            pointerT = performance.now()
         }
 
         const hash = (x: number, y: number) => {
@@ -741,13 +576,27 @@ export default function PhysarumBackground() {
 
         const drawField = (get: (x: number, y: number) => number) => {
             /* transparent canvas: the page's own white shows wherever
-             * nothing is painted. Glyphs only — clouds and moats live
-             * on the document-anchored overlays, which occlude whatever
-             * renders beneath them (trails PERSIST under the exclusion,
-             * so glyphs draw everywhere and no ghost hole trails a
-             * scrolling zone); density feathers up across FADE via the
-             * ramp, the mold's visible reaction to content. */
+             * nothing is painted */
             ctx.clearRect(0, 0, canvas.width, canvas.height)
+            /* cloud pass: solid cells, row runs batched into single
+             * rects (+1px overlap so no seams), colored per run */
+            for (let y = 0; y < gh; y++) {
+                for (let x = 0; x < gw; x++) {
+                    const v = cloudM[y * gw + x]
+                    if (!v) continue
+                    /* a run ends where the value changes (black → hot),
+                     * so step back one: the outer x++ lands on the next
+                     * run's first cell, which still needs painting */
+                    let xEnd = x
+                    while (xEnd < gw && cloudM[y * gw + xEnd] === v) xEnd++
+                    ctx.fillStyle = v === 2 ? CLOUD_HOT : CLOUD_FILL
+                    ctx.fillRect(x * CW, y * CH, (xEnd - x) * CW + 1, CH + 1)
+                    x = xEnd - 1
+                }
+            }
+            /* glyph pass — fade is 0 in cloud and buffer, so both go
+             * blank through the same path; mold density feathers up
+             * across FADE */
             ctx.fillStyle = INK
             for (let y = 0; y < gh; y++) {
                 let line = ''
@@ -771,143 +620,6 @@ export default function PhysarumBackground() {
                         ]!
                 }
                 ctx.fillText(line, 0, y * CH)
-            }
-        }
-
-        /* ── Overlay painting ────────────────────────────────────────
-         * One canvas set per element, rastered from a shared scratch:
-         * every rect of the element composes its HARD bands (blob and
-         * moat — the fade band is the glyph canvas's ramp) into the
-         * same local field, blob beating white, then one pass paints
-         * the result.
-         * The local grid is anchored to the ELEMENT, so the shape is
-         * scroll-invariant — the compositor carries the canvases with
-         * the content, pixel-perfect at any speed, and this only
-         * repaints for the 30Hz breathing. The wobble is sampled in
-         * document cells so an element's rects (a dead zone's text
-         * lines) breathe as one coherent edge. */
-        const PAGE = '#ffffff' /* the page's white — occludes glyphs */
-        const paintOverlays = (t: number) => {
-            /* offscreen overlays keep their last raster — stale
-             * breathing on an invisible blob costs nothing. An overlay
-             * is only culled AFTER its first raster: a never-painted
-             * canvas entering mid-flick would arrive blank. The margin
-             * is a full viewport each way, so even a violent flick
-             * crosses it slower than the ≤33ms it takes the next tick
-             * to raster what's coming. */
-            const m = window.innerHeight
-            const vTop = window.scrollY - m
-            const vBot = window.scrollY + 2 * m
-            for (const job of jobs) {
-                const { ent, zones, oL, oT, gw2, gh2 } = job
-                const lo = ent.loCtx
-                if (!lo) continue
-                const W = Math.ceil(gw2 * CW)
-                const H = gh2 * CH
-                if (
-                    ent.rastered &&
-                    (oT + H / dpr < vTop || oT > vBot)
-                )
-                    continue
-                /* grow the shared scratch to this overlay's grid */
-                const n = gw2 * gh2
-                if (sCls.length < n) sCls = new Uint8Array(n)
-                sCls.fill(0, 0, n)
-                /* compose every rect's bands into the scratch, each
-                 * over its own bounded box — same pattern as the sim's
-                 * updateMask, in the overlay's local cells */
-                const xoff = (oL * dpr) / CW /* local → document cells */
-                const yoff = (oT * dpr) / CH
-                for (const z of zones) {
-                    const oReach = z.reach - z.fade
-                    const zx0 = ((z.docL - oL) * dpr) / CW
-                    const zx1 = zx0 + (z.wpx * dpr) / CW
-                    const zy0 = ((z.docT - oT) * dpr) / CH
-                    const zy1 = zy0 + (z.hpx * dpr) / CH
-                    const bx0 = Math.max(0, Math.floor(zx0 - oReach / z.kx))
-                    const bx1 = Math.min(
-                        gw2 - 1,
-                        Math.ceil(zx1 + oReach / z.kx)
-                    )
-                    const by0 = Math.max(0, Math.floor(zy0 - oReach))
-                    const by1 = Math.min(gh2 - 1, Math.ceil(zy1 + oReach))
-                    for (let y = by0; y <= by1; y++) {
-                        const yc = y + 0.5
-                        const dy =
-                            yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
-                        for (let x = bx0; x <= bx1; x++) {
-                            const xc = x + 0.5
-                            const dx =
-                                (xc < zx0
-                                    ? zx0 - xc
-                                    : xc > zx1
-                                      ? xc - zx1
-                                      : 0) * z.kx
-                            const d = Math.sqrt(dx * dx + dy * dy)
-                            const w = wobble(x + xoff, y + yoff, t, z.phase)
-                            const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
-                            const vert = d > 0 ? dy / d : 0
-                            const amp =
-                                yc < zy0
-                                    ? FLANK + (CREST - FLANK) * vert
-                                    : yc > zy1
-                                      ? FLANK + (KEEL - FLANK) * vert
-                                      : FLANK
-                            const off = z.pad + z.wob * amp * puff
-                            const i = y * gw2 + x
-                            if (d < off) {
-                                /* dead zones' "blob" is exclusion: white */
-                                const cls = z.paint ? 2 : 1
-                                if (cls > sCls[i]!) sCls[i] = cls
-                            } else if (d < off + z.buffer) {
-                                if (sCls[i]! < 1) sCls[i] = 1
-                            }
-                        }
-                    }
-                }
-                /* size + place the canvases, then raster the scratch:
-                 * solid runs batched (+1px overlap, no seams) */
-                for (const c of [ent.lo, ent.hi]) {
-                    if (!c) continue
-                    if (c.width !== W || c.height !== H) {
-                        c.width = W
-                        c.height = H
-                    }
-                    c.style.left = `${oL}px`
-                    c.style.top = `${oT}px`
-                    c.style.width = `${W / dpr}px`
-                    c.style.height = `${H / dpr}px`
-                }
-                const hi = ent.hiCtx
-                const hot = zones[0]!.hot
-                lo.clearRect(0, 0, W, H)
-                hi?.clearRect(0, 0, W, H)
-                for (let y = 0; y < gh2; y++) {
-                    let runX = 0
-                    let runCls = 0
-                    /* the x === gw2 sentinel flushes the last run */
-                    for (let x = 0; x <= gw2; x++) {
-                        const cls = x < gw2 ? sCls[y * gw2 + x]! : 0
-                        if (cls !== runCls) {
-                            if (runCls) {
-                                const px = runX * CW
-                                const wRun = (x - runX) * CW + 1
-                                if (runCls === 2 && hi) {
-                                    hi.fillStyle = hot
-                                        ? CLOUD_HOT
-                                        : CLOUD_FILL
-                                    hi.fillRect(px, y * CH, wRun, CH + 1)
-                                } else {
-                                    lo.fillStyle = PAGE
-                                    lo.fillRect(px, y * CH, wRun, CH + 1)
-                                }
-                            }
-                            runX = x
-                            runCls = cls
-                        }
-                    }
-                }
-                ent.rastered = true
             }
         }
 
@@ -1111,12 +823,7 @@ export default function PhysarumBackground() {
             ;[trail, next] = [next, trail]
         }
 
-        /* fixed-timestep loop — see the Cadence note by the tunables.
-         * Scrolling never forces a frame: nothing painted here tracks
-         * the viewport (the fixed canvas is a pure backdrop, the
-         * overlays ride the page on the compositor). Scroll position
-         * is watched only to spare Safari the Range re-measure while a
-         * flick is still moving. */
+        /* fixed-timestep loop — see the Cadence note by the tunables. */
         const coarse = window.matchMedia('(pointer: coarse)').matches
         let acc = 0
         let lastT = 0
@@ -1131,38 +838,37 @@ export default function PhysarumBackground() {
             acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
             lastT = tMs
 
-            if (window.scrollY !== lastSY || window.scrollX !== lastSX) {
-                settleT = tMs
-                lastSY = window.scrollY
-                lastSX = window.scrollX
-            }
-            if (acc < TICK_MS) return /* idle frame: free */
+            const scrolled =
+                window.scrollY !== lastSY || window.scrollX !== lastSX
+            if (scrolled) settleT = tMs
+            /* momentum can coast through a frame without moving a full
+             * pixel — treat the scroll as live for a beat past the last
+             * observed move, so the DOM re-measure below doesn't land
+             * mid-flick */
+            const scrolling = tMs - settleT < SETTLE_MS
+            if (acc < TICK_MS && !scrolled) return /* idle frame: free */
 
             let ticks = Math.floor(acc / TICK_MS)
             acc -= ticks * TICK_MS
             ticks = Math.min(ticks, MAX_TICKS)
 
-            /* fresh DOM geometry each tick — except mid-scroll on
-             * coarse pointers, where the cached zones translated by
-             * the scroll delta are exact while layout is stable and
-             * Safari's Range machinery is the one genuinely expensive
-             * piece (SETTLE_MS outlasts momentum's sub-pixel coasting);
-             * the first tick after the scroll settles re-measures */
-            if (!(coarse && tMs - settleT < SETTLE_MS)) measureZones()
+            lastSY = window.scrollY
+            lastSX = window.scrollX
+            /* fresh DOM geometry only on ticks; scroll-only frames ride
+             * the cached zones, translated by the scroll delta. On
+             * coarse pointers, ticks that land MID-SCROLL also ride the
+             * cache — Safari's Range machinery is what made scrolling
+             * expensive, geometry only changes with layout, and there's
+             * no cursor whose hover state could go stale; the first
+             * tick after the scroll settles re-measures. */
+            if (ticks > 0 && !(coarse && scrolling)) measureZones()
             updateMask(tMs / 1000) /* everything breathes together */
-            /* touch pointers vanish rather than move away — let a tap's
-             * meal expire instead of feeding one cell forever */
-            if (coarse && pointer.active && tMs - pointerT > TOUCH_FOOD_MS) {
-                pointer.active = false
-            }
             for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
             drawField((x, y) => trail[y * gw + x]! / RENDER_DIV)
-            paintOverlays(tMs / 1000)
         }
         raf = requestAnimationFrame(loop)
 
         window.addEventListener('pointermove', onMove, { passive: true })
-        window.addEventListener('pointerdown', onMove, { passive: true })
         window.addEventListener('resize', resize)
 
         /* webfonts swap in after first paint — retire ink trims measured
@@ -1180,10 +886,8 @@ export default function PhysarumBackground() {
             running = false
             cancelAnimationFrame(raf)
             window.removeEventListener('pointermove', onMove)
-            window.removeEventListener('pointerdown', onMove)
             window.removeEventListener('resize', resize)
             document.removeEventListener('visibilitychange', onVisibility)
-            dropPool()
         }
     }, [reduced])
 
@@ -1192,36 +896,15 @@ export default function PhysarumBackground() {
     if (reduced) return null
 
     return (
-        <>
-            {/* 100lvh (large-viewport height): the canvas keeps one
-              * stable size while mobile browser chrome collapses and
-              * expands — no mid-scroll stretching, no resize storms.
-              * h-full is the fallback where lvh isn't supported. */}
-            <canvas
-                ref={canvasRef}
-                aria-hidden='true'
-                className='pointer-events-none fixed left-0 top-0 -z-10 h-full w-full'
-                style={{ height: '100lvh' }}
-            />
-            {/* Document-anchored overlay layers: absolutely positioned
-              * at the document origin (body isn't positioned, so the
-              * containing block is the initial one), zero-height shells
-              * whose per-zone canvases the compositor scrolls WITH the
-              * page. Whites below blobs — one card's feather can never
-              * wash a neighbor's blob edge. Both sit under the content
-              * and above the glyph canvas. */}
-            <div
-                ref={overLoRef}
-                aria-hidden='true'
-                className='pointer-events-none absolute left-0 top-0'
-                style={{ zIndex: -6 }}
-            />
-            <div
-                ref={overHiRef}
-                aria-hidden='true'
-                className='pointer-events-none absolute left-0 top-0'
-                style={{ zIndex: -4 }}
-            />
-        </>
+        /* 100lvh (large-viewport height): the canvas keeps one stable
+         * size while mobile browser chrome collapses and expands —
+         * no mid-scroll stretching, no resize storms. h-full is the
+         * fallback where lvh isn't supported. */
+        <canvas
+            ref={canvasRef}
+            aria-hidden='true'
+            className='pointer-events-none fixed left-0 top-0 -z-10 h-full w-full'
+            style={{ height: '100lvh' }}
+        />
     )
 }

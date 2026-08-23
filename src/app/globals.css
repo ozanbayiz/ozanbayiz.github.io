@@ -298,18 +298,8 @@ html {
  * painted anchor under it. Instant, no transition: the two layers must
  * change in the same frame or the rectangle shows inside the blob.
  * Fuchsia = interaction feedback, site-wide. */
-.cloud-zone[data-cloud-hover]:focus-visible {
+.cloud-zone[data-cloud-hover]:is(:hover, :focus-visible) {
     --background: 312 100% 50%;
-}
-
-/* Hover ignition only where hover is a real capability: touch
- * browsers synthesize :hover from taps (and can leave it stuck after
- * navigating back), flashing cards fuchsia mid-touch. The canvas gates
- * its blob the same way (physarum-background.tsx — lockstep, as ever). */
-@media (hover: hover) {
-    .cloud-zone[data-cloud-hover]:hover {
-        --background: 312 100% 50%;
-    }
 }
 
 /* ASCII art — IBM Plex Mono Bold (boldest weight), fg color.
