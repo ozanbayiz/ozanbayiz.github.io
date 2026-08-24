@@ -50,7 +50,7 @@ export const research: { entries: ResearchEntry[] } = {
                 {
                     src: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
                     caption:
-                        'The same MGSM question rendered as images in five languages. The arithmetic is identical everywhere; the script is not. Latin for En/De/Es, Latin with diacritics for Turkish, ideographic characters for Chinese.'
+                        'Figure 1: The same MGSM question rendered as images in five languages. The arithmetic is identical everywhere; the script is not. Latin for En/De/Es, Latin with diacritics for Turkish, ideographic characters for Chinese.'
                 }
             ],
             code: 'https://github.com/keremtuzel49/multilingual_vision_and_text'
