@@ -203,6 +203,48 @@ type Zone = {
     hot: boolean
 }
 
+/* ── Crash guard ─────────────────────────────────────────────────────
+ * If this page dies twice in a row while the organism is running and
+ * VISIBLE, the organism sits out for a day on this browser and the
+ * painted anchors carry the design. Mechanism: a run stamps
+ * sessionStorage on start and marks a clean exit on pagehide AND on
+ * visibilitychange→hidden — so a background-tab eviction (normal iOS
+ * housekeeping) never counts, but a jetsam kill mid-view (the page
+ * reloads in the same tab, sessionStorage intact, no goodbye) does.
+ * Everything is try/caught: storage can be absent or throwing. */
+const HB_KEY = 'phys-run'
+const CLEAN_KEY = 'phys-clean'
+const DIRTY_KEY = 'phys-dirty'
+const OFF_KEY = 'phys-off-until'
+const OFF_MS = 24 * 3600 * 1000
+const DIRTY_LIMIT = 2
+
+/* true → do not run the organism this visit */
+const crashGuardTripped = (): boolean => {
+    try {
+        if (Date.now() < +(localStorage.getItem(OFF_KEY) ?? 0)) return true
+        const ranBefore = sessionStorage.getItem(HB_KEY) === '1'
+        const cleanExit = sessionStorage.getItem(CLEAN_KEY) === '1'
+        if (ranBefore && !cleanExit) {
+            const dirty = +(localStorage.getItem(DIRTY_KEY) ?? 0) + 1
+            localStorage.setItem(DIRTY_KEY, String(dirty))
+            if (dirty >= DIRTY_LIMIT) {
+                localStorage.setItem(OFF_KEY, String(Date.now() + OFF_MS))
+                localStorage.setItem(DIRTY_KEY, '0')
+                console.warn(
+                    'physarum: sitting out after repeated crashes on this device'
+                )
+                return true
+            }
+        } else {
+            localStorage.setItem(DIRTY_KEY, '0')
+        }
+    } catch {
+        /* no storage, no guard — run normally */
+    }
+    return false
+}
+
 /* attribute override in cells, else the given default */
 const cellAttr = (el: Element, name: string, fallback: number) => {
     const v = parseFloat(el.getAttribute(name) ?? '')
@@ -303,6 +345,27 @@ export default function PhysarumBackground() {
         if (!canvas || reduced) return
         const ctx = canvas.getContext('2d')
         if (!ctx) return
+        /* the organism benches itself after repeated mid-view crashes
+         * on this browser — the painted anchors carry the design */
+        if (crashGuardTripped()) return
+        const setClean = (clean: boolean) => {
+            try {
+                if (clean) sessionStorage.setItem(CLEAN_KEY, '1')
+                else sessionStorage.removeItem(CLEAN_KEY)
+            } catch {
+                /* storage unavailable — the guard simply never trips */
+            }
+        }
+        try {
+            sessionStorage.setItem(HB_KEY, '1')
+        } catch {
+            /* ditto */
+        }
+        setClean(false)
+        const onGuardVis = () => setClean(document.hidden)
+        const onGuardHide = () => setClean(true)
+        document.addEventListener('visibilitychange', onGuardVis)
+        window.addEventListener('pagehide', onGuardHide)
         let raf = 0
         let running = true
 
@@ -996,6 +1059,9 @@ export default function PhysarumBackground() {
             window.removeEventListener('pointermove', onMove)
             window.removeEventListener('resize', resize)
             document.removeEventListener('visibilitychange', onVisibility)
+            document.removeEventListener('visibilitychange', onGuardVis)
+            window.removeEventListener('pagehide', onGuardHide)
+            setClean(true) /* unmounting (navigation) is a clean exit */
         }
     }, [reduced])
 
