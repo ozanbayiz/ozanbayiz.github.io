@@ -58,6 +58,9 @@ export const research: { entries: ResearchEntry[] } = {
              * once the file lands in public/projects/… — it is referenced
              * by the writeup but was not in _new_proj. */
         },
+        /* Parked 2026-08-24 at the author's request — off the public
+         * site for now. The page, MDX, and assets are all preserved;
+         * re-enable by uncommenting.
         {
             slug: 'offline-rl-teaching',
             title: 'When Offline RL Cannot Evaluate Teaching: A Diagnostic Case Study',
@@ -75,6 +78,7 @@ export const research: { entries: ResearchEntry[] } = {
             ],
             pdf: '/projects/offline-rl-teaching/paper.pdf'
         },
+        */
         /* Parked 2026-08-11 at the author's request — he'd rather not
          * showcase AI harming anything, even fictitious monsters. The
          * page, rewritten MDX, and images are all preserved; re-enable
