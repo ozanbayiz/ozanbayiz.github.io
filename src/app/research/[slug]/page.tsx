@@ -15,6 +15,7 @@ import remarkMath from 'remark-math'
 
 import { research } from '@/features/research/content'
 import { mdxComponents } from '@/mdx-components'
+import Byline from '@/shared/ui/byline'
 import MeltLink from '@/shared/ui/melt-link'
 
 import type { ResearchEntry } from '@/features/research/content'
@@ -45,8 +46,12 @@ const DOCUMENT_ACTIONS: {
         aria: 'GitHub repository',
         /* The GitHub mark. */
         icon: (
-            <svg aria-hidden className="h-7 w-7 fill-current" viewBox="0 0 32 32">
-                <path d="M16,2.345c7.735,0,14,6.265,14,14-.002,6.015-3.839,11.359-9.537,13.282-.7,.14-.963-.298-.963-.665,0-.473,.018-1.978,.018-3.85,0-1.312-.437-2.152-.945-2.59,3.115-.35,6.388-1.54,6.388-6.912,0-1.54-.543-2.783-1.435-3.762,.14-.35,.63-1.785-.14-3.71,0,0-1.173-.385-3.85,1.435-1.12-.315-2.31-.472-3.5-.472s-2.38,.157-3.5,.472c-2.677-1.802-3.85-1.435-3.85-1.435-.77,1.925-.28,3.36-.14,3.71-.892,.98-1.435,2.24-1.435,3.762,0,5.355,3.255,6.563,6.37,6.913-.403,.35-.77,.963-.893,1.872-.805,.368-2.818,.963-4.077-1.155-.263-.42-1.05-1.452-2.152-1.435-1.173,.018-.472,.665,.017,.927,.595,.332,1.277,1.575,1.435,1.978,.28,.787,1.19,2.293,4.707,1.645,0,1.173,.018,2.275,.018,2.607,0,.368-.263,.787-.963,.665-5.719-1.904-9.576-7.255-9.573-13.283,0-7.735,6.265-14,14-14Z" />
+            <svg
+                aria-hidden
+                className='h-7 w-7 fill-current'
+                viewBox='0 0 32 32'
+            >
+                <path d='M16,2.345c7.735,0,14,6.265,14,14-.002,6.015-3.839,11.359-9.537,13.282-.7,.14-.963-.298-.963-.665,0-.473,.018-1.978,.018-3.85,0-1.312-.437-2.152-.945-2.59,3.115-.35,6.388-1.54,6.388-6.912,0-1.54-.543-2.783-1.435-3.762,.14-.35,.63-1.785-.14-3.71,0,0-1.173-.385-3.85,1.435-1.12-.315-2.31-.472-3.5-.472s-2.38,.157-3.5,.472c-2.677-1.802-3.85-1.435-3.85-1.435-.77,1.925-.28,3.36-.14,3.71-.892,.98-1.435,2.24-1.435,3.762,0,5.355,3.255,6.563,6.37,6.913-.403,.35-.77,.963-.893,1.872-.805,.368-2.818,.963-4.077-1.155-.263-.42-1.05-1.452-2.152-1.435-1.173,.018-.472,.665,.017,.927,.595,.332,1.277,1.575,1.435,1.978,.28,.787,1.19,2.293,4.707,1.645,0,1.173,.018,2.275,.018,2.607,0,.368-.263,.787-.963,.665-5.719-1.904-9.576-7.255-9.573-13.283,0-7.735,6.265-14,14-14Z' />
             </svg>
         )
     },
@@ -60,11 +65,11 @@ const DOCUMENT_ACTIONS: {
         icon: (
             <svg
                 aria-hidden
-                className="h-7 w-7 fill-current"
-                viewBox="0 0 26 28"
-                fillRule="evenodd"
+                className='h-7 w-7 fill-current'
+                viewBox='0 0 26 28'
+                fillRule='evenodd'
             >
-                <path d="M3 24h19v-23h-1v22h-18v1zm17-24h-18v22h18v-22zm-1 1h-16v20h16v-20zm-2 16h-12v1h12v-1zm0-3h-12v1h12v-1zm0-3h-12v1h12v-1z M6.34 9.30V5.30H7.81Q8.38 5.30 8.68 5.61Q8.97 5.92 8.97 6.47Q8.97 7.03 8.68 7.34Q8.38 7.65 7.81 7.65H6.90V9.30ZM6.90 7.18H7.76Q8.07 7.18 8.23 7.03Q8.39 6.89 8.39 6.61V6.34Q8.39 6.06 8.23 5.92Q8.07 5.77 7.76 5.77H6.90Z M9.79 5.30H10.94Q11.69 5.30 12.06 5.81Q12.42 6.31 12.42 7.30Q12.42 8.29 12.06 8.79Q11.69 9.30 10.94 9.30H9.79ZM10.91 8.83Q11.37 8.83 11.60 8.51Q11.84 8.20 11.84 7.62V6.98Q11.84 6.40 11.60 6.09Q11.37 5.77 10.91 5.77H10.34V8.83Z M13.22 9.30V5.30H15.77V5.78H13.78V7.04H15.60V7.51H13.78V9.30Z" />
+                <path d='M3 24h19v-23h-1v22h-18v1zm17-24h-18v22h18v-22zm-1 1h-16v20h16v-20zm-2 16h-12v1h12v-1zm0-3h-12v1h12v-1zm0-3h-12v1h12v-1z M6.34 9.30V5.30H7.81Q8.38 5.30 8.68 5.61Q8.97 5.92 8.97 6.47Q8.97 7.03 8.68 7.34Q8.38 7.65 7.81 7.65H6.90V9.30ZM6.90 7.18H7.76Q8.07 7.18 8.23 7.03Q8.39 6.89 8.39 6.61V6.34Q8.39 6.06 8.23 5.92Q8.07 5.77 7.76 5.77H6.90Z M9.79 5.30H10.94Q11.69 5.30 12.06 5.81Q12.42 6.31 12.42 7.30Q12.42 8.29 12.06 8.79Q11.69 9.30 10.94 9.30H9.79ZM10.91 8.83Q11.37 8.83 11.60 8.51Q11.84 8.20 11.84 7.62V6.98Q11.84 6.40 11.60 6.09Q11.37 5.77 10.91 5.77H10.34V8.83Z M13.22 9.30V5.30H15.77V5.78H13.78V7.04H15.60V7.51H13.78V9.30Z' />
             </svg>
         )
     },
@@ -73,7 +78,7 @@ const DOCUMENT_ACTIONS: {
         aria: 'Live demo',
         icon: (
             <svg {...strokeProps} aria-hidden>
-                <polygon points="5 3 19 12 5 21 5 3" />
+                <polygon points='5 3 19 12 5 21 5 3' />
             </svg>
         )
     }
@@ -83,16 +88,16 @@ function DocumentActions({ entry }: { entry: ResearchEntry }) {
     const actions = DOCUMENT_ACTIONS.filter(action => entry[action.key])
     if (actions.length === 0) return null
     return (
-        <span className="flex flex-wrap items-center gap-stack">
+        <span className='flex flex-wrap items-center gap-stack'>
             {actions.map(action => (
                 <a
                     key={action.key}
                     href={entry[action.key]}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    target='_blank'
+                    rel='noopener noreferrer'
                     aria-label={action.aria}
                     title={action.aria}
-                    className="text-foreground transition-colors hover:text-accent1-text"
+                    className='text-foreground transition-colors hover:text-accent1-text'
                 >
                     {action.icon}
                 </a>
@@ -113,7 +118,12 @@ export async function generateMetadata({
     const { slug } = await params
     const entry = research.entries.find(e => e.slug === slug)
     if (!entry) return {}
-    return { title: entry.title, description: entry.tldr }
+    return {
+        title: entry.title,
+        description: entry.tldr,
+        /* the letterhead's byline, restated for crawlers and unfurls */
+        authors: entry.authors?.map(author => ({ name: author.name }))
+    }
 }
 
 /* Reports are read from disk and compiled server-side (at build time for
@@ -141,46 +151,87 @@ export default async function ResearchReportPage({
     const Report = await compileReport(slug)
 
     return (
-        <main className="container mx-auto max-w-[48rem] px-inset py-seam">
+        <main className='container mx-auto max-w-[48rem] px-inset py-seam'>
             {/* Letterhead — quiet mono utility link. Navigation speaks in
              * the UI voice; Calligra signs only once, at the footer.
              * MeltLink: going home melts the document into the white. */}
             <nav>
                 <MeltLink
-                    href="/"
-                    className="font-mono text-sm text-foreground transition-colors hover:text-accent1-text"
+                    href='/'
+                    className='font-mono text-sm text-foreground transition-colors hover:text-accent1-text'
                 >
                     ← ozanbayiz
                 </MeltLink>
             </nav>
 
-            {/* Title, with the document-action toolbar directly beneath. */}
-            <header className="mt-stack flex flex-col gap-stack">
-                <h1 className="text-4xl md:text-5xl leading-tight">{entry.title}</h1>
+            {/* Publication letterhead — a LaTeX \maketitle: centered XITS
+             * serif title, byline, and venue, all pure foreground (grey
+             * is banned; contrast comes from size and italics). Only the
+             * document-action icons keep the mono UI voice — identity
+             * lives at the edges. */}
+            <header className='mt-stack flex flex-col items-center gap-stack text-center font-serif'>
+                {/* font-normal: a LaTeX title is roman, not bold — the
+                 * base h1 weight would read as a web headline. */}
+                <h1 className='text-4xl font-normal leading-tight md:text-5xl'>
+                    {entry.title}
+                </h1>
+                {entry.authors && (
+                    <p className='text-lg'>
+                        <Byline
+                            authors={entry.authors}
+                            offset='underline-offset-4'
+                            marks
+                        />
+                        {entry.authorsNote && (
+                            <span className='ml-stack text-sm'>
+                                {entry.authorsNote}
+                            </span>
+                        )}
+                    </p>
+                )}
+                {entry.venue && (
+                    <p className='text-base italic'>{entry.venue}</p>
+                )}
                 <DocumentActions entry={entry} />
             </header>
 
-            <article className="paper">
+            <article className='paper'>
                 {/* Hero plate — opens the document with the entry's hero
                  * figures (default: its caption-less cover). Lives inside
                  * .paper so figcaptions pick up the house caption style.
                  * Single images are height-capped so the plate stays a
                  * band, not a wall. */}
                 {(() => {
-                    const heroFigures = entry.hero ?? (entry.cover ? [{ src: entry.cover }] : [])
+                    const heroFigures =
+                        entry.hero ??
+                        (entry.cover ? [{ src: entry.cover }] : [])
                     if (heroFigures.length === 0) return null
                     const single = heroFigures.length === 1
                     return (
-                        <div className={single ? 'mt-stack [&_figure]:my-0' : 'mt-stack grid gap-stack sm:grid-cols-2 [&_figure]:my-0'}>
+                        <div
+                            className={
+                                single
+                                    ? 'mt-stack [&_figure]:my-0'
+                                    : 'mt-stack grid gap-stack sm:grid-cols-2 [&_figure]:my-0'
+                            }
+                        >
                             {heroFigures.map(figure => (
                                 <figure key={figure.src}>
                                     <img
                                         src={figure.src}
-                                        alt=""
-                                        decoding="async"
-                                        className={single ? 'mx-auto max-h-72 w-auto md:max-h-80' : undefined}
+                                        alt=''
+                                        decoding='async'
+                                        className={
+                                            single
+                                                ? 'mx-auto max-h-72 w-auto md:max-h-80'
+                                                : undefined
+                                        }
                                     />
-                                    {figure.caption && <figcaption>{figure.caption}</figcaption>}
+                                    {figure.caption && (
+                                        <figcaption>
+                                            {figure.caption}
+                                        </figcaption>
+                                    )}
                                 </figure>
                             ))}
                         </div>
@@ -190,8 +241,11 @@ export default async function ResearchReportPage({
                 <Report components={mdxComponents} />
             </article>
 
-            <footer className="mt-seam text-center">
-                <MeltLink href="/" className="font-script text-4xl leading-none text-foreground">
+            <footer className='mt-seam text-center'>
+                <MeltLink
+                    href='/'
+                    className='font-script text-4xl leading-none text-foreground'
+                >
                     ozanbayiz
                 </MeltLink>
             </footer>

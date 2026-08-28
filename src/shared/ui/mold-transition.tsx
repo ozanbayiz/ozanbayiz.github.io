@@ -305,11 +305,18 @@ export default function MoldTransition() {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
         }
 
-        /* size the canvas and grid for a fresh transition */
+        /* size the canvas and grid for a fresh transition — realloc
+         * the backing store only when the size actually changed
+         * (setting width/height always discards it, and on iOS the old
+         * one lingers) */
         const initGrid = () => {
             const dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP)
-            canvas.width = Math.floor(canvas.clientWidth * dpr)
-            canvas.height = Math.floor(canvas.clientHeight * dpr)
+            const w = Math.floor(canvas.clientWidth * dpr)
+            const h = Math.floor(canvas.clientHeight * dpr)
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w
+                canvas.height = h
+            }
             s.ch = CELL_H * dpr
             ctx.font = `${s.ch * 0.9}px ui-monospace, Menlo, monospace`
             ctx.textBaseline = 'top'

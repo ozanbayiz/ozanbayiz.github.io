@@ -97,18 +97,6 @@ export const about: {
     photo: {
         src: '/ozan_rumi.jpg',
         alt: 'Ozan Bayiz at the Mevlâna Museum',
-        caption: (
-            <>
-                Figure 1.{' '}
-                <a
-                    href="https://en.wikipedia.org/wiki/Rumi"
-                    className="flex-link link-accent"
-                >
-                    Rumi
-                </a>{' '}
-                and Ozan.
-            </>
-        )
     },
     paragraphs: [
         <>

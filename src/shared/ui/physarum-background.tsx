@@ -28,7 +28,10 @@ import { useEffect, useRef, useState } from 'react'
  * diffusion pass touches only window rows, and each tick repaints
  * only the window's rows — everything else stays as valid frozen ink.
  * The backing resolution adapts (AREA_MAX) so the one canvas always
- * fits Safari's canvas-area ceiling, allocated once, never churned.
+ * fits Safari's canvas-area ceiling; its height is CAPACITY, grown in
+ * CAP_CHUNK steps and never shrunk at a given width, so a webfont
+ * swap or a late image can't churn multi-megabyte backing stores —
+ * the clipping wrapper trims the spare tail to the document.
  *
  * Three concentric bands surround every [data-cloud] element, all cut
  * per tick from ONE distance field (updateMask):
@@ -69,9 +72,15 @@ import { useEffect, useRef, useState } from 'react'
  * ink on the bare page, outlined only by the organism's curved
  * absence. (Such elements don't take the .cloud-zone class.)
  *
- * Hovering (or keyboard-focusing) a data-cloud-hover element ignites
- * its whole blob fuchsia; the painted .cloud-zone anchor under it
- * flips via CSS in the same frame (see globals.css).
+ * THE BLOB IS THE BUTTON. On a data-cloud-hover element the breathing
+ * silhouette itself is the hit area: the cursor entering it (tested
+ * per FRAME against the same cloudEdge isoline the paint uses)
+ * ignites the whole cloud fuchsia, and the painted .cloud-zone anchor
+ * flips with it in the same frame via the data-cloud-hot attribute
+ * (see globals.css). A breath that slips the edge out from under a
+ * parked cursor un-ignites it just as fast. A plain click inside the
+ * blob activates the anchor; keyboard focus ignites through the same
+ * path.
  *
  * PAINTED ANCHOR. .cloud-zone elements keep their painted black
  * rectangle even while the canvas runs: the blob always reaches at
@@ -148,15 +157,18 @@ const TURNOVER = 0.004 /* fraction of agents respawned per frame */
 const FOOD = 2.5 /* trail deposited per cell under the cursor */
 
 /* ── Cadence ─────────────────────────────────────────────────────────
- * Fixed timestep. The sim advances STEPS_PER_TICK tuned steps per tick
- * (30Hz) — exactly 60 steps/s on EVERY display, so a 120Hz screen no
- * longer runs the organism at double speed and a struggling one only
- * slows gracefully. The live window re-inks on ticks (30fps —
- * invisible for a glyph-quantized render); every other frame costs
- * nothing, and scrolling costs nothing on ANY frame — the canvas is
- * part of the page. */
-const TICK_MS = 1000 / 30
-const STEPS_PER_TICK = 2 /* the sim's parameters are tuned per 60Hz step */
+ * Fixed timestep. The sim advances exactly STEP_HZ tuned steps per
+ * second on EVERY display, so a 120Hz screen doesn't run the organism
+ * at double speed and a struggling one only slows gracefully. Ticks
+ * batch those steps and re-ink the live window: 30 ticks/s on
+ * fine-pointer machines, 20 on touch devices — the same organism at
+ * a third less painting and texture upload, invisible for a
+ * glyph-quantized render. Every other frame costs nothing, and
+ * scrolling costs nothing on ANY frame — the canvas is part of the
+ * page. */
+const STEP_HZ = 60 /* the sim's parameters are tuned per 60Hz step */
+const TICK_HZ = 30
+const TICK_HZ_COARSE = 20
 const MAX_TICKS = 2 /* cap catch-up after jank — drop time, don't spiral */
 const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
 
@@ -175,6 +187,7 @@ const DT_CLAMP = 100 /* ms — returning from a hidden tab isn't jank */
 const DOC_ROWS_MAX = 4096
 const WIN_MARGIN = 0.5 /* viewports of live-sim margin above and below */
 const AREA_MAX = 14_000_000 /* device px² — safely under Safari's limit */
+const CAP_CHUNK = 256 /* CSS px — canvas height granularity and headroom */
 
 /* renderer */
 const RENDER_DIV = 4.5 /* trail -> glyph density divisor (sparsity) */
@@ -190,6 +203,8 @@ const CLOUD_FILL = '#000000' /* clouds are black; text on them is white */
 const CLOUD_HOT = '#ff00cc'
 
 type Zone = {
+    el: Element
+    hoverable: boolean
     x0: number
     x1: number
     y0: number
@@ -201,48 +216,6 @@ type Zone = {
     fade: number
     paint: boolean
     hot: boolean
-}
-
-/* ── Crash guard ─────────────────────────────────────────────────────
- * If this page dies twice in a row while the organism is running and
- * VISIBLE, the organism sits out for a day on this browser and the
- * painted anchors carry the design. Mechanism: a run stamps
- * sessionStorage on start and marks a clean exit on pagehide AND on
- * visibilitychange→hidden — so a background-tab eviction (normal iOS
- * housekeeping) never counts, but a jetsam kill mid-view (the page
- * reloads in the same tab, sessionStorage intact, no goodbye) does.
- * Everything is try/caught: storage can be absent or throwing. */
-const HB_KEY = 'phys-run'
-const CLEAN_KEY = 'phys-clean'
-const DIRTY_KEY = 'phys-dirty'
-const OFF_KEY = 'phys-off-until'
-const OFF_MS = 24 * 3600 * 1000
-const DIRTY_LIMIT = 2
-
-/* true → do not run the organism this visit */
-const crashGuardTripped = (): boolean => {
-    try {
-        if (Date.now() < +(localStorage.getItem(OFF_KEY) ?? 0)) return true
-        const ranBefore = sessionStorage.getItem(HB_KEY) === '1'
-        const cleanExit = sessionStorage.getItem(CLEAN_KEY) === '1'
-        if (ranBefore && !cleanExit) {
-            const dirty = +(localStorage.getItem(DIRTY_KEY) ?? 0) + 1
-            localStorage.setItem(DIRTY_KEY, String(dirty))
-            if (dirty >= DIRTY_LIMIT) {
-                localStorage.setItem(OFF_KEY, String(Date.now() + OFF_MS))
-                localStorage.setItem(DIRTY_KEY, '0')
-                console.warn(
-                    'physarum: sitting out after repeated crashes on this device'
-                )
-                return true
-            }
-        } else {
-            localStorage.setItem(DIRTY_KEY, '0')
-        }
-    } catch {
-        /* no storage, no guard — run normally */
-    }
-    return false
 }
 
 /* attribute override in cells, else the given default */
@@ -345,29 +318,26 @@ export default function PhysarumBackground() {
         if (!canvas || reduced) return
         const ctx = canvas.getContext('2d')
         if (!ctx) return
-        /* the organism benches itself after repeated mid-view crashes
-         * on this browser — the painted anchors carry the design */
-        if (crashGuardTripped()) return
-        const setClean = (clean: boolean) => {
-            try {
-                if (clean) sessionStorage.setItem(CLEAN_KEY, '1')
-                else sessionStorage.removeItem(CLEAN_KEY)
-            } catch {
-                /* storage unavailable — the guard simply never trips */
-            }
-        }
-        try {
-            sessionStorage.setItem(HB_KEY, '1')
-        } catch {
-            /* ditto */
-        }
-        setClean(false)
-        const onGuardVis = () => setClean(document.hidden)
-        const onGuardHide = () => setClean(true)
-        document.addEventListener('visibilitychange', onGuardVis)
-        window.addEventListener('pagehide', onGuardHide)
+        /* the `reduced` state lags one commit behind the media query on
+         * first mount — read the query directly too, so a reduced-motion
+         * visit never allocates the world or flips data-organism at all */
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+            return
+        /* announce the running organism — globals.css keys canvas-only
+         * styles off this attribute, so no-JS and reduced-motion pages
+         * (which never set it) keep their painted-fallback layout. Set
+         * BEFORE the first measure: it changes card padding. */
+        document.documentElement.setAttribute('data-organism', '')
         let raf = 0
         let running = true
+
+        /* touch devices tick at 20Hz instead of 30 — same STEP_HZ sim
+         * speed, a third less painting */
+        const tickHz = window.matchMedia('(pointer: coarse)').matches
+            ? TICK_HZ_COARSE
+            : TICK_HZ
+        const tickMs = 1000 / tickHz
+        const stepsPerTick = Math.round(STEP_HZ / tickHz)
 
         /* render density: the device ratio, capped, then reduced if the
          * document-sized canvas would exceed AREA_MAX — set in resize() */
@@ -377,7 +347,8 @@ export default function PhysarumBackground() {
 
         let gw = 0 /* columns — the page never scrolls horizontally */
         let gh = 0 /* VIEWPORT rows — the render window's height */
-        let dh = 0 /* DOCUMENT rows — the world's height */
+        let dh = 0 /* CAPACITY rows — the world's height; the content's
+         * own bottom edge is contentRows */
         /* the live-sim window, in document rows — set by updateWindow */
         let winTop = 0
         let winBot = 0
@@ -387,9 +358,16 @@ export default function PhysarumBackground() {
         let fadeF = new Float32Array(0) /* render attenuation outside buffer */
         const zoneRects: Zone[] = []
 
-        /* document height (CSS px) at the last resize — the loop's
-         * cheap per-tick growth check */
-        let lastDocCssH = 0
+        /* layout bookkeeping: the document height last seen (the
+         * loop's cheap per-tick growth check), the width the current
+         * capacity was allocated at, and that capacity in CSS px */
+        let lastContentH = 0
+        let lastCssW = 0
+        let capH = 0
+        /* rows the CONTENT occupies — the capacity tail below them is
+         * clipped by the wrapper, so the live window, spawning and
+         * painting all stop here instead of simulating invisible rows */
+        let contentRows = 0
         const updateWindow = () => {
             /* INTEGER rows only — a fractional bound would index off
              * every array (typed arrays silently drop non-integer
@@ -399,7 +377,7 @@ export default function PhysarumBackground() {
                 Math.floor((window.scrollY * dprC) / CH - gh * WIN_MARGIN)
             )
             winBot = Math.min(
-                dh,
+                contentRows,
                 winTop + Math.ceil(gh * (1 + 2 * WIN_MARGIN))
             )
             winTop = Math.max(0, Math.min(winTop, winBot - 1))
@@ -465,12 +443,31 @@ export default function PhysarumBackground() {
             node.childNodes.forEach(child => contentRects(child, out))
         }
 
-        /* Re-measured EVERY FRAME, inside the same rAF that draws: layout
-         * is clean by then, so the reads are cheap and the zones track
-         * their elements with zero lag — even mid-scroll, and across
-         * client-side navigations (stale nodes measure 0×0 and are
-         * skipped). The canvas is fixed at inset 0, so client
-         * coordinates ARE canvas coordinates. */
+        /* Zones live in DOCUMENT cells, and scrolling moves nothing in
+         * document space — so their rects are measured once and
+         * CACHED, re-measured only when layout can actually have moved
+         * them: a document height change, a window resize, webfont
+         * arrival, a DOM mutation, a per-element resize. (Measuring
+         * per frame would cost hundreds of getClientRects calls a
+         * second — the hero art alone is ~140 glyph runs — main-thread
+         * load that helps get a phone tab killed.) Stale nodes measure
+         * 0×0 and are skipped; hover/focus is live state, not layout,
+         * and is refreshed per tick on the cached zones. */
+        let zonesDirty = false
+        /* observe() always delivers one initial size report — right
+         * after measureZones just measured that element. Swallow the
+         * first delivery per element (roPrimed) so startup and every
+         * resize don't schedule a second full-document re-ink; a real
+         * size change fires again and flags normally. (observe() on an
+         * already-observed element is a spec no-op, so the measure
+         * walk below needs no observed-set of its own.) */
+        const roPrimed = new WeakSet<Element>()
+        const zoneRO = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                if (roPrimed.has(entry.target)) zonesDirty = true
+                else roPrimed.add(entry.target)
+            }
+        })
         const measureZones = () => {
             zoneRects.length = 0
             const sx = window.scrollX
@@ -491,10 +488,17 @@ export default function PhysarumBackground() {
                     el.getAttribute('data-cloud-wob') !== null
                         ? cellAttr(el, 'data-cloud-wob', WOB_MIN)
                         : null
-                /* per-frame hover/focus state — no listeners needed */
+                const hoverable = el.hasAttribute('data-cloud-hover')
+                /* carry live hover through the rebuild: the attribute
+                 * is the canvas's own last decision, and refreshHot
+                 * only writes on TRANSITIONS — rebuilding with a fresh
+                 * hot=false under a set attribute would strand the
+                 * anchor fuchsia forever */
                 const hot =
-                    el.hasAttribute('data-cloud-hover') &&
-                    el.matches(':hover, :focus-visible')
+                    hoverable &&
+                    (el.hasAttribute('data-cloud-hot') ||
+                        el.matches(':hover, :focus-visible'))
+                zoneRO.observe(el)
                 /* painted clouds need their whole block — the blob must
                  * cover the painted .cloud-zone anchor. Dead zones hug
                  * their content instead. */
@@ -513,6 +517,8 @@ export default function PhysarumBackground() {
                         (r.height * dprC) / CH
                     )
                     zoneRects.push({
+                        el,
+                        hoverable,
                         /* DOCUMENT cells — stable across any scroll */
                         x0: ((r.left + sx) * dprC) / CW,
                         x1: ((r.right + sx) * dprC) / CW,
@@ -539,30 +545,72 @@ export default function PhysarumBackground() {
             })
         }
 
+        /* re-measure the zones and re-ink the WHOLE sheet once. Layout
+         * moved, so bands may have shifted anywhere on the page — the
+         * frozen rows outside the live window are WRONG now, not just
+         * dormant. Rare (webfont arrival, a DOM swap, a height
+         * change); ticks maintain only the live window otherwise. */
+        const remeasure = (t: number) => {
+            measureZones()
+            zonesDirty = false
+            updateWindow()
+            updateMask(t, 0, contentRows)
+            paintRows(0, contentRows)
+        }
+
         const resize = () => {
             const cssW = document.documentElement.clientWidth
-            const cssH = document.documentElement.scrollHeight
+            const contentH = document.documentElement.scrollHeight
+            /* a document-height change can move zones ANYWHERE on the
+             * page even when the canvas allocation is untouched — flag
+             * them for the loop's sweep (the full path below clears
+             * the flag by re-measuring immediately). Height-neutral
+             * resize events (iOS fires them as its URL bar settles,
+             * every scroll direction change) move nothing in document
+             * space and must stay free — the DOM observers catch every
+             * other way zones can move. */
+            if (contentH !== lastContentH) zonesDirty = true
+            lastContentH = contentH
+            /* the canvas height is CAPACITY, not the exact document
+             * height: quantized up to CAP_CHUNK and, at a given width,
+             * only ever grown. Sub-chunk growth (a webfont swap, a
+             * late image) lands inside the headroom instead of
+             * discarding and reallocating a multi-megabyte backing
+             * store — iOS frees the old one lazily, and stacked-up
+             * churn is what gets a tab killed. A width change
+             * (rotation) reflows the whole world anyway, so capacity
+             * restarts and may shrink. The clipping wrapper keeps the
+             * spare tail from adding scrollable space. */
+            if (cssW !== lastCssW) capH = 0
+            lastCssW = cssW
+            capH = Math.max(capH, Math.ceil(contentH / CAP_CHUNK) * CAP_CHUNK)
             /* density: device ratio, capped, reduced until the one
              * document-sized canvas fits Safari's area ceiling */
             const cand = Math.min(
                 window.devicePixelRatio || 1,
                 DPR_CAP,
-                Math.sqrt(AREA_MAX / Math.max(1, cssW * cssH))
+                Math.sqrt(AREA_MAX / Math.max(1, cssW * capH))
             )
             const w = Math.floor(cssW * cand)
-            const h = Math.floor(cssH * cand)
-            /* iOS fires resize as its URL bar settles; neither the page
-             * width nor the document height changed — bail before
-             * touching anything. Document growth (images, fonts) lands
-             * here too, via the per-tick height check in the loop. */
-            if (w === canvas.width && h === canvas.height && gw > 0) return
+            const h = Math.floor(capH * cand)
+            /* same capacity grid — iOS URL-bar resize events and
+             * sub-chunk document changes all bail here; the content's
+             * bottom edge may still have moved inside the capacity */
+            if (w === canvas.width && h === canvas.height && gw > 0) {
+                /* the VIEWPORT height can still have changed (vertical
+                 * window resize, docked devtools) with the allocation
+                 * untouched — re-fit the live window's height so a
+                 * taller viewport never scrolls past frozen rows */
+                gh = Math.max(4, Math.ceil((window.innerHeight * dprC) / CH))
+                contentRows = Math.min(dh, Math.ceil(contentH / CELL_H))
+                return
+            }
             dprC = cand
             CH = CELL_H * dprC
             canvas.width = w
             canvas.height = h
             canvas.style.width = `${cssW}px`
-            canvas.style.height = `${cssH}px`
-            lastDocCssH = cssH
+            canvas.style.height = `${capH}px`
             ctx.font = `${CH * 0.9}px ui-monospace, Menlo, monospace`
             ctx.textBaseline = 'top'
             CW = ctx.measureText('M').width /* measured, never assumed */
@@ -572,26 +620,82 @@ export default function PhysarumBackground() {
             /* ceil: the cell grid covers the full canvas, so a blob can
              * reach the right and bottom edges without a flat clip */
             gw = Math.max(4, Math.ceil(canvas.width / CW))
-            gh = Math.max(
-                4,
-                Math.ceil((window.innerHeight * dprC) / CH)
-            )
+            gh = Math.max(4, Math.ceil((window.innerHeight * dprC) / CH))
+            /* dh spans the CAPACITY — the field arrays share its
+             * headroom, so sub-chunk growth costs no realloc anywhere */
             dh = Math.max(gh, Math.min(DOC_ROWS_MAX, Math.ceil(h / CH)))
+            contentRows = Math.min(dh, Math.ceil(contentH / CELL_H))
             cloudM = new Uint8Array(gw * dh)
             mask = new Uint8Array(gw * dh)
             fadeF = new Float32Array(gw * dh)
-            pointer.active = false /* grid changed; wait for the next move */
             updateWindow()
             remap(oldGw, oldDh) /* the colony survives the new grid */
-            measureZones()
-            /* ink the whole sheet once — bands and field for EVERY row;
-             * ticks maintain only the live window from here on */
-            updateMask(performance.now() / 1000, 0, dh)
-            paintRows(0, dh)
+            /* the stored client point predates the reflow (browser
+             * zoom, rotation) — wait for the next move */
+            pointer.active = false
+            remeasure(performance.now() / 1000)
+        }
+
+        /* DEAD zones measure distance isotropically in PIXELS (row
+         * units): a cell is only ~0.6× as wide as it is tall, so raw
+         * cell-unit distance gave text ~40% less horizontal clearance
+         * than vertical — the mold visibly crowded the ends of lines
+         * while wasting space above and below. kxOf converts a
+         * horizontal cell distance into row units. Painted clouds keep
+         * the cell-metric field their look and spacing scale were
+         * tuned on. ONE definition: cloudEdge's field and updateMask's
+         * bounding box must never disagree, or blobs clip flat where
+         * the box falls short of the shape. */
+        const kxOf = (z: Zone) => (z.paint ? 1 : CW / CH)
+
+        /* Signed distance from zone z's breathing cloud EDGE at cell
+         * (x, y): negative inside the blob, 0 at the silhouette,
+         * positive out in the moat and beyond. This is the one place
+         * the shape is defined — updateMask paints from it and the
+         * hover hit test below reads it, so paint and hit test share
+         * ONE field: they can differ only by the render's half-cell
+         * quantization (a cell inks by its center), never drift. */
+        const cloudEdge = (z: Zone, x: number, y: number, t: number) => {
+            /* distances from the CELL CENTER — measuring from the
+             * top-left corner would bias every blob one cell down
+             * and right */
+            const yc = y + 0.5
+            const xc = x + 0.5
+            const dy = yc < z.y0 ? z.y0 - yc : yc > z.y1 ? yc - z.y1 : 0
+            const dx =
+                (xc < z.x0 ? z.x0 - xc : xc > z.x1 ? xc - z.x1 : 0) * kxOf(z)
+            const d = Math.sqrt(dx * dx + dy * dy)
+            /* three octaves, diagonal wave directions so every
+             * edge orientation undulates: swell, wave, ripple */
+            const w =
+                Math.sin(x * 0.12 + y * 0.1 + t * WOB_SPEED * 0.55 + z.phase) *
+                    0.6 +
+                Math.sin(
+                    x * 0.27 - y * 0.22 - t * WOB_SPEED * 0.45 + z.phase * 1.7
+                ) *
+                    0.25 +
+                Math.sin(
+                    x * 0.55 + y * 0.8 + t * WOB_SPEED * 1.2 + z.phase * 2.3
+                ) *
+                    0.15
+            /* bias toward the inner radius: mostly snug, with
+             * occasional outward puffs */
+            const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
+            /* cumulus: blend the amplitude by how far above (crest) or
+             * below (keel) the element this cell sits; vert is 0
+             * beside it, 1 straight over/under */
+            const vert = d > 0 ? dy / d : 0
+            const amp =
+                yc < z.y0
+                    ? FLANK + (CREST - FLANK) * vert
+                    : yc > z.y1
+                      ? FLANK + (KEEL - FLANK) * vert
+                      : FLANK
+            return d - (z.pad + z.wob * amp * puff)
         }
 
         /* Rebuilt every TICK, window rows only — everything breathes
-         * together. One distance computation per cell feeds all three
+         * together. One edge evaluation per cell feeds all three
          * bands: cloud, buffer, fade. Everything is document-anchored,
          * so a blob's silhouette is a pure function of its position on
          * the PAGE (plus slow breathing time) — scrolling cannot re-cut
@@ -603,84 +707,26 @@ export default function PhysarumBackground() {
             mask.fill(0, top * gw, bot * gw)
             fadeF.fill(1, top * gw, bot * gw)
             for (const z of zoneRects) {
-                const zx0 = z.x0
-                const zx1 = z.x1
-                const zy0 = z.y0
-                const zy1 = z.y1
-                /* DEAD zones measure distance isotropically in PIXELS
-                 * (row units): a cell is only ~0.6× as wide as it is
-                 * tall, so raw cell-unit distance gave text ~40% less
-                 * horizontal clearance than vertical — the mold visibly
-                 * crowded the ends of lines while wasting space above
-                 * and below. kx converts a horizontal cell distance
-                 * into row units. Painted clouds keep the cell-metric
-                 * field their look and spacing scale were tuned on. */
-                const kx = z.paint ? 1 : CW / CH
+                const kx = kxOf(z)
                 const reach = z.pad + z.wob * CREST + z.buffer + z.fade + 1
-                const bx0 = Math.max(0, Math.floor(zx0 - reach / kx))
-                const bx1 = Math.min(gw - 1, Math.ceil(zx1 + reach / kx))
-                const by0 = Math.max(top, Math.floor(zy0 - reach))
-                const by1 = Math.min(bot - 1, Math.ceil(zy1 + reach))
+                const bx0 = Math.max(0, Math.floor(z.x0 - reach / kx))
+                const bx1 = Math.min(gw - 1, Math.ceil(z.x1 + reach / kx))
+                const by0 = Math.max(top, Math.floor(z.y0 - reach))
+                const by1 = Math.min(bot - 1, Math.ceil(z.y1 + reach))
                 for (let y = by0; y <= by1; y++) {
-                    /* distances from the CELL CENTER — measuring from the
-                     * top-left corner would bias every blob one cell down
-                     * and right */
-                    const yc = y + 0.5
-                    const dy = yc < zy0 ? zy0 - yc : yc > zy1 ? yc - zy1 : 0
                     for (let x = bx0; x <= bx1; x++) {
-                        const xc = x + 0.5
-                        const dx =
-                            (xc < zx0 ? zx0 - xc : xc > zx1 ? xc - zx1 : 0) * kx
-                        const d = Math.sqrt(dx * dx + dy * dy)
-                        /* three octaves, diagonal wave directions so every
-                         * edge orientation undulates: swell, wave, ripple */
-                        const w =
-                            Math.sin(
-                                x * 0.12 +
-                                    y * 0.1 +
-                                    t * WOB_SPEED * 0.55 +
-                                    z.phase
-                            ) *
-                                0.6 +
-                            Math.sin(
-                                x * 0.27 -
-                                    y * 0.22 -
-                                    t * WOB_SPEED * 0.45 +
-                                    z.phase * 1.7
-                            ) *
-                                0.25 +
-                            Math.sin(
-                                x * 0.55 +
-                                    y * 0.8 +
-                                    t * WOB_SPEED * 1.2 +
-                                    z.phase * 2.3
-                            ) *
-                                0.15
-                        /* bias toward the inner radius: mostly snug, with
-                         * occasional outward puffs */
-                        const puff = Math.pow((w + 1) / 2, LOBE_BIAS)
-                        /* cumulus: blend the amplitude by how far above
-                         * (crest) or below (keel) the element this cell
-                         * sits; vert is 0 beside it, 1 straight over/under */
-                        const vert = d > 0 ? dy / d : 0
-                        const amp =
-                            yc < zy0
-                                ? FLANK + (CREST - FLANK) * vert
-                                : yc > zy1
-                                  ? FLANK + (KEEL - FLANK) * vert
-                                  : FLANK
-                        const off = z.pad + z.wob * amp * puff
+                        const e = cloudEdge(z, x, y, t)
                         const i = y * gw + x
-                        if (d < off) {
+                        if (e < 0) {
                             if (z.paint) cloudM[i] = z.hot ? 2 : 1
                             mask[i] = 1
                             fadeF[i] = 0
-                        } else if (d < off + z.buffer) {
+                        } else if (e < z.buffer) {
                             /* moat: no mold, no paint — clean page */
                             mask[i] = 1
                             fadeF[i] = 0
                         } else {
-                            const f = Math.min(1, (d - off - z.buffer) / z.fade)
+                            const f = Math.min(1, (e - z.buffer) / z.fade)
                             if (f < fadeF[i]!) fadeF[i] = f
                         }
                     }
@@ -691,8 +737,13 @@ export default function PhysarumBackground() {
         /* window-level pointer tracking — the canvas never gets events.
          * VIEWPORT coordinates are stored and converted to document
          * cells at feed time: a stationary cursor's page position
-         * changes as the page scrolls under it. */
-        const pointer = { cx: -1, cy: -1, active: false }
+         * changes as the page scrolls under it. active goes false the
+         * moment the pointer stops EXISTING as a hover — a finger
+         * lifting or cancelling into a scroll, the mouse leaving the
+         * window, the window losing focus — otherwise the last stored
+         * point would haunt the page as a phantom cursor, feeding the
+         * mold and igniting every blob that scrolls under it. */
+        const pointer = { cx: -1, cy: -1, active: false, fine: false }
         const onMove = (e: PointerEvent) => {
             if (
                 e.clientX < 0 ||
@@ -704,8 +755,143 @@ export default function PhysarumBackground() {
                 return
             }
             pointer.active = true
+            /* only a hovering pointer type may ignite blobs: a touch
+             * drag's first moves arrive BEFORE the scroll takeover
+             * cancels them, and must not flash the card fuchsia on
+             * every scroll that starts over a blob (the finger still
+             * feeds the mold — food is not hover) */
+            pointer.fine = e.pointerType !== 'touch'
             pointer.cx = e.clientX
             pointer.cy = e.clientY
+        }
+        const onPointerEnd = (e: PointerEvent) => {
+            /* a lifted mouse still hovers; a lifted finger doesn't,
+             * and a cancel (scroll takeover) ends the touch too */
+            if (e.type === 'pointercancel' || e.pointerType !== 'mouse') {
+                pointer.active = false
+            }
+        }
+        const onPointerOut = (e: PointerEvent) => {
+            /* no relatedTarget: the pointer left the document */
+            if (!e.relatedTarget) pointer.active = false
+        }
+        const onBlur = () => {
+            pointer.active = false
+        }
+
+        /* a viewport point's document grid cell — fractional, measured
+         * from cell centers (cloudEdge's convention). Every consumer
+         * (hover, click, cursor food) converts through here, so no two
+         * of them can ever read different points off the same isoline. */
+        const docCell = (
+            clientX: number,
+            clientY: number,
+            scrollY = window.scrollY
+        ): [number, number] => [
+            (clientX * dprC) / CW - 0.5,
+            ((clientY + scrollY) * dprC) / CH - 0.5
+        ]
+
+        /* ── Blob hover ──────────────────────────────────────────────
+         * The hover decision, made per FRAME (not per tick): a
+         * hoverable zone is hot while the cursor sits inside its
+         * breathing silhouette — cloudEdge, the exact isoline the
+         * paint fills — or while its anchor matches :hover (cursor
+         * over the rectangle, which the blob always covers) or
+         * :focus-visible (keyboard). The state is mirrored onto the
+         * element as data-cloud-hot so the CSS anchor and the canvas
+         * ink flip in the SAME frame, and the cursor turns into a
+         * pointer wherever the page under it is blob. */
+        let blobCursor = false
+        const refreshHot = (t: number) => {
+            const [px, py] = docCell(pointer.cx, pointer.cy)
+            let changed = false
+            let inBlob = false
+            for (const z of zoneRects) {
+                if (!z.hoverable) continue
+                const cursorIn =
+                    pointer.active &&
+                    pointer.fine &&
+                    z.paint &&
+                    cloudEdge(z, px, py, t) < 0
+                if (cursorIn) inBlob = true
+                const hot = cursorIn || z.el.matches(':hover, :focus-visible')
+                if (hot !== z.hot) {
+                    z.hot = hot
+                    changed = true
+                    if (hot) z.el.setAttribute('data-cloud-hot', '')
+                    else z.el.removeAttribute('data-cloud-hot')
+                }
+            }
+            if (inBlob !== blobCursor) {
+                blobCursor = inBlob
+                document.documentElement.style.cursor = inBlob ? 'pointer' : ''
+            }
+            return changed
+        }
+
+        /* the blob is also the card's CLICK target: a plain left click
+         * inside a hoverable blob, outside its anchor, activates the
+         * anchor — CloudLink then runs the same grow transition a
+         * direct click gets. Modified clicks (new tab, …) fall through
+         * to the page: the synthetic click couldn't carry them. Three
+         * things that LOOK like background clicks are not: keyboard
+         * activations (no coordinates), the release of a text-
+         * selection drag (a click retargeted to a common ancestor),
+         * and clicks on interactive UI floating over blob territory
+         * (the focused skip link). And like any native button, press
+         * and release must BOTH land inside the blob. */
+        const down = { cx: -1, cy: -1, sy: 0 }
+        const onDown = (e: PointerEvent) => {
+            down.cx = e.clientX
+            down.cy = e.clientY
+            /* the press's OWN scroll offset: the page can scroll (a
+             * smooth scroll still settling, a wheel with the button
+             * held) between press and release, and the press must be
+             * judged where it actually landed */
+            down.sy = window.scrollY
+        }
+        const onClick = (e: MouseEvent) => {
+            /* !isTrusted is also what makes the synthetic click below
+             * terminal */
+            if (!e.isTrusted || e.defaultPrevented || e.button !== 0) return
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+            if (e.detail === 0) return /* keyboard — no coordinates */
+            const sel = document.getSelection()
+            if (sel && !sel.isCollapsed) return
+            /* anything interactive handles its own clicks — err WIDE:
+             * swallowing a background click costs one blob shortcut,
+             * routing a widget's click into a navigation breaks the
+             * widget */
+            if (
+                e.target instanceof Element &&
+                e.target.closest(
+                    'a, button, input, select, textarea, label, summary, ' +
+                        'details, iframe, embed, object, video, audio, ' +
+                        '[contenteditable], [tabindex], [role="button"], ' +
+                        '[role="link"]'
+                )
+            ) {
+                return
+            }
+            /* clicks inside a zone element handle themselves */
+            if (e.target instanceof Node) {
+                for (const z of zoneRects) {
+                    if (z.el.contains(e.target)) return
+                }
+            }
+            const t = performance.now() / 1000
+            const [px, py] = docCell(e.clientX, e.clientY)
+            const [dx, dy] = docCell(down.cx, down.cy, down.sy)
+            for (const z of zoneRects) {
+                if (!z.hoverable || !z.paint) continue
+                if (cloudEdge(z, px, py, t) < 0) {
+                    if (cloudEdge(z, dx, dy, t) < 0) {
+                        ;(z.el as HTMLElement).click()
+                    }
+                    return
+                }
+            }
         }
 
         const hash = (x: number, y: number) => {
@@ -838,8 +1024,7 @@ export default function PhysarumBackground() {
         const cellAt = (x: number, y: number) => {
             const xi = ((Math.floor(x) % gw) + gw) % gw
             const wh = winBot - winTop
-            const yi =
-                winTop + ((((Math.floor(y) - winTop) % wh) + wh) % wh)
+            const yi = winTop + ((((Math.floor(y) - winTop) % wh) + wh) % wh)
             return yi * gw + xi
         }
         /* exclusion senses as NEUTRAL: agents wander up to the buffer's
@@ -886,11 +1071,11 @@ export default function PhysarumBackground() {
          * 60Hz reference demo; the loop below decides how many to run. */
         const step = () => {
             if (pointer.active) {
-                /* the cursor's DOCUMENT cell, right now */
-                const px = Math.floor((pointer.cx * dprC) / CW)
-                const py = Math.floor(
-                    ((pointer.cy + window.scrollY) * dprC) / CH
-                )
+                /* the cursor's DOCUMENT cell, right now — round undoes
+                 * docCell's half-cell centering: round(v − ½) ≡ floor(v) */
+                const [fx, fy] = docCell(pointer.cx, pointer.cy)
+                const px = Math.round(fx)
+                const py = Math.round(fy)
                 if (
                     px >= 0 &&
                     px < gw &&
@@ -1000,10 +1185,7 @@ export default function PhysarumBackground() {
             }
             /* copy the diffused window back — no buffer swap: a swap
              * would resurrect two-tick-old values in the frozen rows */
-            trail.set(
-                next.subarray(winTop * gw, winBot * gw),
-                winTop * gw
-            )
+            trail.set(next.subarray(winTop * gw, winBot * gw), winTop * gw)
         }
 
         /* fixed-timestep loop — see the Cadence note by the tunables.
@@ -1018,33 +1200,101 @@ export default function PhysarumBackground() {
             if (!running) return
             raf = requestAnimationFrame(loop)
 
-            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : TICK_MS
+            const t = tMs / 1000
+            acc += lastT ? Math.min(tMs - lastT, DT_CLAMP) : tickMs
             lastT = tMs
-            if (acc < TICK_MS) return /* idle frame: free */
+            if (acc < tickMs) {
+                /* idle frame — near-free, EXCEPT that hover is a
+                 * per-frame decision: crossing the blob's edge (or the
+                 * edge breathing out from under a parked cursor) must
+                 * flip blob and anchor NOW, together, not at the next
+                 * tick. And the decision needs CURRENT zones and a
+                 * CURRENT window — a DOM swap or a focus-driven scroll
+                 * can't wait a tick either. A change re-inks the
+                 * window without advancing the sim. */
+                if (zonesDirty) remeasure(t)
+                if (refreshHot(t)) {
+                    updateWindow()
+                    updateMask(t)
+                    paintRows(winTop, winBot)
+                }
+                return
+            }
 
-            let ticks = Math.floor(acc / TICK_MS)
-            acc -= ticks * TICK_MS
+            let ticks = Math.floor(acc / tickMs)
+            acc -= ticks * tickMs
             ticks = Math.min(ticks, MAX_TICKS)
 
             /* the document can grow under us (images, fonts) — cheap
-             * height compare, full re-sheet only when it actually did */
-            if (document.documentElement.scrollHeight !== lastDocCssH) {
+             * height compare; the canvas reallocates only on a chunk
+             * crossing, but ANY height change can move zones */
+            if (document.documentElement.scrollHeight !== lastContentH) {
                 resize()
             }
+            if (zonesDirty) remeasure(t)
+            refreshHot(t)
             updateWindow()
-            measureZones()
-            updateMask(tMs / 1000) /* everything breathes together */
-            for (let k = 0; k < ticks * STEPS_PER_TICK; k++) step()
+            updateMask(t) /* everything breathes together */
+            for (let k = 0; k < ticks * stepsPerTick; k++) step()
             paintRows(winTop, winBot)
         }
         raf = requestAnimationFrame(loop)
 
         window.addEventListener('pointermove', onMove, { passive: true })
+        window.addEventListener('pointerdown', onDown, { passive: true })
+        window.addEventListener('pointerup', onPointerEnd, { passive: true })
+        window.addEventListener('pointercancel', onPointerEnd, {
+            passive: true
+        })
+        window.addEventListener('pointerout', onPointerOut, { passive: true })
+        window.addEventListener('blur', onBlur)
+        window.addEventListener('click', onClick)
         window.addEventListener('resize', resize)
 
+        /* DOM swaps (client-side navigations rendering under the
+         * transition cover), class/style toggles, late images (src),
+         * and runtime flips of the data-cloud* layout attributes can
+         * all move zones without changing the document height —
+         * invalidate the cache. data-cloud-hot stays OFF the filter:
+         * refreshHot writes it into this subtree every hover flip, and
+         * observing it would re-run the full measure walk continuously.
+         * Records from inside the canvas's own wrapper are skipped for
+         * the same reason — resize() writes the canvas style and
+         * always remeasures right afterward, so reacting to its own
+         * writes would only double the full re-ink. */
+        const wrap = canvas.parentElement
+        const mo = new MutationObserver(records => {
+            for (const record of records) {
+                if (wrap?.contains(record.target)) continue
+                zonesDirty = true
+                return
+            }
+        })
+        mo.observe(document.body, {
+            childList: true,
+            subtree: true,
+            characterData: true,
+            attributes: true,
+            attributeFilter: [
+                'class',
+                'style',
+                'hidden',
+                'open',
+                'src',
+                'data-cloud',
+                'data-cloud-pad',
+                'data-cloud-buffer',
+                'data-cloud-wob',
+                'data-cloud-hover'
+            ]
+        })
+
         /* webfonts swap in after first paint — retire ink trims measured
-         * against fallback faces (they recompute lazily next frame) */
-        document.fonts?.ready.then(resetInkTrims)
+         * against fallback faces and re-measure against the real ones */
+        document.fonts?.ready.then(() => {
+            resetInkTrims()
+            zonesDirty = true
+        })
 
         /* no burning battery in background tabs */
         const onVisibility = () => {
@@ -1057,11 +1307,19 @@ export default function PhysarumBackground() {
             running = false
             cancelAnimationFrame(raf)
             window.removeEventListener('pointermove', onMove)
+            window.removeEventListener('pointerdown', onDown)
+            window.removeEventListener('pointerup', onPointerEnd)
+            window.removeEventListener('pointercancel', onPointerEnd)
+            window.removeEventListener('pointerout', onPointerOut)
+            window.removeEventListener('blur', onBlur)
+            window.removeEventListener('click', onClick)
             window.removeEventListener('resize', resize)
             document.removeEventListener('visibilitychange', onVisibility)
-            document.removeEventListener('visibilitychange', onGuardVis)
-            window.removeEventListener('pagehide', onGuardHide)
-            setClean(true) /* unmounting (navigation) is a clean exit */
+            mo.disconnect()
+            zoneRO.disconnect()
+            for (const z of zoneRects) z.el.removeAttribute('data-cloud-hot')
+            document.documentElement.style.cursor = ''
+            document.documentElement.removeAttribute('data-organism')
         }
     }, [reduced])
 
@@ -1070,16 +1328,24 @@ export default function PhysarumBackground() {
     if (reduced) return null
 
     return (
-        /* Absolutely positioned at the document origin (body isn't
-         * positioned, so the containing block is the initial one) and
-         * sized to the full document by resize() — the canvas is part
-         * of the page, and the compositor scrolls it with the content.
-         * The base stylesheet's responsive canvas{max-width:100%} is
-         * satisfied trivially: the canvas is exactly the page's width. */
-        <canvas
-            ref={canvasRef}
+        /* The wrapper is absolutely positioned against the BODY (made
+         * relative in the root layout for exactly this), so inset-0
+         * spans the whole document, and overflow-hidden trims the
+         * canvas's spare capacity rows — the canvas may run taller
+         * than the page without adding scrollable space. (hidden, not
+         * clip: old Safari — precisely the memory-constrained cohort
+         * the capacity design serves — drops `clip` as invalid and
+         * would show the tail; nothing can scroll this wrapper, so
+         * the two behave identically here.) The canvas sits at the
+         * document origin inside it; the compositor scrolls canvas
+         * and content together as one surface. The base stylesheet's
+         * responsive canvas{max-width:100%} is satisfied trivially:
+         * the canvas is exactly the page's width. */
+        <div
             aria-hidden='true'
-            className='pointer-events-none absolute left-0 top-0 -z-10'
-        />
+            className='pointer-events-none absolute inset-0 -z-10 overflow-hidden'
+        >
+            <canvas ref={canvasRef} className='absolute left-0 top-0' />
+        </div>
     )
 }

@@ -13,7 +13,11 @@ const xits = localFont({
         { path: '../fonts/XITS-Regular.woff2', weight: '400', style: 'normal' },
         { path: '../fonts/XITS-Italic.woff2', weight: '400', style: 'italic' },
         { path: '../fonts/XITS-Bold.woff2', weight: '700', style: 'normal' },
-        { path: '../fonts/XITS-BoldItalic.woff2', weight: '700', style: 'italic' }
+        {
+            path: '../fonts/XITS-BoldItalic.woff2',
+            weight: '700',
+            style: 'italic'
+        }
     ],
     variable: '--font-xits',
     display: 'swap',
@@ -22,9 +26,21 @@ const xits = localFont({
 
 const plexMono = localFont({
     src: [
-        { path: '../fonts/IBMPlexMono-Text.woff2', weight: '400', style: 'normal' },
-        { path: '../fonts/IBMPlexMono-TextItalic.woff2', weight: '400', style: 'italic' },
-        { path: '../fonts/IBMPlexMono-Bold.woff2', weight: '700', style: 'normal' }
+        {
+            path: '../fonts/IBMPlexMono-Text.woff2',
+            weight: '400',
+            style: 'normal'
+        },
+        {
+            path: '../fonts/IBMPlexMono-TextItalic.woff2',
+            weight: '400',
+            style: 'italic'
+        },
+        {
+            path: '../fonts/IBMPlexMono-Bold.woff2',
+            weight: '700',
+            style: 'normal'
+        }
     ],
     variable: '--font-plex-mono',
     display: 'swap'
@@ -51,7 +67,8 @@ const calligra = localFont({
 })
 
 const SITE_NAME = 'Ozan Bayiz'
-const SITE_DESCRIPTION = 'Personal site of Ozan Bayiz — Computer Science at UC Berkeley.'
+const SITE_DESCRIPTION =
+    'Personal site of Ozan Bayiz — Computer Science at UC Berkeley.'
 
 export const metadata: Metadata = {
     /* The tab reads as the domain; SITE_NAME stays the person for
@@ -94,17 +111,22 @@ export default function RootLayout({
 }>) {
     return (
         <html lang='en'>
-            <body className={`${xits.variable} ${plexMono.variable} ${gothic.variable} ${calligra.variable} font-sans antialiased overflow-x-hidden flex min-h-screen flex-col`}>
+            {/* relative: the physarum canvas's clipping wrapper sizes
+             * itself to the body with inset-0 — the body must be its
+             * containing block. */}
+            <body
+                className={`${xits.variable} ${plexMono.variable} ${gothic.variable} ${calligra.variable} relative flex min-h-screen flex-col overflow-x-hidden font-sans antialiased`}
+            >
                 {/* Card→page transition overlay: a project card's cloud
-                  * floods the screen like growing mold, the navigation
-                  * happens under the cover, and the black dissolves to
-                  * reveal the page. Lives in the layout because it must
-                  * survive the very navigation it covers. Transparent
-                  * and inert when idle. */}
+                 * floods the screen like growing mold, the navigation
+                 * happens under the cover, and the black dissolves to
+                 * reveal the page. Lives in the layout because it must
+                 * survive the very navigation it covers. Transparent
+                 * and inert when idle. */}
                 <MoldTransition />
                 <a
                     href='#main'
-                    className='sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-background focus:text-foreground focus:border focus:border-foreground focus:px-stack focus:py-inline'
+                    className='sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:border focus:border-foreground focus:bg-background focus:px-stack focus:py-inline focus:text-foreground'
                 >
                     Skip to content
                 </a>

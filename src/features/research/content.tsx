@@ -11,6 +11,11 @@
  *   3. Optional card image in public/projects/<slug>/.
  */
 
+import type { ReactNode } from 'react'
+
+import ExternalLink from '@/shared/ui/external-link'
+import type { BylineAuthor } from '@/shared/ui/byline'
+
 export type ResearchEntry = {
     slug: string
     title: string
@@ -19,6 +24,15 @@ export type ResearchEntry = {
     shortTitle?: string
     /** Venue-style context line, e.g. 'UC Berkeley · CS 280' */
     context: string
+    /** Publication byline, in paper order. `self` marks the site
+     * owner — underlined on the report page. `mark` renders after the
+     * name (outside the underline), e.g. '*' for equal contribution. */
+    authors?: BylineAuthor[]
+    /** Quiet fragment closing the authors line, e.g. '*equal contribution'. */
+    authorsNote?: string
+    /** Venue line under the byline — the workshop/conference sentence;
+     * ReactNode so the venue name can carry a link. */
+    venue?: ReactNode
     year: string
     /** 1–2 sentence card summary. */
     tldr: string
@@ -43,9 +57,29 @@ export const research: { entries: ResearchEntry[] } = {
             title: 'A Compositional Analysis of Cross-Lingual Math Reasoning in Efficient Vision-Language Models',
             shortTitle: 'Cross-Lingual Math Reasoning in Efficient VLMs',
             context: 'ECCV 2026 · FAILED workshop',
+            authors: [
+                { name: 'Kerem Tuzel', mark: '*' },
+                { name: 'Ozan Bayiz', self: true, mark: '*' }
+            ],
+            authorsNote: '*equal contribution',
+            venue: (
+                <>
+                    <ExternalLink
+                        href='https://3rd-failed-workshop-eccv-2026.github.io/'
+                        className='link-marked'
+                    >
+                        FAILED
+                    </ExternalLink>
+                    , the 3rd Workshop on Fairness and Ethics in AI: facing the
+                    ChalLEnge through Model Debiasing, at ECCV 2026 in Malmö
+                </>
+            ),
             year: '2026',
             tldr: 'Reading a math problem and reasoning about it are separate skills for small vision-language models — separate enough that monolingual scores alone predict cross-lingual accuracy.',
-            cover: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
+            /* Card-only 16:9 crop (top three language blocks) so the
+             * cover fills the card plate without letterboxing; the
+             * report's Figure 1 keeps the full five-language figure. */
+            cover: '/projects/multilingual-vision-and-text/questions_all_languages_cover.webp',
             hero: [
                 {
                     src: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
@@ -57,7 +91,7 @@ export const research: { entries: ResearchEntry[] } = {
             /* pdf: add '/projects/multilingual-vision-and-text/paper.pdf'
              * once the file lands in public/projects/… — it is referenced
              * by the writeup but was not in _new_proj. */
-        },
+        }
         /* Parked 2026-08-24 at the author's request — off the public
          * site for now. The page, MDX, and assets are all preserved;
          * re-enable by uncommenting.

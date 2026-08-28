@@ -30,12 +30,12 @@ body {
  * To make the site airier or tighter, edit these six values — nothing
  * else. */
 :root {
-    --space-inline: 0.5rem;   /* 8px */
-    --space-stack: 1rem;      /* 16px */
-    --space-inset: 1.5rem;    /* 24px */
-    --space-seam: clamp(1.5rem, 0.885rem + 2.271vw, 2.5rem);  /* 24→40px */
-    --space-gulf: 4rem;       /* 64px */
-    --space-chasm: 6.5rem;    /* 104px */
+    --space-inline: 0.5rem; /* 8px */
+    --space-stack: 1rem; /* 16px */
+    --space-inset: 1.5rem; /* 24px */
+    --space-seam: clamp(1.5rem, 0.885rem + 2.271vw, 2.5rem); /* 24→40px */
+    --space-gulf: 4rem; /* 64px */
+    --space-chasm: 6.5rem; /* 104px */
 }
 
 @layer base {
@@ -49,9 +49,9 @@ body {
         /* Base (brand) accents — max-chroma; for backgrounds, borders,
          * glows, and other non-text uses where AA text contrast doesn't
          * apply. */
-        --accent1: 312 100% 50%;     /* fuchsia  #FF00CC */
-        --accent2: 72 100% 50%;      /* chartreuse #CCFF00 */
-        --accent3: 192 100% 50%;     /* cyan     #00CCFF */
+        --accent1: 312 100% 50%; /* fuchsia  #FF00CC */
+        --accent2: 72 100% 50%; /* chartreuse #CCFF00 */
+        --accent3: 192 100% 50%; /* cyan     #00CCFF */
         /* Text-safe accent variants. Each accent has a "dark" mode
          * (comfortable on white — set here) and a "light" mode
          * (comfortable on black — swapped in by .section-fill below).
@@ -76,7 +76,12 @@ body {
     }
 
     /* Display type — Chomsky blackletter. */
-    h1, h2, h3, h4, h5, h6,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
     .font-display {
         font-family: var(--font-gothic), serif;
         font-weight: 700;
@@ -108,7 +113,6 @@ body {
         height: auto;
     }
 }
-
 
 /* Chartreuse = the highlighter: selecting text runs a highlighter pen
  * over it. Black text on #CCFF00 is high-contrast on white and on the
@@ -160,8 +164,12 @@ html {
 }
 
 /* Backward-compat aliases — old gradient-* selectors route to flex-* */
-.gradient-link { @apply flex-link; }
-.gradient-link-group { @apply flex-link-group; }
+.gradient-link {
+    @apply flex-link;
+}
+.gradient-link-group {
+    @apply flex-link-group;
+}
 
 /* ── Link personalities ──────────────────────────────────────────────
  * Base .flex-link is quiet: invisible at rest, underline + bold on hover.
@@ -212,14 +220,15 @@ html {
     text-decoration-color: currentColor;
 }
 
-
 /* Card border — ink hairline by default, hard 3px box-shadow on hover.
  * Hard-edged shadow matches the manuscript-rule aesthetic. */
 .flex-border-hover,
 .flex-border-group {
     position: relative;
     border: 1px solid hsl(var(--foreground) / 0.2);
-    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+    transition:
+        box-shadow 0.18s ease,
+        border-color 0.18s ease;
 }
 
 /* Fuchsia on hover — interaction feedback, striking on white cards
@@ -233,8 +242,12 @@ html {
 }
 
 /* Backward-compat */
-.gradient-border-hover { @apply flex-border-hover; }
-.gradient-border-group { @apply flex-border-group; }
+.gradient-border-hover {
+    @apply flex-border-hover;
+}
+.gradient-border-group {
+    @apply flex-border-group;
+}
 
 /* Filled-rectangle section — locks to black bg + white fg by swapping the
  * fg/bg CSS vars locally, so descendants (text, links, borders) flip
@@ -247,9 +260,9 @@ html {
      * finds lighter variants pastel/washed, and every base passes AA on
      * black anyway (fuchsia 6.1:1, chartreuse 17.9:1, cyan 11.1:1).
      * The darkened --accentN-text values at :root exist for white. */
-    --accent1-text: 312 100% 50%;   /* fuchsia    #FF00CC, 6.1:1 on black */
-    --accent2-text: 72 100% 50%;    /* chartreuse #CCFF00, 17.9:1 on black */
-    --accent3-text: 192 100% 50%;   /* cyan       #00CCFF, 11.1:1 on black */
+    --accent1-text: 312 100% 50%; /* fuchsia    #FF00CC, 6.1:1 on black */
+    --accent2-text: 72 100% 50%; /* chartreuse #CCFF00, 17.9:1 on black */
+    --accent3-text: 192 100% 50%; /* cyan       #00CCFF, 11.1:1 on black */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
 }
@@ -284,22 +297,36 @@ html {
 .cloud-zone {
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
-    --accent1-text: 312 100% 50%;   /* fuchsia    #FF00CC */
-    --accent2-text: 72 100% 50%;    /* chartreuse #CCFF00 */
-    --accent3-text: 192 100% 50%;   /* cyan       #00CCFF */
+    --accent1-text: 312 100% 50%; /* fuchsia    #FF00CC */
+    --accent2-text: 72 100% 50%; /* chartreuse #CCFF00 */
+    --accent3-text: 192 100% 50%; /* cyan       #00CCFF */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
 }
 
-/* Interaction: hovering (or keyboard-focusing) a cloud marked
- * data-cloud-hover ignites the WHOLE cloud fuchsia — the canvas
- * repaints that blob (cloud-background.tsx reads the same attribute
- * and :hover/:focus-visible state each frame) and this rule flips the
- * painted anchor under it. Instant, no transition: the two layers must
- * change in the same frame or the rectangle shows inside the blob.
+/* Interaction: a cloud marked data-cloud-hover ignites WHOLE-cloud
+ * fuchsia. The canvas owns the hover decision — the breathing blob
+ * silhouette is the hit area — and mirrors it per frame as
+ * data-cloud-hot (physarum-background.tsx), so blob and painted
+ * anchor flip in the SAME frame; :hover/:focus-visible stay as the
+ * no-canvas fallback (reduced motion, no JS). With the canvas running
+ * they can only agree with the attribute, never precede it: the blob
+ * always reaches beyond the rectangle. Instant, no transition.
  * Fuchsia = interaction feedback, site-wide. */
-.cloud-zone[data-cloud-hover]:is(:hover, :focus-visible) {
+.cloud-zone[data-cloud-hover]:is(:hover, :focus-visible),
+.cloud-zone[data-cloud-hover][data-cloud-hot] {
     --background: 312 100% 50%;
+}
+
+/* While the organism runs (data-organism on <html>, set by
+ * physarum-background.tsx), a .cloud-lift card sheds its top frame:
+ * the blob's crest already billows plenty of black above the figure,
+ * and the full frame made the plate sit low in its cloud. Keyed to
+ * the attribute because the crest is the whole justification — the
+ * painted-rectangle fallback (no JS, reduced motion) has no crest
+ * and keeps its symmetric frame. */
+[data-organism] .cloud-lift {
+    padding-top: 0;
 }
 
 /* ASCII art — IBM Plex Mono Bold (boldest weight), fg color.
@@ -317,7 +344,9 @@ html {
 /* Glow utilities — driven by accent1 (fuchsia). Disabled in ink mode. */
 @layer utilities {
     .glow-accent {
-        box-shadow: 0 0 20px hsl(var(--accent1) / 0.3), 0 0 60px hsl(var(--accent1) / 0.1);
+        box-shadow:
+            0 0 20px hsl(var(--accent1) / 0.3),
+            0 0 60px hsl(var(--accent1) / 0.1);
     }
 
     .glow-accent-sm {
@@ -325,7 +354,9 @@ html {
     }
 
     .glow-accent-lg {
-        box-shadow: 0 0 40px hsl(var(--accent1) / 0.4), 0 0 80px hsl(var(--accent1) / 0.15);
+        box-shadow:
+            0 0 40px hsl(var(--accent1) / 0.4),
+            0 0 80px hsl(var(--accent1) / 0.15);
     }
 
     .text-glow-accent {
@@ -334,7 +365,9 @@ html {
 
     .border-glow-accent {
         border-color: hsl(var(--accent1));
-        box-shadow: 0 0 10px hsl(var(--accent1) / 0.3), inset 0 0 10px hsl(var(--accent1) / 0.05);
+        box-shadow:
+            0 0 10px hsl(var(--accent1) / 0.3),
+            inset 0 0 10px hsl(var(--accent1) / 0.05);
     }
 }
 
@@ -398,9 +431,15 @@ html {
     padding-left: 1.5em;
 }
 
-.paper ul { list-style: disc; }
-.paper ol { list-style: decimal; }
-.paper li { margin: 0.3em 0; }
+.paper ul {
+    list-style: disc;
+}
+.paper ol {
+    list-style: decimal;
+}
+.paper li {
+    margin: 0.3em 0;
+}
 
 .paper figure {
     margin: 1.3em 0;
@@ -476,13 +515,22 @@ html {
 }
 
 @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
 }
 
 .animate-fade-in-up {
@@ -498,4 +546,3 @@ html {
 .animate-blink {
     animation: blink 1s step-end infinite;
 }
-
