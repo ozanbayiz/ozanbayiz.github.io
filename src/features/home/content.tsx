@@ -72,11 +72,9 @@ XXX   XXX   XXX   XXX      XXX         XXX       XXX
 export type SocialIcon = 'github' | 'linkedin' | 'cv'
 
 export const socials: {
-    email: string
     emailDisplay: string
     links: { icon: SocialIcon; href: string; label: string }[]
 } = {
-    email: 'ozanbayiz@berkeley.edu',
     emailDisplay: 'ozanbayiz [at] berkeley [dot] edu',
     links: [
         { icon: 'github', href: 'https://github.com/ozanbayiz', label: 'GitHub profile' },

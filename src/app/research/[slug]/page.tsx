@@ -24,10 +24,11 @@ import type { ReactNode } from 'react'
 
 /* ── Document-action toolbar ───────────────────────────────────────────
  * Every project carries a predictable suite of links (Code · PDF · Demo),
- * rendered as bare icons under the title — no borders, no labels. */
+ * set as a centered row of bare icons under the venue, where academic
+ * project pages put them. The marks are recognizable on their own. */
 
 const strokeProps = {
-    className: 'h-7 w-7',
+    className: 'h-8 w-8',
     viewBox: '0 0 24 24',
     fill: 'none',
     stroke: 'currentColor',
@@ -48,7 +49,7 @@ const DOCUMENT_ACTIONS: {
         icon: (
             <svg
                 aria-hidden
-                className='h-7 w-7 fill-current'
+                className='h-8 w-8 fill-current'
                 viewBox='0 0 32 32'
             >
                 <path d='M16,2.345c7.735,0,14,6.265,14,14-.002,6.015-3.839,11.359-9.537,13.282-.7,.14-.963-.298-.963-.665,0-.473,.018-1.978,.018-3.85,0-1.312-.437-2.152-.945-2.59,3.115-.35,6.388-1.54,6.388-6.912,0-1.54-.543-2.783-1.435-3.762,.14-.35,.63-1.785-.14-3.71,0,0-1.173-.385-3.85,1.435-1.12-.315-2.31-.472-3.5-.472s-2.38,.157-3.5,.472c-2.677-1.802-3.85-1.435-3.85-1.435-.77,1.925-.28,3.36-.14,3.71-.892,.98-1.435,2.24-1.435,3.762,0,5.355,3.255,6.563,6.37,6.913-.403,.35-.77,.963-.893,1.872-.805,.368-2.818,.963-4.077-1.155-.263-.42-1.05-1.452-2.152-1.435-1.173,.018-.472,.665,.017,.927,.595,.332,1.277,1.575,1.435,1.978,.28,.787,1.19,2.293,4.707,1.645,0,1.173,.018,2.275,.018,2.607,0,.368-.263,.787-.963,.665-5.719-1.904-9.576-7.255-9.573-13.283,0-7.735,6.265-14,14-14Z' />
@@ -65,7 +66,7 @@ const DOCUMENT_ACTIONS: {
         icon: (
             <svg
                 aria-hidden
-                className='h-7 w-7 fill-current'
+                className='h-8 w-8 fill-current'
                 viewBox='0 0 26 28'
                 fillRule='evenodd'
             >
@@ -88,21 +89,21 @@ function DocumentActions({ entry }: { entry: ResearchEntry }) {
     const actions = DOCUMENT_ACTIONS.filter(action => entry[action.key])
     if (actions.length === 0) return null
     return (
-        <span className='flex flex-wrap items-center gap-stack'>
+        <div className='flex flex-wrap justify-center gap-stack'>
             {actions.map(action => (
                 <a
                     key={action.key}
                     href={entry[action.key]}
                     target='_blank'
                     rel='noopener noreferrer'
-                    aria-label={action.aria}
+                    aria-label={`${action.aria} (opens in a new tab)`}
                     title={action.aria}
                     className='text-foreground transition-colors hover:text-accent1-text'
                 >
                     {action.icon}
                 </a>
             ))}
-        </span>
+        </div>
     )
 }
 
@@ -152,13 +153,13 @@ export default async function ResearchReportPage({
 
     return (
         <main className='container mx-auto max-w-[48rem] px-inset py-seam'>
-            {/* Letterhead — quiet mono utility link. Navigation speaks in
-             * the UI voice; Calligra signs only once, at the footer.
+            {/* Running head — a quiet mono home link, held off the
+             * letterhead by the same seam that holds it off the top edge.
              * MeltLink: going home melts the document into the white. */}
-            <nav>
+            <nav className='font-mono text-sm'>
                 <MeltLink
                     href='/'
-                    className='font-mono text-sm text-foreground transition-colors hover:text-accent1-text'
+                    className='text-foreground transition-colors hover:text-accent1-text'
                 >
                     ← ozanbayiz
                 </MeltLink>
@@ -166,10 +167,8 @@ export default async function ResearchReportPage({
 
             {/* Publication letterhead — a LaTeX \maketitle: centered XITS
              * serif title, byline, and venue, all pure foreground (grey
-             * is banned; contrast comes from size and italics). Only the
-             * document-action icons keep the mono UI voice — identity
-             * lives at the edges. */}
-            <header className='mt-stack flex flex-col items-center gap-stack text-center font-serif'>
+             * is banned; contrast comes from size and italics). */}
+            <header className='mt-seam flex flex-col items-center gap-stack text-center font-serif'>
                 {/* font-normal: a LaTeX title is roman, not bold — the
                  * base h1 weight would read as a web headline. */}
                 <h1 className='text-4xl font-normal leading-tight md:text-5xl'>

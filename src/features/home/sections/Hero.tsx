@@ -46,9 +46,7 @@ function SocialLinksBar() {
                     </ExternalLink>
                 ))}
             </div>
-            <a className="gradient-link whitespace-nowrap text-sm" href={`mailto:${socials.email}`}>
-                {socials.emailDisplay}
-            </a>
+            <span className="whitespace-nowrap text-sm">{socials.emailDisplay}</span>
         </div>
     )
 }
