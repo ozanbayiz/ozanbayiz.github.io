@@ -25,8 +25,12 @@ const ExternalLink = ({ href, children }: { href: string; children: ReactNode })
     </a>
 )
 
-/* `narrow` caps the image height and centers it — for tall or portrait
- * figures (e.g. a scatter plot) that would otherwise fill the column. */
+/* `narrow` sets the image to a fixed height — for square or portrait
+ * figures (a scatter plot, a stack of text renders) that would otherwise
+ * fill the column. A fixed height, not a max: the figure shrink-wraps its
+ * image so the caption is no wider than the plate (.paper figure in
+ * globals.css), and only a definite height feeds the scaled width back
+ * into that shrink-wrap. */
 const Figure = ({ src, alt, caption, narrow }: { src: string; alt: string; caption?: string; narrow?: boolean }) => (
     <figure>
         <img
@@ -34,7 +38,7 @@ const Figure = ({ src, alt, caption, narrow }: { src: string; alt: string; capti
             alt={alt}
             loading="lazy"
             decoding="async"
-            className={narrow ? 'mx-auto max-h-96 w-auto' : undefined}
+            className={narrow ? 'h-96 w-auto' : undefined}
         />
         {caption && <figcaption>{caption}</figcaption>}
     </figure>

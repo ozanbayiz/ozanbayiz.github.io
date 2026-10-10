@@ -151,8 +151,10 @@ export default async function ResearchReportPage({
 
     const Report = await compileReport(slug)
 
+    /* 40rem: ~80 characters per line of the 17px serif body — a reading
+     * measure. The old 48rem ran to ~95. */
     return (
-        <main className='container mx-auto max-w-[48rem] px-inset py-seam'>
+        <main className='container mx-auto max-w-[40rem] px-inset py-seam'>
             {/* Running head — a quiet mono home link, held off the
              * letterhead by the same seam that holds it off the top edge.
              * MeltLink: going home melts the document into the white. */}
@@ -167,76 +169,45 @@ export default async function ResearchReportPage({
 
             {/* Publication letterhead — a LaTeX \maketitle: centered XITS
              * serif title, byline, and venue, all pure foreground (grey
-             * is banned; contrast comes from size and italics). */}
+             * is banned; contrast comes from size and italics). Three
+             * groups, a stack apart: the title with its byline (an
+             * inline gap — the names belong to the title), the venue,
+             * and the document actions. */}
             <header className='mt-seam flex flex-col items-center gap-stack text-center font-serif'>
-                {/* font-normal: a LaTeX title is roman, not bold — the
-                 * base h1 weight would read as a web headline. */}
-                <h1 className='text-4xl font-normal leading-tight md:text-5xl'>
-                    {entry.title}
-                </h1>
-                {entry.authors && (
-                    <p className='text-lg'>
-                        <Byline
-                            authors={entry.authors}
-                            offset='underline-offset-4'
-                            marks
-                        />
-                        {entry.authorsNote && (
-                            <span className='ml-stack text-sm'>
-                                {entry.authorsNote}
-                            </span>
-                        )}
-                    </p>
-                )}
+                <div className='flex flex-col items-center gap-inline'>
+                    {/* font-normal: a LaTeX title is roman, not bold — the
+                     * base h1 weight would read as a web headline. One
+                     * size at every width: at 5xl a long title ran to
+                     * four lines in the 40rem column; text-balance keeps
+                     * the last line from being a single word. */}
+                    <h1 className='text-balance text-4xl font-normal leading-tight'>
+                        {entry.title}
+                    </h1>
+                    {entry.authors && (
+                        <p className='text-lg'>
+                            <Byline
+                                authors={entry.authors}
+                                offset='underline-offset-4'
+                                marks
+                            />
+                            {entry.authorsNote && (
+                                <span className='ml-stack text-sm'>
+                                    {entry.authorsNote}
+                                </span>
+                            )}
+                        </p>
+                    )}
+                </div>
                 {entry.venue && (
                     <p className='text-base italic'>{entry.venue}</p>
                 )}
                 <DocumentActions entry={entry} />
             </header>
 
+            {/* The report owns its figures: the document opens with the
+             * abstract, as a paper does, and places Figure 1 itself with
+             * <Figure> where the text first needs it. */}
             <article className='paper'>
-                {/* Hero plate — opens the document with the entry's hero
-                 * figures (default: its caption-less cover). Lives inside
-                 * .paper so figcaptions pick up the house caption style.
-                 * Single images are height-capped so the plate stays a
-                 * band, not a wall. */}
-                {(() => {
-                    const heroFigures =
-                        entry.hero ??
-                        (entry.cover ? [{ src: entry.cover }] : [])
-                    if (heroFigures.length === 0) return null
-                    const single = heroFigures.length === 1
-                    return (
-                        <div
-                            className={
-                                single
-                                    ? 'mt-stack [&_figure]:my-0'
-                                    : 'mt-stack grid gap-stack sm:grid-cols-2 [&_figure]:my-0'
-                            }
-                        >
-                            {heroFigures.map(figure => (
-                                <figure key={figure.src}>
-                                    <img
-                                        src={figure.src}
-                                        alt=''
-                                        decoding='async'
-                                        className={
-                                            single
-                                                ? 'mx-auto max-h-72 w-auto md:max-h-80'
-                                                : undefined
-                                        }
-                                    />
-                                    {figure.caption && (
-                                        <figcaption>
-                                            {figure.caption}
-                                        </figcaption>
-                                    )}
-                                </figure>
-                            ))}
-                        </div>
-                    )
-                })()}
-
                 <Report components={mdxComponents} />
             </article>
 

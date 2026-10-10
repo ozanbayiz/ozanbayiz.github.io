@@ -36,12 +36,9 @@ export type ResearchEntry = {
     year: string
     /** 1–2 sentence card summary. */
     tldr: string
-    /** Card/cover image (public path). */
+    /** Card/cover image (public path). The report page shows no plate of
+     * its own: the MDX places its figures where the text needs them. */
     cover?: string
-    /** Hero plate atop the report page — rendered as captioned figures.
-     * Defaults to the cover (caption-less); two images render side by
-     * side (e.g. a pair of gameplay gifs). */
-    hero?: { src: string; caption?: string }[]
     /* Document actions — the predictable suite every project may carry.
      * Rendered as an icon-chip toolbar in the page letterhead, always in
      * this order: Code · PDF · Demo. Just set the URLs that exist. */
@@ -75,18 +72,11 @@ export const research: { entries: ResearchEntry[] } = {
                 </>
             ),
             year: '2026',
-            tldr: 'Reading a math problem and reasoning about it are separate skills for small vision-language models — separate enough that monolingual scores alone predict cross-lingual accuracy.',
+            tldr: 'Small vision-language models read a math problem and reason about it with separable skills, and monolingual scores alone predict their cross-lingual accuracy.',
             /* Card-only 16:9 crop (top three language blocks) so the
              * cover fills the card plate without letterboxing; the
              * report's Figure 1 keeps the full five-language figure. */
             cover: '/projects/multilingual-vision-and-text/questions_all_languages_cover.webp',
-            hero: [
-                {
-                    src: '/projects/multilingual-vision-and-text/questions_all_languages.webp',
-                    caption:
-                        'Figure 1: The same MGSM question rendered as images in five languages. The arithmetic is identical everywhere; the script is not. Latin for En/De/Es, Latin with diacritics for Turkish, ideographic characters for Chinese.'
-                }
-            ],
             code: 'https://github.com/keremtuzel49/multilingual_vision_and_text'
             /* pdf: add '/projects/multilingual-vision-and-text/paper.pdf'
              * once the file lands in public/projects/… — it is referenced
@@ -103,13 +93,6 @@ export const research: { entries: ResearchEntry[] } = {
             year: '2026',
             tldr: 'A four-diagnostic screening protocol for offline RL in education — and the catalogue of comparisons it caught before they could ship as findings.',
             cover: '/projects/offline-rl-teaching/system-figure.webp',
-            hero: [
-                {
-                    src: '/projects/offline-rl-teaching/system-figure.webp',
-                    caption:
-                        'The two-policy tutoring system. The high-level pedagogical policy (this paper) selects knowledge-graph nodes; the low-level interaction policy (future work) executes teaching turns with the student.'
-                }
-            ],
             pdf: '/projects/offline-rl-teaching/paper.pdf'
         },
         */
@@ -124,16 +107,6 @@ export const research: { entries: ResearchEntry[] } = {
             year: '2026',
             tldr: 'Double DQN on frozen AIMv2 and V-JEPA 2 features: the agent never learns to see, only to act — and one encoder diverges spectacularly.',
             cover: '/projects/vizdoom-dqn/thumbnail.png',
-            hero: [
-                {
-                    src: '/projects/vizdoom-dqn/gameplay_trained.gif',
-                    caption: 'Trained agent (500k steps). Return: 5.'
-                },
-                {
-                    src: '/projects/vizdoom-dqn/gameplay_best.gif',
-                    caption: 'Best recorded episode. Return: 9.'
-                }
-            ],
             code: 'https://github.com/ozanbayiz/vizdoom-dqn'
         },
         */

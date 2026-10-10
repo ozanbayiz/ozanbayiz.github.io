@@ -1,140 +1,157 @@
-> **Abstract.** What does it take for a small vision-language model to solve a
-> math problem written in Turkish and photographed from a worksheet? Two
-> things, it turns out — and they are not the same thing. We evaluate two
-> 4B-parameter VLMs on grade-school math in five languages, independently
-> varying the input language, the input modality, and the language the model
-> reasons in (75,000 question-level evaluations in all). The result is
-> surprisingly clean: cross-lingual performance is *compositional*. It
-> factors into “read the problem” and “reason about it,” and the two factors
-> are independent enough that two monolingual scores predict held-out
-> cross-lingual accuracy with an $R^2$ of 0.875. Reading, not reasoning, is
-> the bottleneck; no prompting trick closes the gap.
+> **Abstract.** We evaluate two 4B-parameter vision-language models (VLMs)
+> on grade-school math in five languages, independently varying the language
+> of the question, its modality (text or rendered image), and the language the
+> model reasons in. Cross-lingual accuracy is compositional: a two-term linear
+> model in the model's monolingual accuracy on source-language images and its
+> monolingual accuracy on target-language text predicts held-out cross-lingual
+> accuracy with LOOCV $R^2 = 0.875$. Reading the question from the image
+> accounts for most of the error; the choice of reasoning language and prompt
+> strategy accounts for little.
+
+<Figure narrow src="/projects/multilingual-vision-and-text/questions_all_languages.webp" alt="The same MGSM word problem rendered as an image in English, German, Spanish, Turkish, and Chinese" caption="Figure 1: The same MGSM question rendered as an image in five languages. The arithmetic is identical everywhere; the script is not. Latin for English, German, and Spanish, Latin with diacritics for Turkish, ideographic characters for Chinese." />
 
 ## 1. Introduction
 
-Small vision-language models can run on-device, which makes capable AI
-available exactly where cloud models are expensive or unavailable — a
-classroom with a worksheet and a phone, say. But consider what we are
-actually asking of such a model. It must first *read* the question, possibly
-written in one language and possibly rendered as pixels rather than text.
-Then it must *reason* its way to an answer, possibly in a different language
-altogether. Two steps, in sequence.
+Small VLMs run on-device, where cloud models are expensive or unavailable. A
+student who photographs a worksheet and asks for help poses a task with two
+steps: the model reads the question, which may be in any language and may
+arrive as pixels, and then reasons to an answer, possibly in another language.
+Multilingual benchmarks report one accuracy for the whole task, so when a
+model fails, the score cannot say whether it misread the question or
+reasoned badly.
 
-Most multilingual benchmarks collapse these two steps into a single accuracy
-number. So when a model fails, the number cannot tell you which step failed —
-did it misread the Turkish, or mis-multiply the eggs? This paper is about
-prying the two steps apart and measuring each on its own.
+We measure the two steps separately. We take the 250 MGSM test questions in
+five languages, present each as plain text and as a rendered image, and ask
+the model to reason in each of the five languages in turn. Every combination
+of question language, modality, and reasoning language is its own condition,
+so a model's monolingual scores (reading and reasoning in the same language)
+can be compared against its cross-lingual scores (reading in one language,
+reasoning in another).
 
-Our main finding is that, for small VLMs, the two steps really are separate
-skills. <mark>Cross-lingual visual reasoning decomposes into reading the
-source language off the pixels and reasoning in the target language as
-text — and each piece is predictable from monolingual scores alone.</mark>
+<mark>Cross-lingual visual reasoning in small VLMs decomposes into reading the
+source language from pixels and reasoning in the target language as text, and
+the model's monolingual scores on each step predict its cross-lingual
+accuracy.</mark> Three further findings follow from the same grid: reading
+limits accuracy far more than reasoning does, English is a robust reasoning
+language for non-English inputs, and asking the model to translate first does
+not help.
 
-## 2. The experiment
+## 2. Setup
 
-The setup is deliberately simple. We take two 4B-parameter open VLMs, Gemma 4
-E4B and Qwen3.5 4B, and run them locally — 4-bit quantized, via MLX on Apple
-Silicon, inference only, greedy decoding. The task is grade-school math from
-MGSM in five languages. Standard MGSM does not include a lower-resource
-language like Turkish, so we translated the full 250-question test set
-ourselves, and we release it along with all evaluation code.
+**Models.** Gemma 4 E4B and Qwen3.5 4B, 4-bit quantized, run locally with MLX
+on Apple Silicon. Inference only, greedy decoding.
 
-Each of the 250 questions appears in two modalities: as a plain text string,
-and as a PNG rendered at 300 DPI (Fig. 1 shows the same question in all five
-scripts). Cross-lingual cells get three prompt strategies: **Original**
-(reason in the target language, transfer left implicit), **Translate**
-(explicitly translate first, then solve), and **No-Translate** (solve
-directly, translation forbidden).
+**Data.** The 250-question MGSM test set in English, German, Spanish, Chinese,
+and Turkish. MGSM has no Turkish split, so we translated the full test set; we
+release the translation with the evaluation code.
+
+**Modalities.** Each question appears as a text string and as a PNG rendered
+at 300 DPI (Fig. 1).
+
+**Prompt strategies.** Cross-lingual conditions use three prompts.
+**Original** asks the model to reason in the target language and leaves the
+transfer implicit. **Translate** asks it to translate the question first, then
+solve it. **No-Translate** asks it to solve the question directly and forbids
+translation.
+
+**Notation.** A cell is one model, one data language $d$ (the language of the
+question), one reasoning language $c$, one modality, and one prompt strategy.
+$A_t(d, c)$ is accuracy on text input and $A_v(d, c)$ is accuracy on image
+input. Cells with $d = c$ are monolingual; cells with $d \neq c$ are
+cross-lingual, and we call them off-diagonal. Five languages give 20
+off-diagonal pairs, so each modality has 120 off-diagonal cells across both
+models and all three strategies (20 pairs × 2 models × 3 strategies).
 
 The full grid is 5 data languages × 5 reasoning languages × 2 models × 3
-strategies × 2 modalities: 300 conditions, 75,000 question-level evaluations.
+strategies × 2 modalities: 300 conditions and 75,000 question-level
+evaluations.
 
 ## 3. Results
 
-### 3.1 Reading is the bottleneck
+### 3.1 Reading limits accuracy
 
-Vision is much harder than text — and the gap is about reading, not
-reasoning. Averaged across all language pairs:
+Average accuracy over all language pairs:
 
 | Modality | Gemma 4 E4B | Qwen3.5 4B |
 | --- | --- | --- |
 | Text | 86.1% | 83.3% |
-| Vision | 73.5% | 78.3% |
+| Image | 73.5% | 78.3% |
 
-The averages understate it. The spread across *data* languages in the vision
-setting is enormous: English images average 86.8% on Gemma while Chinese
-images average 53.2% — a gap of over 30 points. Meanwhile, changing the
-*reasoning* language for a fixed data language moves accuracy by at most 14
-points. The hard part is getting the question out of the pixels.
+Image input costs 12.6 points on Gemma and 5.0 on Qwen, and the data language
+drives most of that loss. On Gemma, English images average 86.8% and Chinese
+images 53.2%, a 33.6-point gap. For a fixed data language, changing the
+reasoning language moves accuracy by at most 14 points. The bottleneck is
+getting the question out of the pixels.
 
-### 3.2 Cross-lingual accuracy is predictable
+### 3.2 Monolingual scores predict cross-lingual accuracy
 
-Here is the experiment we care about most. For each cross-lingual cell —
-source language $s$, target reasoning language $t$ — we ask: can you predict
-its accuracy from the model's *native-language* accuracies alone, without
-ever running the cross-lingual condition?
-
-You can. For text inputs, source-language text ability plus target-language
-text ability explains the data (LOOCV $R^2 = 0.693$). For image inputs, the
-source-side predictor shifts to vision:
+For each off-diagonal cell we ask whether its accuracy can be predicted from
+the model's monolingual scores alone. We fit a linear model with two
+predictors, one for the source side and one for the target side, and score
+the fit by leave-one-out cross-validation (LOOCV). For text input, the
+predictors are the model's monolingual text accuracy in the data language and
+in the reasoning language:
 
 $$
-\widehat{\mathrm{Acc}}(s \to t) \;=\; \beta_0 \;+\; \beta_1\,\mathrm{Vision}(s) \;+\; \beta_2\,\mathrm{Text}(t)
+\hat{A}_t(d, c) = \beta_0 + \beta_1\, A_t(d, d) + \beta_2\, A_t(c, c),
+\qquad R^2 = 0.693.
 $$
 
-This two-term model gives LOOCV $R^2 = 0.875$ over all 120 off-diagonal
-cells (Fig. 2). Swapping in target-language *vision* ability instead makes
-the model worse — which is the interesting part. Once the problem has been
-read off the image, reasoning in the target language is a text operation.
-The model doesn't need to see anymore.
+For image input, the source-side predictor becomes monolingual image accuracy
+and the target-side predictor stays text:
 
-<Figure narrow src="/projects/multilingual-vision-and-text/scatter_vision_prediction.png" alt="Observed vs. predicted cross-lingual vision accuracy" caption="Figure 2: Observed vs. predicted cross-lingual vision accuracy for all 120 off-diagonal cells, both models, all three prompt strategies. The predictor is just two monolingual scores: native vision in the source language and native text in the target language." />
+$$
+\hat{A}_v(d, c) = \beta_0 + \beta_1\, A_v(d, d) + \beta_2\, A_t(c, c),
+\qquad R^2 = 0.875.
+$$
 
-### 3.3 When in doubt, reason in English
+This model fits all 120 off-diagonal image cells (Fig. 2). Replacing the
+target-side predictor with monolingual image accuracy $A_v(c, c)$ lowers the
+fit. Once the model has read the question off the image, reasoning in the
+target language is a text task.
 
-For non-English inputs, English reasoning is frequently the best or
-tied-best choice, and the tradeoff is asymmetric: where native-language
-reasoning wins, it wins by at most 2.8 points; where English wins, it can
-win by up to 9.2 points (Gemma on Chinese images). If you are deploying a
-small VLM and must pick one reasoning language, pick a high-resource one.
+<Figure narrow src="/projects/multilingual-vision-and-text/scatter_vision_prediction.png" alt="Scatter plot of observed against predicted cross-lingual image accuracy, with points near the diagonal and the Chinese-image cells forming a low cluster" caption="Figure 2: Observed against predicted cross-lingual image accuracy for all 120 off-diagonal cells, both models, all three prompt strategies. The predictors are the model's monolingual image accuracy in the data language and its monolingual text accuracy in the reasoning language." />
 
-### 3.4 Forcing translation doesn't help
+### 3.3 English is a robust reasoning language
 
-The explicit translate-then-solve pipeline is mildly harmful in the vision
-setting (Gemma: 73.5% → 71.3%) and inconsistent for text. Leaving the
-transfer strategy implicit is the simplest effective choice. Overall, prompt
-strategy moves accuracy by 2 to 3 points — an order of magnitude less than
-the data language does. Prompting cannot paper over missing capability.
+For non-English inputs, English reasoning is often the best or tied-best
+choice, and the tradeoff is asymmetric. Where native-language reasoning
+wins, it wins by at most 2.8 points; where English wins, the margin reaches
+9.2 points (Gemma on Chinese images). A deployment restricted to one
+reasoning language should use a high-resource one.
 
-## 4. Did we fool ourselves?
+### 3.4 Explicit translation does not help
 
-An $R^2$ of 0.875 made us suspicious of our own result. Gemma's
-Chinese-image cluster sits far below everything else, and a line drawn
-through two clusters can look great while saying very little. So, two
-checks. First, adding per-language and per-model group controls
-*strengthens* the target-reasoning coefficient (0.61 → 0.67) rather than
-washing it out. Second, deleting every Gemma×Chinese cell outright keeps
-both predictors highly significant, with $R^2 = 0.79$. The compositional
-structure is not an artifact of the worst cluster.
+Translate-then-solve lowers image accuracy on Gemma from 73.5% to 71.3% and
+has inconsistent effects on text. Leaving the transfer implicit is the
+simplest effective choice. Across the grid, prompt strategy moves accuracy by
+2 to 3 points, an order of magnitude less than the data language does.
+Prompting cannot supply a capability the model lacks.
+
+## 4. Robustness
+
+Gemma's Chinese-image cells form a low outlying cluster (Fig. 2), and a
+regression across two clusters can report a high $R^2$ while explaining
+little within either. Two checks address this. Adding per-language and
+per-model group controls raises the target-reasoning coefficient $\beta_2$
+from 0.61 to 0.67. Removing every Gemma × Chinese cell leaves both predictors
+highly significant, with $R^2 = 0.79$. The compositional structure survives
+without its worst cluster.
 
 ## 5. Limitations
 
-Honesty compels the usual caveats, and a few particular ones. We study two
-models, both 4B-parameter and 4-bit quantized, with greedy decoding; larger
-or full-precision models may compose differently. The task is grade-school
-math — a domain where “reading” and “reasoning” separate unusually cleanly —
-over five languages and 250 questions per language. Our claims are about
-this regime; we measure what we measure.
+We study two models, both 4B-parameter, 4-bit quantized, and decoded greedily;
+larger or full-precision models may compose differently. The task is
+grade-school math, where reading and reasoning separate cleanly, over five
+languages and 250 questions per language.
 
 ## 6. Conclusion
 
-For small VLMs, multilingual visual reasoning is two independent
-capabilities, not one: reading the source language from pixels, and
-reasoning in the target language as text. Training coverage in one channel
-does not substitute for the other. If you want a model to solve Turkish math
-problems photographed from a worksheet, it needs Turkish visual-language
-data *and* strong text reasoning somewhere — and no prompting trick closes
-either gap.
+In small VLMs, reading the source language from pixels and reasoning in the
+target language as text are separable capabilities, and training coverage in
+one does not substitute for the other. A model that solves Turkish math
+problems from worksheet photos needs Turkish visual-language data and strong
+text reasoning in some language. Prompt strategy closes neither gap.
 
-**Data and code.** The full Turkish translation of the MGSM test set and all
+**Data and code.** The Turkish translation of the MGSM test set and all
 evaluation code are released with the paper.

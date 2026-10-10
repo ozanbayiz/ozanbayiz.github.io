@@ -407,15 +407,23 @@ html {
 }
 
 /* Heading margins own ALL section spacing (SectionDivider renders
- * nothing) — keep them tight. */
+ * nothing). A heading belongs to the text under it, not the text above
+ * it, so the space above is ~3× the space below (the bottom margin is
+ * swallowed by the paragraph's own 0.9em — proximity does the grouping,
+ * never a rule). An h3 straight under an h2 is the same section's
+ * first label and sits tight. */
 .paper h2 {
     font-size: 1.5rem;
-    margin: 0.9em 0 0.4em;
+    margin: 2em 0 0.4em;
 }
 
 .paper h3 {
     font-size: 1.2rem;
-    margin: 0.9em 0 0.35em;
+    margin: 1.6em 0 0.3em;
+}
+
+.paper h2 + h3 {
+    margin-top: 0.6em;
 }
 
 /* The highlighter — for a report's single load-bearing sentence. */
@@ -441,11 +449,21 @@ html {
     margin: 0.3em 0;
 }
 
+/* A figure shrinks to its image and centers, so the caption is never
+ * wider than the plate it describes — a narrow image with a column-wide
+ * caption reads as two unrelated things. display: table is what makes
+ * that work: a table-caption takes the table's width without adding its
+ * own (a long caption's natural width is its whole text on one line,
+ * which would stretch any other shrink-wrapped box to the column). */
 .paper figure {
-    margin: 1.3em 0;
+    display: table;
+    max-width: 100%;
+    margin: 1.3em auto;
 }
 
 .paper figcaption {
+    display: table-caption;
+    caption-side: bottom;
     font-family: var(--font-plex-mono), monospace;
     font-size: 0.75rem;
     line-height: 1.5;
@@ -480,11 +498,15 @@ html {
     font-size: 0.85em;
 }
 
+/* The blockquote is the abstract: LaTeX sets it as a narrower measure
+ * in slightly smaller roman type under a bold "Abstract." lead-in (the
+ * report supplies that). No rule and no italics — the site draws no
+ * rules, and seven italic lines are a texture, not an emphasis. */
 .paper blockquote {
-    border-left: 2px solid hsl(var(--foreground) / 0.3);
-    padding-left: 1em;
+    font-size: 0.95em;
+    line-height: 1.65;
+    padding: 0 2em;
     margin: 1.2em 0;
-    font-style: italic;
 }
 
 /* Markdown `---` renders as whitespace, not a drawn rule — consistent
