@@ -34,13 +34,15 @@ export default function AboutSection() {
                 </div>
                 <div className='order-first col-span-1 flex flex-col justify-center md:order-none md:col-span-5'>
                     {/* The photo in its own tight dead zone, uncropped,
-                     * caption in the mono UI voice. max-w-md caps the
+                     * caption in the mono UI voice. max-w-xs caps the
                      * figure once the layout drops to one column — a
-                     * notch above its 5/12 grid-column size on a wide
-                     * screen, so Ozan never gets *huge*. */}
+                     * notch below its 5/12 grid-column size on a wide
+                     * screen (~327px at the 64rem container), so the
+                     * photo is never larger on a narrow screen than on a
+                     * wide one. */}
                     <figure
                         data-cloud='dead'
-                        className='mx-auto w-full max-w-md'
+                        className='mx-auto w-full max-w-xs'
                     >
                         <ExportedImage
                             src={about.photo.src}

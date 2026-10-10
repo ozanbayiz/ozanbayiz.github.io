@@ -36,8 +36,14 @@ export default function ResearchSection() {
                          * blob's crest billows plenty of black above
                          * the figure, so the plate rides high in its
                          * cloud. The painted fallback (no JS, reduced
-                         * motion) keeps the full symmetric frame. */
-                        className='cloud-zone cloud-lift flex flex-col gap-stack p-stack'
+                         * motion) keeps the full symmetric frame.
+                         * Below md the grid is one column and the card
+                         * would stretch to the container, outgrowing its
+                         * two-column width on a wide screen (~389px at
+                         * the 64rem container); max-w-sm holds it a
+                         * notch under that, centered like the About
+                         * photo. */
+                        className='cloud-zone cloud-lift mx-auto flex w-full max-w-sm flex-col gap-stack p-stack md:max-w-none'
                     >
                         {entry.cover && (
                             /* eslint-disable-next-line @next/next/no-img-element */
