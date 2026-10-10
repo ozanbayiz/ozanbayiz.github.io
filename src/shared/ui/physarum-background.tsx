@@ -241,27 +241,59 @@ type Box = {
  * Calligra signature carries ~10px of empty ascent alone. Measure each
  * text node's actual ink once (canvas measureText) and remember how
  * much to trim off the top and bottom of its line rects, so dead zones
- * hug what the eye sees, not the font's bounding box. The cache is
- * dropped once webfonts finish loading — metrics measured against a
- * fallback face would otherwise stick. */
-type InkTrim = { top: number; bottom: number }
+ * hug what the eye sees, not the font's bounding box. Sideways the
+ * rect gets WIDER instead, by SIDE_CH characters of the node's own
+ * font: line spacing already airs a line out above and below, but a
+ * mold glyph an advance or two off the start or end of a line reads as
+ * a stray character OF that line — the dead-zone clearance alone is
+ * less than one body-text advance. Two characters: a left-aligned
+ * block's start edge is a straight wall facing the open margin, where
+ * the colony is densest, and one character there still read as
+ * crowding next to the ragged, sparsely visited right edge. Images and
+ * icons get the same air on all four sides, measured from the font
+ * they sit in, so a photo and the paragraph beside it hold the mold
+ * off by the same margin. The caches are dropped once webfonts finish
+ * loading — metrics measured against a fallback face would otherwise
+ * stick. */
+const SIDE_CH = 2
+type InkTrim = { top: number; bottom: number; side: number }
 let inkTrims = new WeakMap<Text, InkTrim>()
+let airs = new WeakMap<Element, number>()
 function resetInkTrims() {
     inkTrims = new WeakMap()
+    airs = new WeakMap()
 }
 let measureCtx: CanvasRenderingContext2D | null = null
+const fontCtx = (el: Element): CanvasRenderingContext2D | null => {
+    if (!measureCtx) {
+        measureCtx = document.createElement('canvas').getContext('2d')
+    }
+    if (measureCtx) {
+        const cs = getComputedStyle(el)
+        measureCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
+    }
+    return measureCtx
+}
+/* SIDE_CH characters of the element's computed font, in CSS px
+ * (measureText('0') is the CSS ch unit) */
+const airOf = (el: Element): number => {
+    let air = airs.get(el)
+    if (air === undefined) {
+        const ctx = fontCtx(el)
+        air = ctx ? SIDE_CH * ctx.measureText('0').width : 0
+        airs.set(el, air)
+    }
+    return air
+}
 const inkTrim = (node: Text): InkTrim => {
     let trim = inkTrims.get(node)
     if (!trim) {
-        trim = { top: 0, bottom: 0 }
+        trim = { top: 0, bottom: 0, side: 0 }
         const el = node.parentElement
-        if (!measureCtx) {
-            measureCtx = document.createElement('canvas').getContext('2d')
-        }
-        if (el && measureCtx) {
-            const cs = getComputedStyle(el)
-            measureCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-            const m = measureCtx.measureText((node.nodeValue ?? '').trim())
+        const ctx = el && fontCtx(el)
+        if (el && ctx) {
+            trim.side = airOf(el)
+            const m = ctx.measureText((node.nodeValue ?? '').trim())
             /* max ink over the node's characters — per-line trims can
              * only be larger, so this never overcuts */
             if (m.fontBoundingBoxAscent !== undefined) {
@@ -392,17 +424,21 @@ export default function PhysarumBackground() {
          * block rectangle would sterilize — after a short last line,
          * along the ASCII art's outline, beside a caption. */
         /* push a line rect with the node's font-metric padding trimmed
-         * off — the zone should trace ink, not the font bounding box */
+         * off the top and bottom and SIDE_CH characters of air added to
+         * each side — the zone should trace ink, not the font bounding
+         * box */
         const pushInkRect = (r: DOMRect, t: InkTrim, out: Box[]) => {
             const top = r.top + t.top
             const bottom = r.bottom - t.bottom
             if (bottom - top < 2) return
+            const left = r.left - t.side
+            const right = r.right + t.side
             out.push({
-                left: r.left,
-                right: r.right,
+                left,
+                right,
                 top,
                 bottom,
-                width: r.width,
+                width: right - left,
                 height: bottom - top
             })
         }
@@ -437,7 +473,16 @@ export default function PhysarumBackground() {
                 tag === 'CANVAS' ||
                 tag === 'VIDEO'
             ) {
-                out.push(node.getBoundingClientRect())
+                const r = node.getBoundingClientRect()
+                const air = airOf(node)
+                out.push({
+                    left: r.left - air,
+                    right: r.right + air,
+                    top: r.top - air,
+                    bottom: r.bottom + air,
+                    width: r.width + 2 * air,
+                    height: r.height + 2 * air
+                })
                 return
             }
             node.childNodes.forEach(child => contentRects(child, out))
