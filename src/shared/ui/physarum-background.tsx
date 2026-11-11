@@ -95,6 +95,15 @@ import { useEffect, useRef, useState } from 'react'
 const RAMP =
     ' .`\'^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCQ0OZmwqpdbkhao*#MW&8%B@$'
 
+/* One string per ramp glyph, built once, and the ONLY strings the
+ * canvas ever draws. Safari on iOS keeps every distinct string handed
+ * to fillText: inking each row as one string — a new, never-repeated
+ * string per row per tick, thousands a second — grew the tab by
+ * megabytes a second until iOS killed it ("A problem repeatedly
+ * occurred"). Drawn a glyph at a time, the set of strings is these
+ * ~70, forever. */
+const GLYPHS = Array.from(RAMP)
+
 /* ── Tunables ───────────────────────────────────────────────────────── */
 
 /* cell geometry: character cell height in CSS px; width is MEASURED */
@@ -972,10 +981,12 @@ export default function PhysarumBackground() {
             }
             /* glyph pass — fade is 0 in cloud and buffer, so both go
              * blank through the same path; mold density feathers up
-             * across FADE */
+             * across FADE. ONE GLYPH PER fillText, each at its cell's
+             * own x — never a row string (see GLYPHS): the monospace
+             * advance is CW, so the ink lands exactly where a row
+             * string would have put it. */
             ctx.fillStyle = INK
             for (let y = top; y < bot; y++) {
-                let line = ''
                 for (let x = 0; x < gw; x++) {
                     let v = Math.max(
                         0,
@@ -985,21 +996,16 @@ export default function PhysarumBackground() {
                                 fadeF[y * gw + x]!
                         )
                     )
-                    if (v < CUT) {
-                        line += ' '
-                        continue
-                    }
+                    if (v < CUT) continue
                     v = (v - CUT) / (1 - CUT)
                     v = Math.max(0, Math.min(1, v + (hash(x, y) - 0.5) * 0.08))
-                    line +=
-                        RAMP[
-                            Math.min(
-                                RAMP.length - 1,
-                                Math.floor(v * RAMP.length)
-                            )
-                        ]!
+                    const g = Math.min(
+                        GLYPHS.length - 1,
+                        Math.floor(v * GLYPHS.length)
+                    )
+                    /* glyph 0 is the space — nothing to ink */
+                    if (g > 0) ctx.fillText(GLYPHS[g]!, x * CW, y * CH)
                 }
-                ctx.fillText(line, 0, y * CH)
             }
         }
 

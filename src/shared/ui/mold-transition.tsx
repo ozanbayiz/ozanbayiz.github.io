@@ -33,6 +33,11 @@ import { useEffect, useRef } from 'react'
 const RAMP =
     ' .`\'^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCQ0OZmwqpdbkhao*#MW&8%B@$'
 
+/* one string per glyph — the only strings ever drawn; iOS Safari
+ * keeps every distinct string handed to fillText (see the note in
+ * physarum-background.tsx), so the fringe is never drawn as rows */
+const GLYPHS = Array.from(RAMP)
+
 const CELL_H = 11 /* cell height, CSS px; width measured from the font */
 const DPR_CAP = 2
 const GROW_MS = 700 /* mold flood duration */
@@ -187,7 +192,7 @@ export default function MoldTransition() {
         /* draw the field: cells where `edge` > FRINGE are solid `fill`,
          * cells where 0 < edge <= FRINGE get a ramp glyph in `ink`
          * (denser near the solid mass) — one solid pass with row runs,
-         * one glyph pass with row strings */
+         * one glyph pass, a glyph at a time */
         const drawField = (
             edge: (x: number, y: number) => number,
             fill: string,
@@ -211,28 +216,22 @@ export default function MoldTransition() {
             }
             ctx.fillStyle = ink
             for (let y = 0; y < s.gh; y++) {
-                let line = ''
                 for (let x = 0; x < s.gw; x++) {
                     const e = edge(x, y)
-                    if (e <= 0 || e > FRINGE) {
-                        line += ' '
-                        continue
-                    }
+                    if (e <= 0 || e > FRINGE) continue
                     /* per-cell grain in the glyph choice — the fringe
                      * crumbles instead of grading smoothly */
                     const v = Math.max(
                         0,
                         Math.min(1, e / FRINGE + (hash2(x, y) - 0.5) * 0.45)
                     )
-                    line +=
-                        RAMP[
-                            Math.min(
-                                RAMP.length - 1,
-                                Math.floor(v * RAMP.length)
-                            )
-                        ]!
+                    const g = Math.min(
+                        GLYPHS.length - 1,
+                        Math.floor(v * GLYPHS.length)
+                    )
+                    /* glyph 0 is the space — nothing to ink */
+                    if (g > 0) ctx.fillText(GLYPHS[g]!, x * s.cw, y * s.ch)
                 }
-                ctx.fillText(line, 0, y * s.ch)
             }
         }
 
