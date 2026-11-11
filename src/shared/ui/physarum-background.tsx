@@ -95,6 +95,15 @@ import { useEffect, useRef, useState } from 'react'
 const RAMP =
     ' .`\'^",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCQ0OZmwqpdbkhao*#MW&8%B@$'
 
+/* One string per ramp glyph, built once, and the ONLY strings the
+ * canvas ever draws. Safari on iOS keeps every distinct string handed
+ * to fillText: inking each row as one string — a new, never-repeated
+ * string per row per tick, thousands a second — grew the tab by
+ * megabytes a second until iOS killed it ("A problem repeatedly
+ * occurred"). Drawn a glyph at a time, the set of strings is these
+ * ~70, forever. */
+const GLYPHS = Array.from(RAMP)
+
 /* ── Tunables ───────────────────────────────────────────────────────── */
 
 /* cell geometry: character cell height in CSS px; width is MEASURED */
@@ -216,46 +225,6 @@ type Zone = {
     fade: number
     paint: boolean
     hot: boolean
-}
-
-/* ── Crash guard ─────────────────────────────────────────────────────
- * This page has been killed mid-view on some phones (Safari's "A
- * problem repeatedly occurred") and the root cause is not known. No
- * visitor should sit in that loop: if the page dies while the organism
- * is running and VISIBLE, the organism sits out for a day on this
- * browser and the painted anchors carry the design. Mechanism: a run
- * stamps sessionStorage on start and marks a clean exit on pagehide
- * AND on visibilitychange→hidden — so a background-tab eviction
- * (normal iOS housekeeping) never counts, but a kill mid-view (the
- * page reloads in the same tab, sessionStorage intact, no goodbye)
- * does. ONE dirty death is enough: Safari reloads a crashed page by
- * itself and only shows its error page when that reload dies too, so
- * benching on the first death is what makes the automatic reload come
- * up working. Everything is try/caught: storage can be absent or
- * throwing, and then the guard simply never trips. */
-const HB_KEY = 'phys-run'
-const CLEAN_KEY = 'phys-clean'
-const OFF_KEY = 'phys-off-until'
-const OFF_MS = 24 * 3600 * 1000
-
-/* true → do not run the organism this visit */
-const crashGuardTripped = (): boolean => {
-    try {
-        if (Date.now() < +(localStorage.getItem(OFF_KEY) ?? 0)) return true
-        const ranBefore = sessionStorage.getItem(HB_KEY) === '1'
-        const cleanExit = sessionStorage.getItem(CLEAN_KEY) === '1'
-        if (ranBefore && !cleanExit) {
-            localStorage.setItem(OFF_KEY, String(Date.now() + OFF_MS))
-            /* this death is accounted for — don't re-trip on it once
-             * the bench expires */
-            sessionStorage.setItem(CLEAN_KEY, '1')
-            console.warn('physarum: sitting out after a crash on this device')
-            return true
-        }
-    } catch {
-        /* no storage, no guard — run normally */
-    }
-    return false
 }
 
 /* attribute override in cells, else the given default */
@@ -395,31 +364,6 @@ export default function PhysarumBackground() {
          * visit never allocates the world or flips data-organism at all */
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches)
             return
-        /* the organism benches itself after a mid-view crash on this
-         * browser — the painted anchors carry the design */
-        if (crashGuardTripped()) return
-        const setClean = (clean: boolean) => {
-            try {
-                if (clean) sessionStorage.setItem(CLEAN_KEY, '1')
-                else sessionStorage.removeItem(CLEAN_KEY)
-            } catch {
-                /* storage unavailable — the guard simply never trips */
-            }
-        }
-        try {
-            sessionStorage.setItem(HB_KEY, '1')
-        } catch {
-            /* ditto */
-        }
-        setClean(document.hidden)
-        const onGuardVis = () => setClean(document.hidden)
-        const onGuardHide = () => setClean(true)
-        /* a back-forward cache restore resumes the run after pagehide
-         * already marked it clean */
-        const onGuardShow = () => setClean(document.hidden)
-        document.addEventListener('visibilitychange', onGuardVis)
-        window.addEventListener('pagehide', onGuardHide)
-        window.addEventListener('pageshow', onGuardShow)
         /* announce the running organism — globals.css keys canvas-only
          * styles off this attribute, so no-JS and reduced-motion pages
          * (which never set it) keep their painted-fallback layout. Set
@@ -1037,10 +981,12 @@ export default function PhysarumBackground() {
             }
             /* glyph pass — fade is 0 in cloud and buffer, so both go
              * blank through the same path; mold density feathers up
-             * across FADE */
+             * across FADE. ONE GLYPH PER fillText, each at its cell's
+             * own x — never a row string (see GLYPHS): the monospace
+             * advance is CW, so the ink lands exactly where a row
+             * string would have put it. */
             ctx.fillStyle = INK
             for (let y = top; y < bot; y++) {
-                let line = ''
                 for (let x = 0; x < gw; x++) {
                     let v = Math.max(
                         0,
@@ -1050,21 +996,16 @@ export default function PhysarumBackground() {
                                 fadeF[y * gw + x]!
                         )
                     )
-                    if (v < CUT) {
-                        line += ' '
-                        continue
-                    }
+                    if (v < CUT) continue
                     v = (v - CUT) / (1 - CUT)
                     v = Math.max(0, Math.min(1, v + (hash(x, y) - 0.5) * 0.08))
-                    line +=
-                        RAMP[
-                            Math.min(
-                                RAMP.length - 1,
-                                Math.floor(v * RAMP.length)
-                            )
-                        ]!
+                    const g = Math.min(
+                        GLYPHS.length - 1,
+                        Math.floor(v * GLYPHS.length)
+                    )
+                    /* glyph 0 is the space — nothing to ink */
+                    if (g > 0) ctx.fillText(GLYPHS[g]!, x * CW, y * CH)
                 }
-                ctx.fillText(line, 0, y * CH)
             }
         }
 
@@ -1425,10 +1366,6 @@ export default function PhysarumBackground() {
             window.removeEventListener('click', onClick)
             window.removeEventListener('resize', resize)
             document.removeEventListener('visibilitychange', onVisibility)
-            document.removeEventListener('visibilitychange', onGuardVis)
-            window.removeEventListener('pagehide', onGuardHide)
-            window.removeEventListener('pageshow', onGuardShow)
-            setClean(true) /* unmounting (navigation) is a clean exit */
             mo.disconnect()
             zoneRO.disconnect()
             for (const z of zoneRects) z.el.removeAttribute('data-cloud-hot')
